@@ -3,7 +3,7 @@ Bleepy  Server is the web version of python program can block tagalog and englis
 
 Note: This is save for the local storage
 
-#Python modules needed
+## Python modules needed
 1. vosk-api
    - Offline speech recognition 
    - https://github.com/alphacep/vosk-api
