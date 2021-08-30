@@ -1,1 +1,5 @@
 #List here the file and folders you want to ignore
+
+bleepy/
+
+test.py
