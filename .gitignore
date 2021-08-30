@@ -1,5 +1,7 @@
 #List here the file and folders you want to ignore
 
 bleepy/
+static/media/
+stt-language-models/
 
 test.py
