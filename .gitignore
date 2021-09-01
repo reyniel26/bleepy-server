@@ -2,6 +2,7 @@
 
 bleepy/
 static/media/
+static/Bleepy_UI
 stt-language-models/
 
 test.py
