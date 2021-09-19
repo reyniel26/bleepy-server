@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-4">
+        <div class="jumbotron bg-white shadow p-4 mb-4">
+            <h1 class="text-center my-3">Sign in</h1>
+            <form action="dashboard.html" id="signinform" method="POST">
+                <div class="form-group">
+                    <label for="email">Email address: <span class="invalid text-danger">*</span></label>
+                    <input type="email" class="form-control" placeholder="Enter your email" id="email" name="email">
+                </div>
+                <div class="form-group">
+                    <label for="pwd">Password: <span class="invalid text-danger">*</span></label> 
+                    <div class="input-group mb-3 ">
+                        <input type="password" class="form-control " placeholder="Enter your password" id="pwd" name="pwd">
+                        <div class="input-group-append">
+                            <button class="btn btn-theme" type="button" id="showpwd"><i class="fa fa-eye-slash" aria-hidden="true" id="eyepwd"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" id="remember" name="remember"> Remember me for 30 days
+                    </label>
+                </div>
+                <div class="text-center mb-3">
+                    <button type="submit" class="btn btn-theme w-100">Submit</button>
+                </div>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <a href="signup.html">Create an account </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="">Forgot Password </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="{{url_for('static', filename='Bleepy_UI/js/showpwd.js')}}"></script>
+<script src="{{url_for('static', filename='Bleepy_UI/js/signin.js')}}"></script>
+{% endblock %}

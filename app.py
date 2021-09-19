@@ -1,15 +1,30 @@
 from flask import Flask, render_template
+from model import model
 
 app = Flask(__name__)
+app.secret_key = 'bleepy_server' #Set the secret_key
+
+#================================================== Routes 
 
 #Index Page
 @app.route('/')
 def index():
     #create template folder
     #inside of template folder is the home.html
-    return render_template('home.html')
+    return render_template('index.html')
 
-#Run APP
+#Signup Page
+@app.route('/signup')
+def signup():
+    
+    return render_template('signup.html')
+
+#Signin Page
+@app.route('/signin')
+def signin():
+    
+    return render_template('signin.html')
+
+#================================================== Run APP 
 if __name__ == '__main__':
-    app.secret_key = 'bleepy_server' #Set the secret_key
     app.run(debug=True)

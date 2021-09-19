@@ -1,0 +1,67 @@
+<!--NAV BAR-->
+<nav class="navbar navbar-expand-md navbar-dark bg-theme navbar-theme sticky-top">
+    <div class=" container-md">
+        <!-- Brand -->
+        <a class="navbar-brand" href="/"> <img src="{{url_for('static', filename='Bleepy_UI/src/logo-white.png')}}" alt="" class="" width="140px"></a>
+    
+        <!-- Toggler/collapsibe Button -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+        <span class="navbar-toggler-icon"></span>
+        </button>
+    
+        <!-- Navbar links -->
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Bleep Sounds</a>
+            </li>
+            <!-- Dropdown -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                About
+                </a>
+                <div class="dropdown-menu">
+                <a class="dropdown-item" href="#">About Us</a>
+                <a class="dropdown-item" href="#">Contact Us</a>
+                <a class="dropdown-item" href="#">Terms and Conditions</a>
+                <a class="dropdown-item" href="#">Privacy and Security Policies</a>
+                </div>
+            </li>
+        </ul>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+            <a class="nav-link" href="/signup">Sign up</a>
+            </li>
+            <li class="nav-item">
+            <a class="btn btn-outline-light bg-theme-secondary text-theme-secondary d-md-block d-none" href="signin">Sign in</a>
+            <a class="nav-link d-md-none" href="/signin">Sign in</a>
+            </li>
+            <!-- Navbar Search -->
+            <li class="nav-item">
+                <a class="nav-link" data-widget="navbar-search" data-target="#navbar-search1" href="#" role="button">
+                  <i class="fa fa-search"></i>
+                  <span class=" d-md-none"> Search</span>
+                </a>
+                <div class="navbar-search-block" id="navbar-search1">
+                  <form class="form-inline">
+                    <div class="input-group input-group-sm">
+                      <input class="form-control form-control-navbar bg-light" type="search" placeholder="Search" aria-label="Search">
+                      <div class="input-group-append">
+                        <button class="btn btn-theme-secondary" type="submit">
+                          <i class="fa fa-search"></i>
+                        </button>
+                        <button class="btn btn-theme-secondary" type="button" data-widget="navbar-search">
+                          <i class="fa fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+            </li>
+        </ul>
+        </div>
+    </div>
+</nav>
