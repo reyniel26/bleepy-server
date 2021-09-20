@@ -1,23 +1,43 @@
 #================================================== Imports
 #Flask
-from flask import Flask, render_template
+from flask import Flask, render_template, flash, redirect, url_for
+#For decorator
+from functools import wraps 
 
 #Model for DB
 from model import Model
 #Bleepy module
 from bleepy.bleepy import VideoFile, AudioFile, SpeechToText, ProfanityExtractor, ProfanityBlocker
 
-#================================================== Objects
-db = Model()
-
 #================================================== Configs
 app = Flask(__name__)
 app.secret_key = 'bleepy_server' #Set the secret_key
+
+#================================================== Objects
+db = Model()
+
+#================================================== Control Methods
+def testConn(f):
+    """
+    Check if the db server is up | Decorator | from functools import wraps
+    Note: Include this wrapper in every route that requires dbms
+    Or Include this wrapper to all routes except for the error page
+    """
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if db.hasConnection():
+            return f(*args, **kwargs)
+        else:
+            return redirect(url_for('error'))
+    return wrap
+
+
 
 #================================================== Routes 
 
 #Index Page
 @app.route('/')
+@testConn
 def index():
     #create template folder
     #inside of template folder is the home.html
@@ -26,18 +46,20 @@ def index():
 #Error Page
 @app.route('/error')
 def error():
-    #create template folder
-    #inside of template folder is the home.html
+    if db.hasConnection():
+        return redirect(url_for('index'))
     return render_template('error.html')
 
 #Signup Page
 @app.route('/signup')
+@testConn
 def signup():
     
     return render_template('signup.html')
 
 #Signin Page
 @app.route('/signin')
+@testConn
 def signin():
     
     return render_template('signin.html')
@@ -46,12 +68,14 @@ def signin():
 
 #Settings Page
 @app.route('/settings')
+@testConn
 def settings():
     
     return render_template('settings.html')
 
 #Dashboard Page
 @app.route('/dashboard')
+@testConn
 def dashboard():
     
     return render_template('dashboard.html')
