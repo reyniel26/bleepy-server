@@ -1,6 +1,6 @@
 #================================================== Imports
 #Flask
-from flask import Flask, render_template, flash, redirect, url_for
+from flask import Flask, render_template, flash, redirect, url_for, request
 #For decorator
 from functools import wraps 
 
@@ -58,10 +58,12 @@ def signup():
     return render_template('signup.html')
 
 #Signin Page
-@app.route('/signin')
+@app.route('/signin', methods=["POST",'GET'])
 @testConn
 def signin():
-    
+    if request.method == "POST":
+        flash('You are now logged in ', 'success')
+        return redirect(url_for('dashboard'))
     return render_template('signin.html')
 
 #Pages that can only be access when logged in
