@@ -1,4 +1,5 @@
 #List here the file and folders you want to ignore
+__pycache__/
 
 bleepy/
 static/media/
@@ -6,3 +7,5 @@ static/Bleepy_UI
 stt-language-models/
 
 test.py
+
+documentation/

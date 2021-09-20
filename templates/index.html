@@ -1,0 +1,98 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<section >
+    <div class="container py-5">
+        <div class="row container-md">
+            <div class="col-md-6">
+                <p class="text-theme-tertiary font-weight-bold">ABOUT US</p>
+                <h1 class=" display-4 font-weight-bold">We want to have a safe video for everyone!</h1>
+                <p class="text-justify mt-3">
+                    Bleepy is a Tagalog and English profanity blocker that will help the Gaming Video Creators also known as Game Streamers. 
+                    This will help them to remove the profanities in their recorded videos playing a game with the use of machine learning and algorithm. 
+                    Our mission is to support the local streamers here in the Philippines to have a better content in their channels and eliminate the profanities 
+                    that restrict by community guidelines provided by the Social Media platforms in which game streamers upload their videos. Want to know more?
+                </p>
+                <a href="signin.html">
+                    <button type="button" class="btn btn-theme"> Get Started >> </button>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <img src="{{url_for('static', filename='Bleepy_UI/src/mark-decile-WA84FtTi7NU-unsplash.jpg')}}" class="w-100 mt-3 ml-md-5" alt="gamerpic">
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="bg-theme text-theme-secondary">
+    <div class="container py-5">
+        <div class=" text-center">
+            <h2>The Best Profanity Blocker you can have!</h2>
+            <p>We provide three best experiences that you can have in blocking the profanities in the videos.</p>
+        </div>
+        <div class="card-deck mt-3 text-theme">
+            <div class="card shadow mb-4">
+                <img class="card-img-top" src="{{url_for('static', filename='Bleepy_UI/src/light.png')}}" alt="insight" >
+                <div class="card-body">
+                  <h4 class="card-title">Detect Tagalog and English Profanities</h4>
+                  <p class="card-text">We provide two language profanity detection on your videos!</p>
+                </div>
+            </div>
+            <div class="card shadow mb-4">
+                <img class="card-img-top" src="{{url_for('static', filename='Bleepy_UI/src/list.jpg')}}" alt="insight" >
+                <div class="card-body">
+                    <h4 class="card-title">Give insights about the Profanity in Videos</h4>
+                    <p class="card-text">Presentation of Statistics of Profanities through Graphs and Percentage!</p>
+                </div>
+            </div>
+            <div class="card shadow mb-4">
+                <img class="card-img-top" src="{{url_for('static', filename='Bleepy_UI/src/sound.png')}}" alt="insight" >
+                <div class="card-body">
+                    <h4 class="card-title">Guide you to monetize your content</h4>
+                    <p class="card-text">Block the profanities according to community guidelines of Social Media.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="container py-5">
+        <div class=" text-center">
+            <h2>Remove profanities in your videos in just 3 steps!</h2>
+            <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+        </div>
+        <div class="card-deck mt-3 container">
+            <div class="card">
+                <div class="card-header text-center bg-dark text-white">
+                    <h4 class="card-title">Step 1</h4>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fa fa-upload fa-5x" aria-hidden="true"></i> <br>
+                    <p class="mt-3">Upload the video you want to remove the profanity</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header text-center bg-dark text-white">
+                    <h4 class="card-title">Step 2</h4>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fa fa-spinner fa-5x" aria-hidden="true"></i>
+                    <p class="mt-3">Wait until your video done processing</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header text-center bg-dark text-white">
+                    <h4 class="card-title">Step 3</h4>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fa fa-download fa-5x" aria-hidden="true"></i>
+                    <p class="mt-3">Download your videos</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+

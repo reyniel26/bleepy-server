@@ -1,0 +1,88 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="jumbotron bg-white shadow p-4 mb-4">
+                <h1>Settings</h1>
+                <hr>
+                <div class="my-5"> 
+                    <h3>Change Theme</h3>
+                    <div class=" bg-white border border-secondary">
+                        <div class="row my-2">
+                            <div class="col-3">
+                                <p class="text-right">Primary</p>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex border border-dark h-100">
+                                    <div class="p-2 primary-1 flex-fill"></div>
+                                    <div class="p-2 primary-2 flex-fill"></div>
+                                    <div class="p-2 primary-3 flex-fill"></div>
+                                    <div class="p-2 primary-4 flex-fill"></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <button class="btn btn-theme apply-theme" value="primary">Apply</button>
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-3">
+                                <p class="text-right">Red</p>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex border border-dark h-100">
+                                    <div class="p-2 red-1 flex-fill"></div>
+                                    <div class="p-2 red-2 flex-fill"></div>
+                                    <div class="p-2 red-3 flex-fill"></div>
+                                    <div class="p-2 red-4 flex-fill"></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <button class="btn btn-theme apply-theme" value="red">Apply</button>
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-3">
+                                <p class="text-right">Orange</p>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex border border-dark h-100">
+                                    <div class="p-2 orange-1 flex-fill"></div>
+                                    <div class="p-2 orange-2 flex-fill"></div>
+                                    <div class="p-2 orange-3 flex-fill"></div>
+                                    <div class="p-2 orange-4 flex-fill"></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <button class="btn btn-theme apply-theme" value="orange">Apply</button>
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-3">
+                                <p class="text-right">Dark</p>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex border border-dark h-100">
+                                    <div class="p-2 dark-1 flex-fill"></div>
+                                    <div class="p-2 dark-2 flex-fill"></div>
+                                    <div class="p-2 dark-3 flex-fill"></div>
+                                    <div class="p-2 dark-4 flex-fill"></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <button class="btn btn-theme apply-theme" value="dark">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="{{url_for('static', filename='Bleepy_UI/js/changethemes.js')}}"></script>
+{% endblock %}
