@@ -23,6 +23,13 @@ def index():
     #inside of template folder is the home.html
     return render_template('index.html')
 
+#Error Page
+@app.route('/error')
+def error():
+    #create template folder
+    #inside of template folder is the home.html
+    return render_template('error.html')
+
 #Signup Page
 @app.route('/signup')
 def signup():
