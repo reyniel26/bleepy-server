@@ -51,10 +51,12 @@ def error():
     return render_template('error.html')
 
 #Signup Page
-@app.route('/signup')
+@app.route('/signup', methods=["POST",'GET'])
 @testConn
 def signup():
-    
+    if request.method == "POST":
+        flash('You are now logged in ', 'success')
+        return redirect(url_for('dashboard'))
     return render_template('signup.html')
 
 #Signin Page
