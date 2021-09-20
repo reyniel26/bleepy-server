@@ -25,6 +25,20 @@ def signin():
     
     return render_template('signin.html')
 
+#Pages that can only be access when logged in
+
+#Settings Page
+@app.route('/settings')
+def settings():
+    
+    return render_template('settings.html')
+
+#Dashboard Page
+@app.route('/dashboard')
+def dashboard():
+    
+    return render_template('dashboard.html')
+
 #================================================== Run APP 
 if __name__ == '__main__':
     app.run(debug=True)
