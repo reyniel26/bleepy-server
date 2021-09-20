@@ -21,6 +21,12 @@ class Model:
         except:
             return False
     
+    def hasConnection(self):
+        if(self.initConn()):
+            self.conn.close()
+            return True
+        return False
+    
     @property
     def conn(self):
         return self.__conn
