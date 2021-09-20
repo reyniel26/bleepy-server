@@ -1,7 +1,10 @@
 # Bleepy Server
 Bleepy  Server is the web version of python program can block tagalog and english profanity audio in videos.
 
-Note: This is save for the local storage
+## Includes
+1. bleepy
+2. Bleepy_UI
+   - Bleepy_UI should be save in static folder
 
 ## Python modules needed
 1. vosk-api
