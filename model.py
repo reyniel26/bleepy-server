@@ -1,6 +1,6 @@
 import mysql.connector
 
-class model:
+class Model:
     def __init__(self):
         self.__host ="localhost"
         self.__user ="root"

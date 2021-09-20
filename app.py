@@ -1,6 +1,16 @@
+#================================================== Imports
+#Flask
 from flask import Flask, render_template
-from model import model
 
+#Model for DB
+from model import Model
+#Bleepy module
+from bleepy.bleepy import VideoFile, AudioFile, SpeechToText, ProfanityExtractor, ProfanityBlocker
+
+#================================================== Objects
+db = Model()
+
+#================================================== Configs
 app = Flask(__name__)
 app.secret_key = 'bleepy_server' #Set the secret_key
 
