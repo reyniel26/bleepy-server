@@ -1,11 +1,11 @@
 import mysql.connector
 
 class Model:
-    def __init__(self):
-        self.__host ="localhost"
-        self.__user ="root"
-        self.__password =""
-        self.__database ="bleepyserverprototype"
+    def __init__(self,host,user,password,database):
+        self.__host =host
+        self.__user =user
+        self.__password =password
+        self.__database =database
         self.__conn = False
     
     def initConn(self):

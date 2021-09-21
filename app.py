@@ -19,7 +19,12 @@ app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
 
 #================================================== Objects
-db = Model()
+db = Model(
+    app.config["DB_HOST"],
+    app.config["DB_USER"],
+    app.config["DB_PWD"],
+    app.config["DB_NAME"]
+    )
 
 #================================================== Control Methods
 def testConn(f):
