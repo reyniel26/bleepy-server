@@ -145,6 +145,7 @@ def signin():
     return render_template('signin.html')
 
 #Pages and routes that can only be access when logged in
+#@authentication
 
 #Settings Page
 @app.route('/settings')
