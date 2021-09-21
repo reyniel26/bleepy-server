@@ -1,7 +1,7 @@
 #================================================== Imports
 #Flask
 from typing import Dict
-from flask import Flask, render_template, flash, redirect, url_for, request, make_response
+from flask import Flask, config, render_template, flash, redirect, url_for, request, make_response
 #For decorator
 from functools import wraps 
 #JWT
@@ -9,12 +9,14 @@ import jwt
 
 #Model for DB
 from model import Model
+#Configs
+from config import Config, ProductionConfig, DevelopmentConfig, TestingConfig
 #Bleepy module
 from bleepy.bleepy import VideoFile, AudioFile, SpeechToText, ProfanityExtractor, ProfanityBlocker
 
 #================================================== Configs
 app = Flask(__name__)
-app.secret_key = 'bL33py_sE12v3r' #Set the secret_key
+app.config.from_object(DevelopmentConfig)
 
 #================================================== Objects
 db = Model()
@@ -62,7 +64,7 @@ def authentication(f):
     @wraps(f)
     def wrap(*args, **kwargs):
         cookies = request.cookies
-        token = cookies.get("authtoken")
+        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
         if not token:
             #The token not exist
             flash("Invalid Authentication. Please try to login","warning")
@@ -88,6 +90,18 @@ def authentication(f):
         return f(*args, **kwargs)
     return wrap
 
+def viewData(**kwargs:str):
+    """
+    This method will pass constant data that will be use by the templates
+    In rendering templates, always include this
+    Example: render_template("index.html", viewdata = viewData())
+    Another example: render_template("index.html", viewdata = viewData( somedata = "data"))
+    """
+    viewdata = {
+        "auth_token":app.config["AUTH_TOKEN_NAME"]
+    }
+    viewdata.update(**kwargs)
+    return viewdata
 #================================================== Routes 
 
 #Index Page
@@ -96,7 +110,7 @@ def authentication(f):
 def index():
     #create template folder
     #inside of template folder is the home.html
-    return render_template('index.html')
+    return render_template('index.html', viewdata = viewData() )
 
 #Error Page
 @app.route('/error')
@@ -112,7 +126,7 @@ def signup():
     if request.method == "POST":
         flash('You are now logged in ', 'success')
         return redirect(url_for('dashboard'))
-    return render_template('signup.html')
+    return render_template('signup.html', viewdata = viewData() )
 
 #Signin Page
 @app.route('/signin', methods=["POST",'GET'])
@@ -127,22 +141,22 @@ def signin():
 
         if email != "sampleemail@gmail.com":
             flash('Wrong Email', 'danger')
-            return render_template('signin.html')
+            return render_template('signin.html', viewdata = viewData() )
         if pwd != "password":
             flash('Wrong Password', 'danger')
-            return render_template('signin.html')
+            return render_template('signin.html', viewdata = viewData() )
 
         #set response
         res = make_response(redirect(url_for('dashboard')))
         #set cookie token
-        res.set_cookie("authtoken", 
+        res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
             value = generateToken(authid="1",validuntil=max_age),
             max_age = max_age
             )
 
         flash('You are now logged in ', 'success')
         return res
-    return render_template('signin.html')
+    return render_template('signin.html', viewdata = viewData())
 
 #Pages and routes that can only be access when logged in
 #@authentication
@@ -153,7 +167,7 @@ def signin():
 @authentication
 def settings():
     
-    return render_template('settings.html')
+    return render_template('settings.html', viewdata = viewData())
 
 #Dashboard Page
 @app.route('/dashboard')
@@ -161,7 +175,7 @@ def settings():
 @authentication
 def dashboard():
     
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', viewdata = viewData())
 
 #Log out route
 @app.route('/logout')
@@ -171,7 +185,7 @@ def logout():
     #set response
     res = make_response(redirect(url_for('signin')))
     #set cookie token | expires = 0 to delete cookie
-    res.set_cookie("authtoken", 
+    res.set_cookie(app.config["AUTH_TOKEN_NAME"],
         value = "",
         expires=0
         )

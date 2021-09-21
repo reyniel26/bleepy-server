@@ -32,7 +32,7 @@
             </li>
         </ul>
         <ul class="navbar-nav">
-            {% if not request.cookies.get("authtoken") %}
+            {% if not request.cookies.get(viewdata["auth_token"]) %}
               <li class="nav-item">
               <a class="nav-link" href="/signup">Sign up</a>
               </li>
@@ -63,7 +63,7 @@
                   </form>
                 </div>
             </li>
-            {% if request.cookies.get("authtoken") %}
+            {% if request.cookies.get(viewdata["auth_token"]) %}
               <!-- Notifications Dropdown Menu -->
                 <section>
                     <li class="nav-item dropdown d-none d-md-block ">
@@ -142,7 +142,7 @@
                         <span class=" d-md-none"> Menu</span>
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="dashboard.html">Dashboard</a>
+                        <a class="dropdown-item" href="/dashboard">Dashboard</a>
                         <a class="dropdown-item" href="#">Profile</a>
                         <a class="dropdown-item" href="#">Videos</a>
                         <a class="dropdown-item" href="#">Bleep Videos</a>
