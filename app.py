@@ -10,13 +10,13 @@ import jwt
 #Model for DB
 from model import Model
 #Configs
-from config import Config, ProductionConfig, DevelopmentConfig, TestingConfig
+from config import ProductionConfig, DevelopmentConfig
 #Bleepy module
 from bleepy.bleepy import VideoFile, AudioFile, SpeechToText, ProfanityExtractor, ProfanityBlocker
 
 #================================================== Configs
 app = Flask(__name__)
-app.config.from_object(DevelopmentConfig)
+app.config.from_object(ProductionConfig if app.config["ENV"] == "production" else DevelopmentConfig)
 
 #================================================== Objects
 db = Model(
@@ -199,4 +199,4 @@ def logout():
 
 #================================================== Run APP 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
