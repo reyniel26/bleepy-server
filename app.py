@@ -197,6 +197,13 @@ def logout():
     flash('You are now logged out ', 'success')
     return res
 
+#Bleep Video Page
+@app.route('/bleepvideo')
+@testConn
+@authentication
+def bleepvideo():
+    
+    return render_template('bleepvideo.html', viewdata = viewData())
 #================================================== Run APP 
 if __name__ == '__main__':
     app.run()
