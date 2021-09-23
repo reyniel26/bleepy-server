@@ -176,23 +176,28 @@ def signin():
         #Validation
         if email == "" or pwd == "":
             flash('Invalid! Email or Password should not be empty', 'danger')
-            return render_template('signin.html', viewdata = viewData() )
+            return redirect(url_for('signin'))
 
         #DB Model
         data = db.selectAccountViaEmail(email)
 
         if not data:
             flash('Wrong Email', 'danger')
-            return render_template('signin.html', viewdata = viewData() )
+            return redirect(url_for('signin'))
         
         
         acc_pwd = data.get("pwd")
         acc_id = data.get("account_id")
+
+        if acc_pwd == None or acc_id == None:
+            flash('Internal Error', 'danger')
+            return redirect(url_for('signin'))
+
         pwd_candidate = pwd
         
         if not sha256_crypt.verify(pwd_candidate, acc_pwd):
             flash('Wrong Password', 'danger')
-            return render_template('signin.html', viewdata = viewData() )
+            return redirect(url_for('signin'))
 
         #set response
         res = make_response(redirect(url_for('dashboard')))
