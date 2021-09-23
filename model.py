@@ -33,34 +33,51 @@ class Model:
     
     @property
     def cur(self):
-        return self.conn.cursor(dictionary=True)
+        return self.conn.cursor(prepared=True)
     
-    def querySelect(self,sql,vals):
+    def querySelect(self,sql,*args):
+        """
+        This will only fetchone
+        """
         if(self.initConn()):
             try:
                 cur = self.cur
-                cur.execute(sql,vals)
+                cur.execute(sql,args)
 
-                result = cur.fetchall()
+                result = cur.fetchone()
+                if result:
+                    result =dict(zip(cur.column_names, result))
         
                 self.conn.close()
                 return result
             except Exception as e:
-                return e
+                return "Error: "+ str(e)
         return False
 
     def querySelectAll(self,sql,*args):
+        """
+        This will do fetch all
+        """
         if(self.initConn()):
             try:
                 cur = self.cur
                 cur.execute(sql,args)
 
                 result = cur.fetchall()
+                if result:
+                    if len(result) > 1:
+                        temp = []
+                        for x in result:
+                            x = dict(zip(cur.column_names, x))
+                            temp.append(x)
+                        result = tuple(temp)
+                    else:
+                        result =dict(zip(cur.column_names, result))
         
                 self.conn.close()
                 return result
             except Exception as e:
-                return e
+                return "Error: "+ str(e)
         return False
     
     def queryInsert(self,sql,*args):
@@ -80,7 +97,13 @@ class Model:
     
     #================================================== Selects
     def selectAccounts(self):
-        return self.querySelect("Select * from accounts")
+        return self.querySelectAll("Select * from accounts")
+    
+    def selectAccountViaEmail(self,email:str):
+        return self.querySelect("call sp_select_account_via_email(%s)",email)
+    
+    def selectAccountViaId(self,id:str):
+        return self.querySelect("call sp_select_account_via_id(%s)",id)
     
     #================================================== Inserts
     def insertRole(self,rolename):

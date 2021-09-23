@@ -6,6 +6,8 @@ from flask import Flask, config, render_template, flash, redirect, url_for, requ
 from functools import wraps 
 #JWT
 import jwt
+#Passlib
+from passlib.hash import sha256_crypt
 
 #Model for DB
 from model import Model
@@ -70,26 +72,44 @@ def authentication(f):
     def wrap(*args, **kwargs):
         cookies = request.cookies
         token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+
+        #making sure there is no cookie left
+        reserror = make_response(redirect(url_for('signin')))
+        #set cookie token | expires = 0 to delete cookie
+        reserror.set_cookie(app.config["AUTH_TOKEN_NAME"],
+            value = "",
+            expires=0
+            )
+
         if not token:
             #The token not exist
             flash("Invalid Authentication. Please try to login","warning")
-            return redirect(url_for('signin'))
+            return reserror
         
         tokenvalues = getTokenValues(token)
 
         if not tokenvalues:
             #The token values is None
             flash("Invalid Authentication","danger")
-            return redirect(url_for('signin'))
+            return reserror
         
         try:
             acc_id = tokenvalues["authid"]
         except:
             #The token doenst contain authid
             flash("Invalid Authentication","danger")
-            return redirect(url_for('signin'))
+            return reserror
         
         # Query the acc_id
+        data = db.selectAccountViaId(acc_id)
+        if data == None:
+            flash("Invalid Authentication. User not found: "+data,"danger")
+            return reserror
+        try:
+            id = data["account_id"]
+        except Exception as e:
+            flash("Error: "+data,"danger")
+            return reserror
         # if not exist return error
 
         return f(*args, **kwargs)
@@ -107,6 +127,15 @@ def viewData(**kwargs:str):
     }
     viewdata.update(**kwargs)
     return viewdata
+
+def sanitizeEmail(email:str):
+    """
+    Sanitize email by removing invalid characters
+    """
+    invalids = [" ","\"","\\", "/", "<", ">","|","\t",":"]
+    for x in invalids:
+        email = email.strip(x)
+    return email
 #================================================== Routes 
 
 #Index Page
@@ -138,16 +167,33 @@ def signup():
 @testConn
 def signin():
     if request.method == "POST":
-        email = request.form["email"]
+        email = sanitizeEmail(request.form["email"])
         pwd = request.form["pwd"]
         remember = request.form.getlist("remember")
         #remember 30days or else remember for 5mins
-        max_age = (60*60*24*30) if remember else (60*5)  
+        max_age = (60*60*24*30) if remember else (60*5)
 
-        if email != "sampleemail@gmail.com":
+        #Validation
+        if email == "" or pwd == "":
+            flash('Invalid! Email or Password should not be empty', 'danger')
+            return render_template('signin.html', viewdata = viewData() )
+
+        #DB Model
+        data = db.selectAccountViaEmail(email)
+
+        if not data:
             flash('Wrong Email', 'danger')
             return render_template('signin.html', viewdata = viewData() )
-        if pwd != "password":
+        
+        try:
+            acc_pwd = data["pwd"]
+            acc_id = data["account_id"]
+        except Exception as e:
+            flash("Error: "+str(e)+" | "+data, 'danger')
+            return render_template('signin.html', viewdata = viewData() )
+        pwd_candidate = pwd
+        
+        if not sha256_crypt.verify(pwd_candidate, acc_pwd):
             flash('Wrong Password', 'danger')
             return render_template('signin.html', viewdata = viewData() )
 
@@ -155,7 +201,7 @@ def signin():
         res = make_response(redirect(url_for('dashboard')))
         #set cookie token
         res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
-            value = generateToken(authid="1",validuntil=max_age),
+            value = generateToken(authid=acc_id,validuntil=max_age),
             max_age = max_age
             )
 
@@ -179,8 +225,18 @@ def settings():
 @testConn
 @authentication
 def dashboard():
-    
-    return render_template('dashboard.html', viewdata = viewData())
+    cookies = request.cookies
+    token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+    tokenvalues = getTokenValues(token)
+    acc_id = tokenvalues["authid"]
+    data = db.selectAccountViaId(acc_id)
+    acc_info = {
+        "fname":data["fname"],
+        "lname":data["lname"],
+        "fullname":data["fname"]+" "+data["lname"]
+    }
+
+    return render_template('dashboard.html', viewdata = viewData( acc_info=acc_info ))
 
 #Log out route
 @app.route('/logout')
