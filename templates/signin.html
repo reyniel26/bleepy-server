@@ -1,11 +1,11 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-<div class="row justify-content-center py-5">
+<div class="row justify-content-center py-5 container-fluid">
     <div class="col-md-4">
         <div class="jumbotron bg-white shadow p-4 mb-4">
             <h1 class="text-center my-3">Sign in</h1>
-            <form action="dashboard.html" id="signinform" method="POST">
+            <form action="/signin" id="signinform" method="POST">
                 <div class="form-group">
                     <label for="email">Email address: <span class="invalid text-danger">*</span></label>
                     <input type="email" class="form-control" placeholder="Enter your email" id="email" name="email">
@@ -21,7 +21,7 @@
                 </div>
                 <div class="form-group form-check">
                     <label class="form-check-label">
-                        <input class="form-check-input" type="checkbox" id="remember" name="remember"> Remember me for 30 days
+                        <input class="form-check-input" type="checkbox" id="remember" name="remember" value="true"> Remember me for 30 days
                     </label>
                 </div>
                 <div class="text-center mb-3">
