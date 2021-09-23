@@ -7,7 +7,7 @@
         <div class="card card-widget widget-user shadow">
             <!-- Add the bg color to the header using any of the bg-* classes -->
             <div class="widget-user-header bg-theme-secondary text-theme-secondary">
-            <h3 class="widget-user-username">{{viewdata["acc_info"]["fullname"].title()}}</h3>
+            <h3 class="widget-user-username">{{viewdata.get("fullname").title()}}</h3>
             <h5 class="widget-user-desc">YouTube Streamer</h5>
             </div>
             <div class="widget-user-image">

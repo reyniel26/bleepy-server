@@ -94,7 +94,7 @@ def authentication(f):
             return reserror
         
         try:
-            acc_id = tokenvalues["authid"]
+            acc_id = tokenvalues.get("authid")
         except:
             #The token doenst contain authid
             flash("Invalid Authentication","danger")
@@ -167,8 +167,8 @@ def signup():
 @testConn
 def signin():
     if request.method == "POST":
-        email = sanitizeEmail(request.form["email"])
-        pwd = request.form["pwd"]
+        email = sanitizeEmail(request.form.get("email"))
+        pwd = request.form.get("pwd")
         remember = request.form.getlist("remember")
         #remember 30days or else remember for 5mins
         max_age = (60*60*24*30) if remember else (60*5)
@@ -185,12 +185,9 @@ def signin():
             flash('Wrong Email', 'danger')
             return render_template('signin.html', viewdata = viewData() )
         
-        try:
-            acc_pwd = data["pwd"]
-            acc_id = data["account_id"]
-        except Exception as e:
-            flash("Error: "+str(e)+" | "+data, 'danger')
-            return render_template('signin.html', viewdata = viewData() )
+        
+        acc_pwd = data.get("pwd")
+        acc_id = data.get("account_id")
         pwd_candidate = pwd
         
         if not sha256_crypt.verify(pwd_candidate, acc_pwd):
@@ -230,13 +227,9 @@ def dashboard():
     tokenvalues = getTokenValues(token)
     acc_id = tokenvalues["authid"]
     data = db.selectAccountViaId(acc_id)
-    acc_info = {
-        "fname":data["fname"],
-        "lname":data["lname"],
-        "fullname":data["fname"]+" "+data["lname"]
-    }
+    fullname = data.get("fname")+" "+data.get("lname")
 
-    return render_template('dashboard.html', viewdata = viewData( acc_info=acc_info ))
+    return render_template('dashboard.html', viewdata = viewData( fullname=fullname ))
 
 #Log out route
 @app.route('/logout')
