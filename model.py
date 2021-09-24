@@ -147,6 +147,9 @@ class Model:
     def selectUniqueProfanityWordsByVideo(self,pvid:str):
         return self.querySelectAll("call sp_select_unique_profanitywords_of_video(%s)",pvid)
     
+    def selectUniqueProfanityWordsByAccount(self,id:str):
+        return self.querySelectAll("call sp_select_unique_profanitywords_by_account(%s)",id)
+    
     #================================================== Inserts
     def insertRole(self,rolename):
         return self.queryInsert("call sp_add_roles(%s)",rolename)

@@ -245,15 +245,16 @@ def dashboard():
     }
 
     feeds = db.selectFeeds(acc_id)
-    lastestbleep = db.selectLatestBleep(acc_id)
-    lastestbleep_data = None
-    if lastestbleep:
-        lastestbleep_data ={
-            "lastestbleep":lastestbleep,
-            "uniqueprofanities":db.selectUniqueProfanityWordsByVideo(lastestbleep.get("pvideo_id"))
+    latestbleep = db.selectLatestBleep(acc_id)
+    latestbleep_data = None
+    if latestbleep:
+        latestbleep_data ={
+            "latestbleep":latestbleep,
+            "uniqueprofanities":db.selectUniqueProfanityWordsByVideo(latestbleep.get("pvideo_id")),
+            "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id)
         }
 
-    return render_template('dashboard.html', viewdata = viewData( user_data=user_data,feeds=feeds, lastestbleep_data=lastestbleep_data ))
+    return render_template('dashboard.html', viewdata = viewData( user_data=user_data,feeds=feeds, latestbleep_data=latestbleep_data ))
 
 #Log out route
 @app.route('/logout')
