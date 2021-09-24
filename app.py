@@ -136,6 +136,9 @@ def sanitizeEmail(email:str):
     for x in invalids:
         email = email.strip(x)
     return email
+
+def renderPieChart():
+    pass
 #================================================== Routes 
 
 #Index Page
@@ -231,10 +234,26 @@ def dashboard():
     token = cookies.get(app.config["AUTH_TOKEN_NAME"])
     tokenvalues = getTokenValues(token)
     acc_id = tokenvalues["authid"]
-    data = db.selectAccountViaId(acc_id)
-    fullname = data.get("fname")+" "+data.get("lname")
 
-    return render_template('dashboard.html', viewdata = viewData( fullname=fullname ))
+    data = db.selectAccountViaId(acc_id)
+    fullname = str(data.get("fname")+" "+data.get("lname")).title()
+
+    user_data = {
+        "fullname":fullname,
+        "videos":db.countVideosUploadedByAcc(acc_id).get("count"),
+        "bleepedvideos":db.countBleepVideosUploadedByAcc(acc_id).get("count")
+    }
+
+    feeds = db.selectFeeds(acc_id)
+    lastestbleep = db.selectLatestBleep(acc_id)
+    lastestbleep_data = None
+    if lastestbleep:
+        lastestbleep_data ={
+            "lastestbleep":lastestbleep,
+            "uniqueprofanities":db.selectUniqueProfanityWordsByVideo(lastestbleep.get("pvideo_id"))
+        }
+
+    return render_template('dashboard.html', viewdata = viewData( user_data=user_data,feeds=feeds, lastestbleep_data=lastestbleep_data ))
 
 #Log out route
 @app.route('/logout')

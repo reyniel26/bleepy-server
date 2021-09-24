@@ -7,7 +7,7 @@
         <div class="card card-widget widget-user shadow">
             <!-- Add the bg color to the header using any of the bg-* classes -->
             <div class="widget-user-header bg-theme-secondary text-theme-secondary">
-            <h3 class="widget-user-username">{{viewdata.get("fullname").title()}}</h3>
+            <h3 class="widget-user-username">{{viewdata.get("user_data").get("fullname")}}</h3>
             <h5 class="widget-user-desc">YouTube Streamer</h5>
             </div>
             <div class="widget-user-image">
@@ -17,7 +17,7 @@
             <div class="row">
                 <div class="col-sm-6 border-right">
                 <div class="description-block">
-                    <h5 class="description-header">3,200</h5>
+                    <h5 class="description-header">{{viewdata.get("user_data").get("videos")}}</h5>
                     <span class="description-text">Videos</span>
                 </div>
                 <!-- /.description-block -->
@@ -25,7 +25,7 @@
                 <!-- /.col -->
                 <div class="col-sm-6 border-right">
                 <div class="description-block">
-                    <h5 class="description-header">13,000</h5>
+                    <h5 class="description-header">{{viewdata.get("user_data").get("bleepedvideos")}}</h5>
                     <span class="description-text">Bleeps</span>
                 </div>
                 <!-- /.description-block -->
@@ -58,282 +58,210 @@
         </div>
 
         <!-- Feeds -->
+        {% if viewdata.get("feeds") %}
         <div class="row">
+            {% for feed in viewdata.get("feeds") %}
             <div class="col-lg-3 col-6">
                 <!-- small card -->
-                <div class="small-box bg-info">
+                <div class="small-box bg-{{feed.get('bgcolor')}}">
                     <div class="inner">
-                    <h3>150</h3>
+                    <h3>{{feed.get("count")}}</h3>
     
-                    <p>Uploaded Videos</p>
+                    <p>{{feed.get("title")}}</p>
                     </div>
                     <div class="icon">
-                    <i class="fa fa-video-camera"></i>
+                    <i class="fa fa-{{feed.get('icon')}}"></i>
                     </div>
-                    <a href="#" class="small-box-footer">
+                    <a href="{{feed.get('link')}}" class="small-box-footer">
                     More info <i class="fa fa-arrow-circle-right"></i>
                     </a>
                 </div>
             </div>
-            <div class="col-lg-3 col-6">
-                <!-- small card -->
-                <div class="small-box bg-olive">
-                    <div class="inner">
-                    <h3>150</h3>
-    
-                    <p>Bleeped Videos</p>
-                    </div>
-                    <div class="icon">
-                    <i class="fa fa-soundcloud"></i>
-                    </div>
-                    <a href="#" class="small-box-footer">
-                    More info <i class="fa fa-arrow-circle-right"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <!-- small card -->
-                <div class="small-box bg-maroon">
-                    <div class="inner">
-                    <h3>150</h3>
-    
-                    <p>Profanities Collected</p>
-                    </div>
-                    <div class="icon">
-                    <i class="fa fa-comments-o"></i>
-                    </div>
-                    <a href="#" class="small-box-footer">
-                    More info <i class="fa fa-arrow-circle-right"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <!-- small card -->
-                <div class="small-box bg-purple">
-                    <div class="inner">
-                    <h3>150</h3>
-    
-                    <p>Unique Profanities</p>
-                    </div>
-                    <div class="icon">
-                    <i class="fa fa-commenting-o"></i>
-                    </div>
-                    <a href="#" class="small-box-footer">
-                    More info <i class="fa fa-arrow-circle-right"></i>
-                    </a>
-                </div>
-            </div>
+            {% endfor %}
         </div>
+        {% endif %}
         
         <!-- Last bleep video summary report-->
-        <div class="row">
-            <div class="col-12">
-                <div class="card shadow ">
-                    <div class="card-header bg-theme-secondary text-theme-secondary">
-                        <h3 class="card-title">Last Bleeped Video</h3>
-        
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                                <i class="fa fa-expand text-theme-secondary"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fa fa-minus text-theme-secondary"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                <i class="fa fa-times text-theme-secondary"></i>
-                            </button>
+        {% if viewdata.get("lastestbleep_data") %}
+            {% if viewdata.get("lastestbleep_data").get("lastestbleep") %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow ">
+                        <div class="card-header bg-theme-secondary text-theme-secondary">
+                            <h3 class="card-title">Last Bleeped Video</h3>
+            
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                                    <i class="fa fa-expand text-theme-secondary"></i>
+                                </button>
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fa fa-minus text-theme-secondary"></i>
+                                </button>
+                                <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                    <i class="fa fa-times text-theme-secondary"></i>
+                                </button>
+                            </div>
+                            <!-- /.card-tools -->
                         </div>
-                        <!-- /.card-tools -->
-                    </div>
-                    <!-- /.card-header -->
-                    <div class="card-body">
-                        <p class=" font-weight-bold">Summary <span class="float-md-right"> <a href="">View Full Report</a></span></p>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <p class=" font-weight-bold">Summary <span class="float-md-right"> <a href="">View Full Report</a></span></p>
+                            
+                            <div class=" table-responsive-xl shadow my-3">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="bg-theme-secondary text-theme-secondary">
+                                        <tr>
+                                            <th class="text-center">Video Title</th>
+                                            <th class="text-center">Bleep Sound</th>
+                                            <th class="text-center">Unique Profanities Identified </th>
+                                            <th class="text-center">Most Frequent Word</th>
+                                            <th class="text-center">Bleep Date </th>
+                                        </tr>
+                                    </thead>
+                    
+                                    <tbody>
+                                        <tr>
+                                            <th class="text-center">1V1 IN OVERWATCH- WINNER GETS MACAIYLA.mkv</th>
+                                            <th class="text-center">Dolphin</th>
+                                            <th class="text-center">10</th>
+                                            <th class="text-center">fuck</th>
+                                            <th class="text-center">September 15 2021 </th>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Original Video vs Bleeped Video-->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <!-- card -->
+                                    <div class="card shadow card-theme-secondary card-outline">
+                                        <div class="card-header ">
+                                        <h3 class="card-title">Original Video</h3>
                         
-                        <div class=" table-responsive-xl shadow my-3">
-                            <table class="table table-bordered table-hover">
-                                <thead class="bg-theme-secondary text-theme-secondary">
-                                    <tr>
-                                        <th class="text-center">Video Title</th>
-                                        <th class="text-center">Bleep Sound</th>
-                                        <th class="text-center">Unique Profanities Identified </th>
-                                        <th class="text-center">Most Frequent Word</th>
-                                        <th class="text-center">Bleep Date </th>
-                                    </tr>
-                                </thead>
-                
-                                <tbody>
-                                    <tr>
-                                        <th class="text-center">1V1 IN OVERWATCH- WINNER GETS MACAIYLA.mkv</th>
-                                        <th class="text-center">Dolphin</th>
-                                        <th class="text-center">10</th>
-                                        <th class="text-center">fuck</th>
-                                        <th class="text-center">September 15 2021 </th>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Original Video vs Bleeped Video-->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <!-- card -->
-                                <div class="card shadow card-theme-secondary card-outline">
-                                    <div class="card-header ">
-                                    <h3 class="card-title">Original Video</h3>
-                    
-                                    <div class="card-tools">
-                                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                        <i class="fa fa-minus"></i>
-                                        </button>
-                                    </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="embed-responsive embed-responsive-16by9">
-                                            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/CTiNKWusB_0"></iframe>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                            <i class="fa fa-minus"></i>
+                                            </button>
                                         </div>
-                                    </div>
-                                    <!-- /.card-body -->
-                                </div>
-                                <!-- /.card -->
-                            </div>
-                            <div class="col-md-6">
-                                <!-- card -->
-                                <div class="card shadow card-theme-secondary card-outline">
-                                    <div class="card-header ">
-                                    <h3 class="card-title">Bleeped Video</h3>
-                    
-                                    <div class="card-tools">
-                                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                        <i class="fa fa-minus"></i>
-                                        </button>
-                                    </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="embed-responsive embed-responsive-16by9">
-                                            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/CTiNKWusB_0"></iframe>
                                         </div>
+                                        <div class="card-body">
+                                            <div class="embed-responsive embed-responsive-16by9">
+                                                <video class="embed-responsive-item" controls>
+                                                    <source src="{{url_for('static', filename=viewdata.get('lastestbleep_data').get('lastestbleep').get('filelocation') )}}" type="video/mp4" />
+                                                    This video is not supported by your browser...
+                                                </video>
+                                            </div>
+                                        </div>
+                                        <!-- /.card-body -->
                                     </div>
-                                    <!-- /.card-body -->
+                                    <!-- /.card -->
                                 </div>
-                                <!-- /.card -->
+                                <div class="col-md-6">
+                                    <!-- card -->
+                                    <div class="card shadow card-theme-secondary card-outline">
+                                        <div class="card-header ">
+                                        <h3 class="card-title">Bleeped Video</h3>
+                        
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                            <i class="fa fa-minus"></i>
+                                            </button>
+                                        </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="embed-responsive embed-responsive-16by9">
+                                                <video class="embed-responsive-item" controls>
+                                                    <source src="{{url_for('static', filename=viewdata.get('lastestbleep_data').get('lastestbleep').get('pfilelocation') )}}" type="video/mp4" />
+                                                    This video is not supported by your browser...
+                                                </video>
+                                            </div>
+                                        </div>
+                                        <!-- /.card-body -->
+                                    </div>
+                                    <!-- /.card -->
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Insights -->
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="card card-theme-secondary card-outline shadow">
-                                    <div class="card-header">
-                                    <h3 class="card-title">List of Unique Profanities</h3>        
-                                    <div class="card-tools">
-                                        <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                                            <i class="fa fa-expand "></i>
-                                        </button>
-                                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                            <i class="fa fa-minus "></i>
-                                        </button>
-                                        <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                            <i class="fa fa-times "></i>
-                                        </button>
-                                    </div>
-                                    </div>
-                                    <!-- /.card-header -->
-                                    <div class="card-body table-responsive p-0" style="height: 300px;">
-                                    <table class="table table-head-fixed text-nowrap table-hover">
-                                        <thead>
+                            {% if viewdata.get('lastestbleep_data').get('uniqueprofanities') %}
+                            <!-- Insights -->
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="card card-theme-secondary card-outline shadow">
+                                        <div class="card-header">
+                                        <h3 class="card-title">List of Unique Profanities</h3>        
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                                                <i class="fa fa-expand "></i>
+                                            </button>
+                                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                <i class="fa fa-minus "></i>
+                                            </button>
+                                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                                <i class="fa fa-times "></i>
+                                            </button>
+                                        </div>
+                                        </div>
+                                        <!-- /.card-header -->
+                                        <div class="card-body table-responsive p-0" style="height: 300px;">
+                                        <table class="table table-head-fixed text-nowrap table-hover">
+                                            <thead>
+                                                <tr>
+                                                <th>Word</th>
+                                                <th>Occurrence</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for profanities in viewdata.get('lastestbleep_data').get('uniqueprofanities') %}
                                             <tr>
-                                              <th>Word</th>
-                                              <th>Occurrence</th>
+                                                <td>{{profanities.get('word')}}</td>
+                                                <td>{{profanities.get('occurrence')}}</td>
+                                                <input type="hidden" name="word" value="{{profanities.get('word')}}">
+                                                <input type="hidden" name="occurrence" value="{{profanities.get('occurrence')}}">
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                        
-                                          <tr>
-                                            <td>fuck</td>
-                                            <td>13</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>fucking</td>
-                                            <td>6</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>sex</td>
-                                            <td>3</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>shit</td>
-                                            <td>2</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>fucker</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>stinky</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>racist</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>stupid</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>idiot</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>sick</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                        </tbody> 
-                                    </table>
+                                            {% endfor %}
+                                            
+                                            
+                                            
+                                            </tbody> 
+                                        </table>
+                                        </div>
+                                        <!-- /.card-body -->
                                     </div>
-                                    <!-- /.card-body -->
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                
-                                <!-- PIE CHART -->
-                                <div class="card card-theme-secondary card-outline shadow">
-                                    <div class="card-header ">
-                                    <h3 class="card-title">Profanities Found</h3>
-                    
-                                    <div class="card-tools">
-                                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                        <i class="fa fa-minus"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                        <i class="fa fa-times"></i>
-                                        </button>
-                                    </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="profanitiesChartSummary" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                                    </div>
-                                    <!-- /.card-body -->
-                                </div>
-                                <!-- /.card -->
-                            </div>
-                        </div>
+                                <div class="col-md-4">
+                                    
+                                    <!-- PIE CHART -->
+                                    <div class="card card-theme-secondary card-outline shadow">
+                                        <div class="card-header ">
+                                        <h3 class="card-title">Profanities Found</h3>
                         
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                            <i class="fa fa-minus"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                            <i class="fa fa-times"></i>
+                                            </button>
+                                        </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <canvas id="profanitiesChartSummary" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                                        </div>
+                                        <!-- /.card-body -->
+                                    </div>
+                                    <!-- /.card -->
+                                </div>
+                            </div>
+                            {% endif %}
+
+                        </div>
+                        <!-- /.card-body -->
                     </div>
-                    <!-- /.card-body -->
                 </div>
             </div>
-        </div>
+            {% endif %}
+        {% endif %}
 
         <!-- Widgets-->
         <div class="row">
@@ -603,32 +531,27 @@
 {% endblock %}
 
 {% block script %}
+
+{% if viewdata.get('lastestbleep_data').get('uniqueprofanities') %}
 <script>
     $(function () {
-      /* ChartJS
-       * -------
-       * Here we will create a few charts using ChartJS
-       */
-  
-      //========================================================
+        let words = []
+        $("input[name=word]").each(function(){
+            words.push($(this).val())
+        });
+        let occurrence = []
+        $("input[name=occurrence]").each(function(){
+            occurrence.push($(this).val())
+        });
       var graphData   = {
-        labels: [
-            'Others',
-            'fuck',
-            'fucking',
-            'sex',
-            'shit',
-            'fucker',
-        ],
+        labels: words,
         datasets: [
           {
-            data: [5,13,6,3,2,1],
+            data: occurrence,
             backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'],
           }
         ]
       }
-      
-  
       //-------------
       //- PIE CHART -
       //-------------
@@ -639,8 +562,19 @@
         maintainAspectRatio : false,
         responsive : true,
       }
+      new Chart(pieChartCanvas, {
+        type: 'pie',
+        data: pieData,
+        options: pieOptions
+      })
 
-      //========================================================
+    })
+</script>
+{% endif %}
+
+<script>
+    $(function () {
+        //========================================================
       var graphData  = {
         labels: [
             'fuck',
@@ -661,11 +595,6 @@
           }
         ]
       }
-      new Chart(pieChartCanvas, {
-        type: 'pie',
-        data: pieData,
-        options: pieOptions
-      })
 
       //---------------------
       var pieChartCanvas = $('#mostFrequentProfanityChart').get(0).getContext('2d')
@@ -681,8 +610,6 @@
         data: pieData,
         options: pieOptions
       })
-  
-      
     })
 </script>
 {% endblock %}

@@ -105,6 +105,48 @@ class Model:
     def selectAccountViaId(self,id:str):
         return self.querySelect("call sp_select_account_via_id(%s)",id)
     
+    def countVideosUploadedByAcc(self,id:str):
+        return self.querySelect("call sp_count_videos_uploadedby_account(%s)",id)
+    
+    def countBleepVideosUploadedByAcc(self,id:str):
+        return self.querySelect("call sp_count_censored_videos_by_accounts(%s)",id)
+    
+    def countProfanityWordsByAcc(self,id:str):
+        return self.querySelect("call sp_count_profanitywords_collected_by_account(%s)",id)
+    
+    def countUniqueProfanityWordsByAcc(self,id:str):
+        return self.querySelect("call sp_count_unique_profanitywords_collected_by_account(%s)",id)
+
+    def selectFeeds(self,id):
+        """
+        As of now it only return the data for specific user
+        Admin Feeds is not yet included
+        """
+        feeds = []
+        stmts = [
+            (str(self.countVideosUploadedByAcc(id).get("count")),"Uploaded Videos","info","video-camera","/videos"),
+            (str(self.countBleepVideosUploadedByAcc(id).get("count")),"Bleeped Videos","olive","soundcloud","/bleepedvideos"),
+            (str(self.countProfanityWordsByAcc(id).get("count")),"Profanities Collected","maroon","comments-o","/profanities"),
+            (str(self.countUniqueProfanityWordsByAcc(id).get("count")),"Unique Profanities","purple","commenting-o","/uniqueprofanities")
+        ]
+        for stmt in stmts:
+            feed = {
+                "count":stmt[0],
+                "title":stmt[1].title(),
+                "bgcolor":stmt[2],
+                "icon":stmt[3],
+                "link":stmt[4]
+            }
+            feeds.append(feed)
+        
+        return feeds
+
+    def selectLatestBleep(self,id):
+        return self.querySelect("call sp_select_latest_censored_videos_by_account(%s)",id)
+    
+    def selectUniqueProfanityWordsByVideo(self,pvid:str):
+        return self.querySelectAll("call sp_select_unique_profanitywords_of_video(%s)",pvid)
+    
     #================================================== Inserts
     def insertRole(self,rolename):
         return self.queryInsert("call sp_add_roles(%s)",rolename)
