@@ -8,6 +8,8 @@ from functools import wraps
 import jwt
 #Passlib
 from passlib.hash import sha256_crypt
+#Date time
+import datetime
 
 #Model for DB
 from model import Model
@@ -237,23 +239,20 @@ def dashboard():
 
     data = db.selectAccountViaId(acc_id)
     fullname = str(data.get("fname")+" "+data.get("lname")).title()
+    now = datetime.datetime.now()
 
     user_data = {
         "fullname":fullname,
         "videos":db.countVideosUploadedByAcc(acc_id).get("count"),
-        "bleepedvideos":db.countBleepVideosUploadedByAcc(acc_id).get("count")
+        "bleepedvideoscount":db.countBleepVideosUploadedByAcc(acc_id).get("count"),
+        "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
+        "bleepedvideos":db.selectBleepedVideosByAccount(acc_id),
+        "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A")
     }
 
     feeds = db.selectFeeds(acc_id)
-    latestbleep = db.selectLatestBleep(acc_id)
-    latestbleep_data = None
-    if latestbleep:
-        latestbleep_data ={
-            "latestbleep":latestbleep,
-            "uniqueprofanities":db.selectUniqueProfanityWordsByVideo(latestbleep.get("pvideo_id")),
-            "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id)
-        }
-
+    latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+    
     return render_template('dashboard.html', viewdata = viewData( user_data=user_data,feeds=feeds, latestbleep_data=latestbleep_data ))
 
 #Log out route

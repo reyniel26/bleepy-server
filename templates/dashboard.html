@@ -25,7 +25,7 @@
                 <!-- /.col -->
                 <div class="col-sm-6 border-right">
                 <div class="description-block">
-                    <h5 class="description-header">{{viewdata.get("user_data").get("bleepedvideos")}}</h5>
+                    <h5 class="description-header">{{viewdata.get("user_data").get("bleepedvideoscount")}}</h5>
                     <span class="description-text">Bleeps</span>
                 </div>
                 <!-- /.description-block -->
@@ -53,7 +53,7 @@
                 <h1 class=" font-weight-light">Dashboard</h1>
             </div>
             <div class="col-md-6">
-                <span class="float-md-right">September 15 2021 Wednesday</span>
+                <span class="float-md-right">{{ viewdata.get("user_data").get("datetoday")}}</span>
             </div>
         </div>
 
@@ -121,11 +121,11 @@
                     
                                     <tbody>
                                         <tr>
-                                            <th class="text-center">1V1 IN OVERWATCH- WINNER GETS MACAIYLA.mkv</th>
+                                            <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('filename')}}</th>
                                             <th class="text-center">Dolphin</th>
-                                            <th class="text-center">10</th>
-                                            <th class="text-center">fuck</th>
-                                            <th class="text-center">September 15 2021 </th>
+                                            <th class="text-center">{{viewdata.get('latestbleep_data').get('uniqueprofanitycount')}}</th>
+                                            <th class="text-center">{{viewdata.get('latestbleep_data').get('mostfrequentword')}}</th>
+                                            <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('process_time')}}</th>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -263,12 +263,21 @@
                 </div>
             </div>
             {% endif %}
+        {% else %}
+        <div class="jumbotron bg-white text-theme text-center shadow">
+            <h3> You have no bleeped videos </h3>
+            <a href="/bleepvideo">
+                <button type="button" class="btn btn-theme"> Get Started >> </button>
+            </a>
+        </div>
         {% endif %}
+        
 
         <!-- Widgets-->
         <div class="row">
             <div class="col-lg-7">
                 <!-- My Bleep Videos -->
+                {% if viewdata.get('user_data').get('bleepedvideos') %}
                 <section>
                     <div class="card shadow">
                         <div class="card-header bg-theme-secondary text-theme-secondary">
@@ -300,42 +309,14 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
+                            {% for videoinfo in viewdata.get('user_data').get('bleepedvideos') %}    
+                                <tr>
+                                    <td>{{videoinfo.get("filename")}}</td>
+                                    <td>Dolphin</td>
+                                    <td>{{videoinfo.get("process_time")}}</td>
+                                    <td> <button class="btn btn-theme"> View </button></td>
+                                </tr>
+                            {% endfor %}
                             
                             </tbody>
                         </table>
@@ -343,9 +324,10 @@
                         <!-- /.card-body -->
                     </div>
                 </section>
+                {% endif %}
             </div>
             <div class="col-lg-5">
-                {% if viewdata.get('latestbleep_data').get('mostfrequentprofanities') %}
+                {% if viewdata.get('user_data').get('mostfrequentprofanities') %}
                 <section>
                     <!-- PIE CHART -->
                     <div class="card shadow">
@@ -363,7 +345,7 @@
                         </div>
                         <div class="card-body">
                             <canvas id="mostFrequentProfanityChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                            {% for profanities in viewdata.get('latestbleep_data').get('mostfrequentprofanities') %}
+                            {% for profanities in viewdata.get('user_data').get('mostfrequentprofanities') %}
                                 {% if profanities.get("occurrence") != "0" %}
                                 <input type="hidden" name="mostfrequentprofanitiesword" value="{{profanities.get('word')}}" >
                                 <input type="hidden" name="mostfrequentprofanitiesoccurrence" value="{{profanities.get('occurrence')}}" >
@@ -582,7 +564,7 @@
 </script>
 {% endif %}
 
-{% if viewdata.get('latestbleep_data').get('mostfrequentprofanities') %}
+{% if viewdata.get('user_data').get('mostfrequentprofanities') %}
 <script>
     $(function () {
         //========================================================
