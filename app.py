@@ -243,7 +243,7 @@ def dashboard():
 
     user_data = {
         "fullname":fullname,
-        "videos":db.countVideosUploadedByAcc(acc_id).get("count"),
+        "videoscount":db.countVideosUploadedByAcc(acc_id).get("count"),
         "bleepedvideoscount":db.countBleepVideosUploadedByAcc(acc_id).get("count"),
         "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
         "bleepedvideos":db.selectBleepedVideosByAccount(acc_id),
