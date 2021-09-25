@@ -562,21 +562,21 @@
             }
             ]
         }
-      //-------------
-      //- PIE CHART -
-      //-------------
-      // Get context with jQuery - using jQuery's .get() method.
-      var pieChartCanvas = $('#profanitiesChartSummary').get(0).getContext('2d')
-      var pieData        = graphData;
-      var pieOptions     = {
-        maintainAspectRatio : false,
-        responsive : true,
-      }
-      new Chart(pieChartCanvas, {
-        type: 'pie',
-        data: pieData,
-        options: pieOptions
-      })
+        //-------------
+        //- PIE CHART -
+        //-------------
+        // Get context with jQuery - using jQuery's .get() method.
+        var pieChartCanvas = $('#profanitiesChartSummary').get(0).getContext('2d')
+        var pieData        = graphData;
+        var pieOptions     = {
+            maintainAspectRatio : false,
+            responsive : true,
+        }
+        new Chart(pieChartCanvas, {
+            type: 'pie',
+            data: pieData,
+            options: pieOptions
+        })
 
     })
 </script>
@@ -594,30 +594,32 @@
         $("input[name=mostfrequentprofanitiesoccurrence]").each(function(){
             occurrence.push($(this).val())
         });
-        var graphData   = {
-            labels: words,
-            datasets: [
-            {
-                data: occurrence,
-                backgroundColor : ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d',"#43aa8b","#4d908e","#577590","#277da1"],
-            }
-            ]
-        }
+        occurrence.push(0) //This will set as the min value
 
-      //---------------------
-      var pieChartCanvas = $('#mostFrequentProfanityChart').get(0).getContext('2d')
-      var pieData        = graphData;
-      var pieOptions     = {
-        maintainAspectRatio : false,
-        responsive : true,
-      }
-      //Create pie or douhnut chart
-      // You can switch between pie and douhnut using the method below.
-      new Chart(pieChartCanvas, {
-        type: 'pie',
-        data: pieData,
-        options: pieOptions
-      })
+        //---------------------
+        var barChartCanvas = $('#mostFrequentProfanityChart').get(0).getContext('2d')
+         //---------------------
+        var xValues = words;
+        var yValues = occurrence;
+        var barColors = ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d',"#43aa8b","#4d908e","#577590","#277da1"];
+
+        new Chart(barChartCanvas, {
+        type: "horizontalBar",
+        data: {
+        labels: xValues,
+        datasets: [{
+            backgroundColor: barColors,
+            data: yValues
+        }]
+        },
+        options: {
+            legend: {display: false},
+            title: {
+            display: true,
+            text: "Profanities detected base on occurence"
+            }
+        }
+        });
     })
 </script>
 {% endif %}
