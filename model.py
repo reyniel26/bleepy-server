@@ -51,7 +51,7 @@ class Model:
                 self.conn.close()
                 return result
             except Exception as e:
-                return "Error: "+ str(e)
+                return {"error":e}
         return False
 
     def querySelectAll(self,sql,*args):
@@ -65,19 +65,20 @@ class Model:
 
                 result = cur.fetchall()
                 if result:
-                    if len(result) > 1:
-                        temp = []
-                        for x in result:
-                            x = dict(zip(cur.column_names, x))
-                            temp.append(x)
-                        result = tuple(temp)
-                    else:
-                        result =dict(zip(cur.column_names, result))
+                    temp = []
+                    for x in result:
+                        x = dict(zip(cur.column_names, x))
+                        temp.append(x)
+                    result = tuple(temp)
+
         
                 self.conn.close()
                 return result
             except Exception as e:
-                return "Error: "+ str(e)
+                error = {"error":e}
+                temp = []
+                temp.append(error)
+                return tuple(temp)
         return False
     
     def queryInsert(self,sql,*args):
@@ -117,7 +118,7 @@ class Model:
     def countUniqueProfanityWordsByAcc(self,id:str):
         return self.querySelect("call sp_count_unique_profanitywords_collected_by_account(%s)",id)
 
-    def selectFeeds(self,id):
+    def selectFeeds(self,id:str):
         """
         As of now it only return the data for specific user
         Admin Feeds is not yet included
@@ -141,14 +142,35 @@ class Model:
         
         return feeds
 
-    def selectLatestBleep(self,id):
+    def selectLatestBleep(self,id:str):
         return self.querySelect("call sp_select_latest_censored_videos_by_account(%s)",id)
+    
+    def selectLatestBleepSummaryData(self,id:str):
+        latestbleep = self.selectLatestBleep(id)
+        latestbleep_data = {}
+        if latestbleep:
+            latestbleep_data ={
+                "latestbleep":latestbleep,
+                "uniqueprofanities":self.selectUniqueProfanityWordsByVideo(latestbleep.get("pvideo_id")),
+                "uniqueprofanitycount":self.countUniqueProfanityWordsByVideo(latestbleep.get("pvideo_id")).get("count"),
+                "mostfrequentword":self.selectMostUniqueProfanityWordsByVideo(latestbleep.get("pvideo_id")).get("word")
+            }
+        return latestbleep_data
     
     def selectUniqueProfanityWordsByVideo(self,pvid:str):
         return self.querySelectAll("call sp_select_unique_profanitywords_of_video(%s)",pvid)
     
+    def selectMostUniqueProfanityWordsByVideo(self,pvid:str):
+        return self.querySelect("call sp_select_unique_profanitywords_of_video(%s)",pvid)
+    
     def selectUniqueProfanityWordsByAccount(self,id:str):
         return self.querySelectAll("call sp_select_unique_profanitywords_by_account(%s)",id)
+    
+    def selectBleepedVideosByAccount(self,id:str):
+        return self.querySelectAll("call sp_select_censored_videos_by_account(%s)",id)
+    
+    def countUniqueProfanityWordsByVideo(self,pvid:str):
+        return self.querySelect("call sp_count_unique_profanitywords_collected_by_video(%s)",pvid)
     
     #================================================== Inserts
     def insertRole(self,rolename):
