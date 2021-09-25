@@ -52,12 +52,17 @@ class Model:
                 return result
             except Exception as e:
                 return {"error":e}
-        return False
+        return {"error": "There is no connection"}
 
     def querySelectAll(self,sql,*args):
         """
         This will do fetch all
         """
+        error = {"error":"There is no connection"}
+        temp = []
+        temp.append(error)
+        error = tuple(temp)
+
         if(self.initConn()):
             try:
                 cur = self.cur
@@ -71,15 +76,15 @@ class Model:
                         temp.append(x)
                     result = tuple(temp)
 
-        
                 self.conn.close()
                 return result
             except Exception as e:
-                error = {"error":e}
+                error["error"] = e
                 temp = []
                 temp.append(error)
                 return tuple(temp)
-        return False
+
+        return error
     
     def queryInsert(self,sql,*args):
         if(self.initConn()):
