@@ -139,8 +139,8 @@ def sanitizeEmail(email:str):
         email = email.strip(x)
     return email
 
-def renderPieChart():
-    pass
+def allowedFileSize(filesize) ->bool:
+    return int(filesize) <= app.config['MAX_VIDEO_FILESIZE']
 #================================================== Routes 
 
 #Index Page
@@ -311,7 +311,10 @@ def getvideoinfo():
 
     return jsonify('')
 
-#Get Video Link
+#Routes for Bleep Steps
+#@authentication
+
+#BleepStep1 
 @app.route('/bleepstep1', methods=["POST",'GET'])
 @testConn
 @authentication
@@ -329,6 +332,25 @@ def bleepstep1():
             videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
 
             return jsonify({'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo) )} )
+        else:
+            file = request.files.get("uploadFile")
+            print(request.cookies.get('filesize'))
+
+            if not allowedFileSize(request.cookies.get('filesize')):
+                errormsg = "File too large. Maximum File size allowed is "+str(app.config["MAX_FILESIZE_GB"])+" gb"
+                return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+
+            # vid_id = request.form.get("vid_id")
+            # videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+            videoinfo = {
+                "filename":"dsdsd",
+                "filelocation":"sdsdsd"
+            }
+
+            msg = "Upload Successful"
+            return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo)) ,
+                            'responsemsg': render_template('includes/_messages.html', msg=msg)
+                        })
 
     return jsonify('')
 

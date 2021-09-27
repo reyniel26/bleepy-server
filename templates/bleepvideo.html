@@ -55,7 +55,7 @@
                 </div>
             </div>
             <div id="bleepstep1div">
-                <div class="card card-tabs">
+                <div class="card card-tabs" id="bleepstep1card">
                     <div class="card-header p-0 pt-1 bg-theme-secondary text-theme-secondary">
                         <div class="card-tools">
                             <button type="button" class="btn btn-tool" data-card-widget="maximize">
@@ -79,10 +79,11 @@
                       <div class="tab-content" id="custom-tabs-two-tabContent">
                         <div class="tab-pane fade show active" id="step1-upload-video" role="tabpanel" aria-labelledby="step1-upload-video-tab">
                             <h3 class=" font-weight-light">Upload new video</h3>
-                            <form>
+                            <span class="text-danger"id="cancelUploadMsg"></span>
+                            <form action="/bleepstep1" id="uploadVideoForm" method="POST" enctype="multipart/form-data">
                                 <div class="custom-file mb-3">
                                   <input type="file" class="custom-file-input" id="uploadFile" name="uploadFile">
-                                  <label class="custom-file-label" for="customFile">Choose file</label>
+                                  <label class="custom-file-label" for="uploadFile">Choose file</label>
                                 </div>
                                 <div class="form-group" id="uploadSubmitDiv" style="display: none;">
                                     <input type="submit" id="uploadSubmit" value="Upload" class="btn btn-info" />
@@ -181,14 +182,75 @@
         var fileName = $(this).val().split("\\").pop();
         $(this).siblings(".custom-file-label").addClass("selected").html(fileName == "" ? "Choose file":fileName);
     });
+
     $('#uploadSubmitDiv').hide();
     $('#uploadFile').on('change', function() {
         $('#uploadSubmitDiv').hide();
         if($('#uploadFile').val()){
             document.cookie = `filesize= ${this.files[0].size}`;
+            console.log(`filesize= ${this.files[0].size}`)
             $('#uploadSubmitDiv').show();
         }
     });
+
+    $('#uploadVideoForm').submit(function(event){
+        if($('#uploadFile').val()){
+            event.preventDefault();
+            $('.progress-bar').removeClass("bg-danger");
+            $('.progress-bar').addClass("bg-primary");
+            $('#uploadFile').hide();
+            $('#uploadSubmitDiv').hide();
+            $('#cancelSubmitDiv').show();
+            $('#uploadProgress').show();
+            $('#loader-icon').show();
+            $('#cancelUploadMsg').html("");
+            //FROM THIS USES JQUERY FORM
+            $('#targetLayer').hide();
+            $('#targetLayer').hide();
+            var form = $(this).ajaxSubmit({
+                target: '#targetLayer',
+                beforeSubmit:function(){
+                    $('.progress-bar').width('0%')
+                },
+                uploadProgress: function(event, position, total, percentageComplete){
+                    $('.progress-bar').width(percentageComplete+ '%');
+                    $('.progress-bar').html(percentageComplete+ '%');
+                    $('#uploadSubmitDiv').hide();
+                },
+                success:function(data){
+                    $('#loader-icon').hide();
+                    $('#targetLayer').show();
+                    $('#cancelSubmitDiv').hide();
+                    $('#uploadFile').show();
+                    //$('#uploadFile').prop('disabled', false);
+                    $('#targetLayer').html(data.responsemsg);
+                    if(data.bleepstep1response){
+                        $('#bleepstep1card').CardWidget('collapse')
+                        $('#bleepstep1card').CardWidget('minimize')
+                        $('#bleepstep2div').show();
+                        $('#bleepstep2div').html(data.bleepstep1response);
+                    }
+                },
+                resetForm: true
+            })
+            xhr = form.data('jqxhr');
+            //To this
+
+        }
+        return false;
+    });
+
+    $("#cancelSubmit").click(function(){
+            xhr.abort();
+            $('#loader-icon').hide();
+            $('#cancelUploadMsg').html("Cancelled");
+            $('.progress-bar').removeClass("bg-primary");
+            $('.progress-bar').addClass("bg-danger");
+            $('#cancelSubmitDiv').hide();
+            $('#uploadFile').show();
+    });
+
+    ////
 
     $('#chooseSubmitDiv').hide();
     $('#chooseVideo').on('change', function() {
@@ -209,10 +271,10 @@
                     vid_id:$('#chooseVideo').val()
                 },
                 cache: false,
-                success:function(response){
+                success:function(data){
                     
                     $('#choosevideopreviewdiv').show();
-                    $('#choosevideopreview source').attr('src',response.filelocation);
+                    $('#choosevideopreview source').attr('src',data.filelocation);
                     $("#choosevideopreview ")[0].load();
                     
                 },error:function(e){
@@ -240,7 +302,8 @@
                 },
                 cache: false,
                 success:function(data){
-                    $('#bleepstep1div').hide();
+                    $('#bleepstep1card').CardWidget('collapse')
+                    $('#bleepstep1card').CardWidget('minimize')
                     $('#bleepstep2div').show();
                     $('#bleepstep2div').html(data.bleepstep1response);
                 },error:function(e){
