@@ -177,6 +177,11 @@ class Model:
     def countUniqueProfanityWordsByVideo(self,pvid:str):
         return self.querySelect("call sp_count_unique_profanitywords_collected_by_video(%s)",pvid)
     
+    def selectVideosUploadedByAccount(self,id:str):
+        return self.querySelectAll("call sp_select_videos_uploadedby_account(%s)",id)
+
+    def selectVideoByAccountAndVidId(self,id:str,vidid:str):
+        return self.querySelect("call sp_select_videos_by_account_vid_id(%s,%s)",id,vidid)
     #================================================== Inserts
     def insertRole(self,rolename):
         return self.queryInsert("call sp_add_roles(%s)",rolename)

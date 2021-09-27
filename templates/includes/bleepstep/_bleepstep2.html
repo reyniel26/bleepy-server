@@ -1,0 +1,80 @@
+<div class="card card-tabs">
+    <div class="card-header p-0 pt-1 bg-theme-secondary text-theme-secondary">
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                <i class="fa fa-expand text-theme-secondary"></i>
+            </button>
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fa fa-minus text-theme-secondary"></i>
+            </button>
+        </div>
+        <ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">
+            <li class="pt-2 px-3"><h3 class="card-title">Step 2:</h3></li>
+            <li class="nav-item">
+            <a class="nav-link active" id="step2-run-bleepy-tab" data-toggle="pill" href="#step2-run-bleepy" role="tab" aria-controls="custom-tabs-two-home" aria-selected="true">Run Bleepy</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+      <div class="tab-content" id="custom-tabs-two-tabContent">
+        <div class="tab-pane fade show active" id="step2-run-bleepy" role="tabpanel" aria-labelledby="step2-run-bleepy-tab">
+            <h3 class=" font-weight-light">Run Bleepy</h3>
+            <hr>
+            <p>{{viewdata.get('videoinfo').get('filename')}}</p>
+            <form action="">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video class="embed-responsive-item" controls id="choosevideopreview">
+                        <source src="{{url_for('static', filename=viewdata.get('videoinfo').get('filelocation') )}}" type="video/mp4" />
+                        This video is not supported by your browser...
+                    </video>
+                </div>
+            </form>
+            <p class="mt-3 font-weight-bold">Bleep Sound</p>
+            <div class="input-group mb-3">
+                <select name="choosebleepsound" class="custom-select" id="choosebleepsound">
+                  <option selected value="1">Beep</option>
+                  <option value="2">Dolphin</option>
+                  <option value="3">Buzzer</option>
+                  <option value="4">Horn</option>
+                </select>
+                <div class="input-group-append">
+                  <button class="btn btn-info" type="button" id="listenfirst">Listen First</button>
+                </div>
+            </div>
+            <div class="" id="bleepsoundpreview">
+                <audio controls class=" w-100 mb-3" id="bleepsoundplayer">
+                    <source src="" id="mp3_src" type="audio/mp3">
+                    Your browser does not support the audio tag.
+                </audio>
+            </div>
+            <button type="submit" class="btn btn-primary">Run Bleepy!</button>
+
+            
+        </div>
+      </div>
+    </div>
+    <!-- /.card -->
+</div>   
+
+<script>
+    $('#bleepsoundpreview').hide();
+    $('#listenfirst').on('click', function() {
+        $('#bleepsoundpreview').hide();
+        if($('#choosebleepsound').val()){
+            changeAudioSrc($('#choosebleepsound').val())
+            $('#bleepsoundpreview').show();
+        }
+    });
+
+    function changeAudioSrc(sourceUrl) {
+        var audio = $("#bleepsoundplayer");      
+        $("#mp3_src").attr("src", sourceUrl);
+        /****************/
+        audio[0].pause();
+        audio[0].load();//suspends and restores all audio element
+
+        //audio[0].play(); changed based on Sprachprofi's comment below
+        audio[0].oncanplaythrough = audio[0].play();
+        /****************/
+    }
+</script>

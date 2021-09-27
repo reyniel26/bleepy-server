@@ -1,7 +1,7 @@
 #================================================== Imports
 #Flask
 from typing import Dict
-from flask import Flask, config, render_template, flash, redirect, url_for, request, make_response
+from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify
 #For decorator
 from functools import wraps 
 #JWT
@@ -275,8 +275,63 @@ def logout():
 @testConn
 @authentication
 def bleepvideo():
+    cookies = request.cookies
+    token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+    tokenvalues = getTokenValues(token)
+    acc_id = tokenvalues["authid"]
+
+    videos = db.selectVideosUploadedByAccount(acc_id)
     
-    return render_template('bleepvideo.html', viewdata = viewData())
+    return render_template('bleepvideo.html', viewdata = viewData(videos=videos))
+
+#Routes that returns JSONs
+#@authentication
+
+#Get Video Link
+@app.route('/getvideoinfo', methods=["POST",'GET'])
+@testConn
+@authentication
+def getvideoinfo():
+    if request.method == "POST":
+        cookies = request.cookies
+        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+        tokenvalues = getTokenValues(token)
+        acc_id = tokenvalues["authid"]
+
+
+        vid_id = request.form.get("vid_id")
+
+        videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+        #videoinfo contains = filelocation, filename, see db
+        
+        filelocation = "/static/"+videoinfo.get("filelocation") if videoinfo  else ""
+        
+        
+        return jsonify({"filelocation":filelocation})
+
+    return jsonify('')
+
+#Get Video Link
+@app.route('/bleepstep1', methods=["POST",'GET'])
+@testConn
+@authentication
+def bleepstep1():
+    if request.method == "POST":
+        cookies = request.cookies
+        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+        tokenvalues = getTokenValues(token)
+        acc_id = tokenvalues["authid"]
+
+        #If choose video
+        if request.form.get("choosevideo"):
+
+            vid_id = request.form.get("vid_id")
+            videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+
+            return jsonify({'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo) )} )
+
+    return jsonify('')
+
 #================================================== Run APP 
 if __name__ == '__main__':
     app.run()
