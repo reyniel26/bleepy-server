@@ -34,6 +34,9 @@ db = Model(
     )
 video = VideoFile()
 audio = AudioFile()
+stt = SpeechToText("stt-language-models/model-wideband-en")
+extractor = ProfanityExtractor()
+blocker = ProfanityBlocker()
 
 #================================================== Control Methods
 def testConn(f):

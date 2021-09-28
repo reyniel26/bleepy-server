@@ -122,7 +122,7 @@
                                     <tbody>
                                         <tr>
                                             <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('filename')}}</th>
-                                            <th class="text-center">Dolphin</th>
+                                            <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('bfilename')}}</th>
                                             <th class="text-center">{{viewdata.get('latestbleep_data').get('uniqueprofanitycount')}}</th>
                                             <th class="text-center">{{viewdata.get('latestbleep_data').get('mostfrequentword')}}</th>
                                             <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('process_time')}}</th>
@@ -312,7 +312,7 @@
                             {% for videoinfo in viewdata.get('user_data').get('bleepedvideos') %}    
                                 <tr>
                                     <td>{{videoinfo.get("filename")}}</td>
-                                    <td>Dolphin</td>
+                                    <td>{{videoinfo.get("bfilename")}}</td>
                                     <td>{{videoinfo.get("process_time")}}</td>
                                     <td> <button class="btn btn-theme"> View </button></td>
                                 </tr>
