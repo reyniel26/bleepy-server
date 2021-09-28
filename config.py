@@ -12,7 +12,8 @@ class Config(object):
 
     #PATHS
     VIDEO_UPLOADS_TEMP = ''
-    VIDEO_UPLOADS = ''
+    VIDEO_UPLOADS = 'media/Storage/Videos/Uploads'
+    VIDEO_PROCESSED = 'media/Storage/Videos/Uploads/Processed'
     VIDEO_TRASH = ''
 
     MAX_VIDEO_FILESIZE = (1024*1024*1024)*1 #In Bytes : (1024*1024*1024) = 1GB

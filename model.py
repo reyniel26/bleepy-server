@@ -98,8 +98,8 @@ class Model:
                 self.conn.close()
                 return str(result) + " record(s) inserted"
             except Exception as e:
-                return e
-        return False
+                return str(e)
+        return "Error: There is no connection"
     
     #================================================== Selects
     def selectAccounts(self):
@@ -182,9 +182,19 @@ class Model:
 
     def selectVideoByAccountAndVidId(self,id:str,vidid:str):
         return self.querySelect("call sp_select_videos_by_account_vid_id(%s,%s)",id,vidid)
+    
+    def selectVideoByUniqueFilename(self,uniquefilename):
+        return self.querySelect("call sp_select_video_by_uniquefilename(%s)",uniquefilename)
+
     #================================================== Inserts
     def insertRole(self,rolename):
         return self.queryInsert("call sp_add_roles(%s)",rolename)
+    
+    def insertVideo(self,filename,uniquefilename,filelocation,savedirectory):
+        return self.queryInsert("call sp_add_video(%s, %s, %s, %s)",filename,uniquefilename,filelocation,savedirectory)
+    
+    def insertUploadedBy(self,vidid,id):
+        return self.queryInsert("call sp_add_uploadedby(%s, %s)",vidid,id)
     
     
     

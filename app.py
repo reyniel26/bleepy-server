@@ -1,6 +1,5 @@
 #================================================== Imports
 #Flask
-from typing import Dict
 from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify
 #For decorator
 from functools import wraps 
@@ -10,6 +9,10 @@ import jwt
 from passlib.hash import sha256_crypt
 #Date time
 import datetime
+#OS
+import os
+#Uuid = for unique random id
+import uuid
 
 #Model for DB
 from model import Model
@@ -29,6 +32,7 @@ db = Model(
     app.config["DB_PWD"],
     app.config["DB_NAME"]
     )
+video = VideoFile()
 
 #================================================== Control Methods
 def testConn(f):
@@ -141,6 +145,39 @@ def sanitizeEmail(email:str):
 
 def allowedFileSize(filesize) ->bool:
     return int(filesize) <= app.config['MAX_VIDEO_FILESIZE']
+
+def saveVideo(file,filename,uniquefilename,acc_id):
+    fileinfo = {
+        "filename":"NaN",
+        "filelocation":"NaN"
+    }
+
+    parent_folder = "static/"+app.config['VIDEO_UPLOADS']
+    folder = str(acc_id)
+    savefolder = app.config['VIDEO_UPLOADS']+"/"+folder
+
+    #Try to create folder if not exist
+    try:
+        path = os.path.join(parent_folder, folder)
+        os.mkdir(path)
+    except(FileExistsError):
+        pass
+
+    #SaveToDirectories
+    file.save(os.path.join("static/"+savefolder, uniquefilename))
+
+    #SaveToDB
+    filelocation = savefolder+"/"+uniquefilename
+    savedirectory = "static/"+filelocation
+    msg = db.insertVideo(filename,uniquefilename,filelocation,savedirectory)
+    print(msg)
+    vid_id = db.selectVideoByUniqueFilename(uniquefilename).get("video_id")
+    msg = db.insertUploadedBy(vid_id,acc_id)
+    print(msg)
+
+    fileinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+
+    return fileinfo
 #================================================== Routes 
 
 #Index Page
@@ -325,14 +362,23 @@ def bleepstep1():
         tokenvalues = getTokenValues(token)
         acc_id = tokenvalues["authid"]
 
+        videoinfo = {
+            "filename":"Error",
+            "filelocation":"Error"
+        }
+
         #If choose video
         if request.form.get("choosevideo"):
 
             vid_id = request.form.get("vid_id")
             videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
 
-            return jsonify({'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo) )} )
-        else:
+            msg = str(videoinfo.get("filename"))+" has been choosen"
+            return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo)),
+                             'responsemsg': render_template('includes/_messages.html', msg=msg)
+                        })
+
+        elif request.files.get("uploadFile"):
             file = request.files.get("uploadFile")
             print(request.cookies.get('filesize'))
 
@@ -340,14 +386,17 @@ def bleepstep1():
                 errormsg = "File too large. Maximum File size allowed is "+str(app.config["MAX_FILESIZE_GB"])+" gb"
                 return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
 
-            # vid_id = request.form.get("vid_id")
-            # videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
-            videoinfo = {
-                "filename":"dsdsd",
-                "filelocation":"sdsdsd"
-            }
+            #Save Video
+            if not video.isAllowedExt(video.getExtension(file.filename)):
+                errormsg = "File type is not allowed"
+                return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
 
-            msg = "Upload Successful"
+            filename = file.filename
+            uniquefilename = str(uuid.uuid4()) +"."+video.getExtension(file.filename)
+
+            videoinfo = saveVideo(file,filename,uniquefilename,acc_id)
+
+            msg = "File Uploaded Successfully"
             return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo)) ,
                             'responsemsg': render_template('includes/_messages.html', msg=msg)
                         })
