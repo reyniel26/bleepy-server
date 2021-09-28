@@ -185,6 +185,12 @@ class Model:
     
     def selectVideoByUniqueFilename(self,uniquefilename):
         return self.querySelect("call sp_select_video_by_uniquefilename(%s)",uniquefilename)
+    
+    def selectBleepSounds(self):
+        return self.querySelectAll("call sp_select_bleep_sounds_all()")
+    
+    def selectBleepSoundById(self, bleepsoundid):
+        return self.querySelect("call sp_select_bleep_sound_by_bleepid(%s)",bleepsoundid)
 
     #================================================== Inserts
     def insertRole(self,rolename):

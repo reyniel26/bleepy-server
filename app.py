@@ -33,6 +33,7 @@ db = Model(
     app.config["DB_NAME"]
     )
 video = VideoFile()
+audio = AudioFile()
 
 #================================================== Control Methods
 def testConn(f):
@@ -348,6 +349,23 @@ def getvideoinfo():
 
     return jsonify('')
 
+#Get BleepSound Link
+@app.route('/getbleepsoundinfo', methods=["POST",'GET'])
+@testConn
+@authentication
+def getbleepsoundinfo():
+    if request.method == "POST":
+
+        bleepsoundid= request.form.get("bleepsound_id")
+        bleepsoundinfo = db.selectBleepSoundById(bleepsoundid)
+    
+        filelocation = "/static/"+bleepsoundinfo.get("filelocation") if bleepsoundinfo else ""
+    
+        
+        return jsonify({"filelocation":filelocation})
+
+    return jsonify('')
+
 #Routes for Bleep Steps
 #@authentication
 
@@ -367,6 +385,8 @@ def bleepstep1():
             "filelocation":"Error"
         }
 
+        bleepsounds = db.selectBleepSounds()
+
         #If choose video
         if request.form.get("choosevideo"):
 
@@ -374,7 +394,7 @@ def bleepstep1():
             videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
 
             msg = str(videoinfo.get("filename"))+" has been choosen"
-            return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo)),
+            return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo, bleepsounds=bleepsounds)),
                              'responsemsg': render_template('includes/_messages.html', msg=msg)
                         })
 
@@ -386,20 +406,30 @@ def bleepstep1():
                 errormsg = "File too large. Maximum File size allowed is "+str(app.config["MAX_FILESIZE_GB"])+" gb"
                 return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
 
-            #Save Video
+            
             if not video.isAllowedExt(video.getExtension(file.filename)):
-                errormsg = "File type is not allowed"
+                errormsg = "File type is not allowed. Allowed file extension are: "+str(video.getAllowedExts())
                 return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
-
+            
+            #Save Video
             filename = file.filename
             uniquefilename = str(uuid.uuid4()) +"."+video.getExtension(file.filename)
 
             videoinfo = saveVideo(file,filename,uniquefilename,acc_id)
 
             msg = "File Uploaded Successfully"
-            return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo)) ,
+            return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo,bleepsounds=bleepsounds)) ,
                             'responsemsg': render_template('includes/_messages.html', msg=msg)
                         })
+
+    return jsonify('')
+
+#BleepStep2
+#RunBleepy 
+@app.route('/bleepstep2', methods=["POST",'GET'])
+@testConn
+@authentication
+def bleepstep2():
 
     return jsonify('')
 
