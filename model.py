@@ -101,6 +101,21 @@ class Model:
                 return str(e)
         return "Error: There is no connection"
     
+    def queryInsertMany(self,sql,vals:list):
+        if(self.initConn()):
+            try:
+                cur = self.cur
+                cur.executemany(sql,vals)
+
+                self.conn.commit()
+                result = cur.rowcount
+
+                self.conn.close()
+                return str(result) + " record(s) inserted"
+            except Exception as e:
+                return str(e)
+        return "Error: There is no connection"
+    
     #================================================== Selects
     def selectAccounts(self):
         return self.querySelectAll("Select * from accounts")
@@ -111,18 +126,6 @@ class Model:
     def selectAccountViaId(self,id:str):
         return self.querySelect("call sp_select_account_via_id(%s)",id)
     
-    def countVideosUploadedByAcc(self,id:str):
-        return self.querySelect("call sp_count_videos_uploadedby_account(%s)",id)
-    
-    def countBleepVideosUploadedByAcc(self,id:str):
-        return self.querySelect("call sp_count_censored_videos_by_accounts(%s)",id)
-    
-    def countProfanityWordsByAcc(self,id:str):
-        return self.querySelect("call sp_count_profanitywords_collected_by_account(%s)",id)
-    
-    def countUniqueProfanityWordsByAcc(self,id:str):
-        return self.querySelect("call sp_count_unique_profanitywords_collected_by_account(%s)",id)
-
     def selectFeeds(self,id:str):
         """
         As of now it only return the data for specific user
@@ -157,25 +160,31 @@ class Model:
             latestbleep_data ={
                 "latestbleep":latestbleep,
                 "uniqueprofanities":self.selectUniqueProfanityWordsByVideo(latestbleep.get("pvideo_id")),
-                "uniqueprofanitycount":self.countUniqueProfanityWordsByVideo(latestbleep.get("pvideo_id")).get("count"),
-                "mostfrequentword":self.selectMostUniqueProfanityWordsByVideo(latestbleep.get("pvideo_id")).get("word")
+                "uniqueprofanitycount":self.countUniqueProfanityWordsByBleepedVideo(latestbleep.get("pvideo_id")).get("count"),
+                "mostfrequentword":self.selectMostFrequentProfanityWordByVideo(latestbleep.get("pvideo_id")).get("word")
             }
         return latestbleep_data
     
     def selectUniqueProfanityWordsByVideo(self,pvid:str):
         return self.querySelectAll("call sp_select_unique_profanitywords_of_video(%s)",pvid)
     
-    def selectMostUniqueProfanityWordsByVideo(self,pvid:str):
-        return self.querySelect("call sp_select_unique_profanitywords_of_video(%s)",pvid)
+    def selectUniqueProfanityWordsByVideoAll(self,pvid:str):
+        return self.querySelectAll("call sp_select_unique_profanitywords_of_video_All(%s)",pvid)
+
+    def selectMostFrequentProfanityWordByVideo(self,pvid:str):
+        return self.querySelect("call sp_select_most_frequent_profanity_word_of_video(%s)",pvid)
     
+    def selectProfanitiesOfVideo(self,pvid:str):
+        return self.querySelectAll("call sp_select_profanitywords_of_video(%s)",pvid)
+    
+    def selectProfanitiesOfVideoAll(self,pvid:str):
+        return self.querySelectAll("call sp_select_profanitywords_of_video_all(%s)",pvid)
+
     def selectUniqueProfanityWordsByAccount(self,id:str):
         return self.querySelectAll("call sp_select_unique_profanitywords_by_account(%s)",id)
     
     def selectBleepedVideosByAccount(self,id:str):
         return self.querySelectAll("call sp_select_censored_videos_by_account(%s)",id)
-    
-    def countUniqueProfanityWordsByVideo(self,pvid:str):
-        return self.querySelect("call sp_count_unique_profanitywords_collected_by_video(%s)",pvid)
     
     def selectVideosUploadedByAccount(self,id:str):
         return self.querySelectAll("call sp_select_videos_uploadedby_account(%s)",id)
@@ -191,6 +200,31 @@ class Model:
     
     def selectBleepSoundById(self, bleepsoundid):
         return self.querySelect("call sp_select_bleep_sound_by_bleepid(%s)",bleepsoundid)
+    
+    def selectBleepVideoByFileName(self,pfilename):
+        return self.querySelect("call sp_select_pvideo_by_filename(%s)",pfilename)
+    
+    def selectTop10ProfanitiesByVideo(self,pvid):
+        return self.querySelectAll("call sp_select_top_10_profanities_by_video(%s)",pvid)
+
+    #================================================== Counts
+    def countVideosUploadedByAcc(self,id:str):
+        return self.querySelect("call sp_count_videos_uploadedby_account(%s)",id)
+    
+    def countBleepVideosUploadedByAcc(self,id:str):
+        return self.querySelect("call sp_count_censored_videos_by_accounts(%s)",id)
+    
+    def countProfanityWordsByAcc(self,id:str):
+        return self.querySelect("call sp_count_profanitywords_collected_by_account(%s)",id)
+    
+    def countUniqueProfanityWordsByAcc(self,id:str):
+        return self.querySelect("call sp_count_unique_profanitywords_collected_by_account(%s)",id)
+
+    def countProfanityWordsByBleepedVideo(self,pvid_id:str):
+        return self.querySelect("call sp_count_profanitywords_collected_by_video(%s)",pvid_id)
+
+    def countUniqueProfanityWordsByBleepedVideo(self,id:str):
+        return self.querySelect("call sp_count_unique_profanitywords_collected_by_video(%s)",id)
 
     #================================================== Inserts
     def insertRole(self,rolename):
@@ -201,6 +235,12 @@ class Model:
     
     def insertUploadedBy(self,vidid,id):
         return self.queryInsert("call sp_add_uploadedby(%s, %s)",vidid,id)
+
+    def insertBleepedVideo(self,vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory):
+        return self.queryInsert("call sp_add_profanityvideo(%s,%s, %s, %s, %s)",vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
+    
+    def insertProfanities(self,vals:list):
+        return self.queryInsertMany("call sp_add_profanityword(%s, %s,%s,%s)",vals)
     
     
     

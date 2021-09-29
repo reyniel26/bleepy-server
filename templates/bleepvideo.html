@@ -297,8 +297,8 @@
 
     
     $('#chooseVideoForm').submit(function(event){
+        event.preventDefault();
         if($('#chooseVideo').val()){
-            event.preventDefault();
             $.ajax ({
                 type:"POST",
                 url:"/bleepstep1",
@@ -308,10 +308,12 @@
                 },
                 cache: false,
                 success:function(data){
-                    $('#bleepstep1card').CardWidget('collapse')
-                    $('#bleepstep1card').CardWidget('minimize')
-                    $('#bleepstep2div').show();
-                    $('#bleepstep2div').html(data.bleepstep1response);
+                    if(data.bleepstep1response){
+                        $('#bleepstep1card').CardWidget('collapse')
+                        $('#bleepstep1card').CardWidget('minimize')
+                        $('#bleepstep2div').show();
+                        $('#bleepstep2div').html(data.bleepstep1response);
+                    }
                     $('#choosevideomsgdiv').html(data.responsemsg);
                 },error:function(e){
                     alert("error: "+e)

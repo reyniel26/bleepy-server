@@ -19,18 +19,261 @@
       <div class="tab-content" id="custom-tabs-two-tabContent">
         <div class="tab-pane fade show active" id="step3-download" role="tabpanel" aria-labelledby="step3-download-tab">
             <h3 class=" font-weight-light">Download Bleep Video</h3>
-            <form action="">
-                <div class="embed-responsive embed-responsive-16by9 mb-3" id="downloadvideo">
-                    <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/tgbNymZ7vqY"></iframe>
+            {% if viewdata.get("bleepedvideoinfo") %}
+
+                <form action="">
+                    <p>{{viewdata.get('bleepedvideoinfo').get('filename')}} Bleeped Version</p>
+                    <div class="embed-responsive embed-responsive-16by9 mb-3" id="downloadvideo">
+                        <video class="embed-responsive-item" controls id="choosevideopreview">
+                            <source src="{{url_for('static', filename=viewdata.get('bleepedvideoinfo').get('pfilelocation') )}}" type="video/mp4" />
+                            This video is not supported by your browser...
+                        </video>
+                    </div>
+                    <div class="form-group" id="downloadSubmitDiv">
+                        <input type="submit" id="downloadSubmit" value="Download" class="btn btn-info" />
+                    </div>
+                </form>
+                <hr>
+                <h3 class=" font-weight-light">Profanity Report Summary</h3>
+                <div class=" table-responsive-xl shadow my-3">
+                    <table class="table table-bordered table-hover">
+                        <thead class="bg-theme-secondary text-theme-secondary">
+                            <tr>
+                                <th class="text-center">Video Title</th>
+                                <th class="text-center">Bleep Sound</th>
+                                <th class="text-center">Profanities Identified </th>
+                                <th class="text-center">Unique Profanities Identified </th>
+                                <th class="text-center">Most Frequent Word</th>
+                                <th class="text-center">Bleep Date </th>
+                            </tr>
+                        </thead>
+        
+                        <tbody>
+                            <tr>
+                                <th class="text-center">{{viewdata.get('bleepedvideoinfo').get('filename')}}</th>
+                                <th class="text-center">{{viewdata.get('bleepedvideoinfo').get('bfilename')}}</th>
+                                <th class="text-center">{{viewdata.get('bleepedvideoinfo').get('profanitycount')}}</th>
+                                <th class="text-center">{{viewdata.get('bleepedvideoinfo').get('uniqueprofanitycount')}}</th>
+                                <th class="text-center">{{viewdata.get('bleepedvideoinfo').get('mostfrequentword')}}</th>
+                                <th class="text-center">{{viewdata.get('bleepedvideoinfo').get('process_time')}}</th>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="form-group" id="downloadSubmitDiv">
-                    <input type="submit" id="downloadSubmit" value="Download" class="btn btn-info" />
+
+                
+                <!--Profanities Found-->
+                <div>
+                    {% if viewdata.get('bleepedvideoinfo').get('uniqueprofanities') %}
+                    <hr>
+                    <div class="card card-theme-secondary card-outline shadow">
+                        <div class="card-header ">
+                        <h3 class="card-title">Profanities Found</h3>
+        
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        </div>
+                        <div class="card-body">
+                            {% for profanities in viewdata.get('bleepedvideoinfo').get('uniqueprofanities') %}
+                            <tr>
+                                {% if profanities.get('occurrence') != "0" %}
+                                <input type="hidden" name="word" value="{{profanities.get('word')}}">
+                                <input type="hidden" name="occurrence" value="{{profanities.get('occurrence')}}">
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                            <canvas id="profanitiesChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
-            </form>
-            <hr>
-            <h3 class=" font-weight-light">Profanity Report Summary</h3>
+
+                
+                <!--Most Frequent Profanities-->
+                <div>
+                    {% if viewdata.get('bleepedvideoinfo').get('top10profanities') %}
+                    <hr>
+                    <div class="card card-theme-secondary card-outline shadow">
+                        <div class="card-header ">
+                        <h3 class="card-title">Top 10 Most Frequent Profanities</h3>
+        
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        </div>
+                        <div class="card-body">
+                            {% for profanities in viewdata.get('bleepedvideoinfo').get('top10profanities') %}
+                            <tr>
+                                {% if profanities.get('occurrence') != "0" %}
+                                <input type="hidden" name="mostfrequentprofanitiesword" value="{{profanities.get('word')}}">
+                                <input type="hidden" name="mostfrequentprofanitiesoccurrence" value="{{profanities.get('occurrence')}}">
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                            <canvas id="mostFrequentProfanitiesChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                
+                <!--First 10 Timestamp of Profanities Detected-->
+                <div>
+                    {% if viewdata.get('bleepedvideoinfo').get('profanities') %}
+                    <hr>
+                    <div class="card card-theme-secondary card-outline shadow">
+                        <div class="card-header">
+                        <h3 class="card-title">First 10 Timestamp of Profanities Detected</h3>        
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                                <i class="fa fa-expand "></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fa fa-minus "></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fa fa-times "></i>
+                            </button>
+                        </div>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body table-responsive p-0" style="height: 300px;">
+                        <table class="table table-head-fixed text-nowrap table-hover">
+                            <thead>
+                                <tr>
+                                <th>Word</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for profanities in viewdata.get('bleepedvideoinfo').get('profanities') %}
+                            <tr>
+                                {% if profanities.get('occurrence') != "0" %}
+                                <td>{{profanities.get('word')}}</td>
+                                <td>{{profanities.get('start')}}</td>
+                                <td>{{profanities.get('end')}}</td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                            </tbody> 
+                        </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            
+            {% else %}
+
+            <div class=" alert alert-success ">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                This video is already profanity free. No profanities detected
+            </div>
+            <div class=" jumbotron bg-white shadow text-center">
+                <a href="/bleepvideo"> <button class="btn btn-theme-secondary text-theme-secondary"> Try other video </button>  </a>
+            </div>
+
+            {% endif %}
         </div>
       </div>
     </div>
     <!-- /.card -->
-</div>  
+</div> 
+
+{% if viewdata.get("bleepedvideoinfo") %}
+
+    {% if viewdata.get('bleepedvideoinfo').get('uniqueprofanities') %}
+    <script>
+        $(function () {
+            let words = []
+            $("input[name=word]").each(function(){
+                words.push($(this).val())
+            });
+            let occurrence = []
+            $("input[name=occurrence]").each(function(){
+                occurrence.push($(this).val())
+            });
+            var graphData   = {
+                labels: words,
+                datasets: [
+                {
+                    data: occurrence,
+                    backgroundColor : ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d',"#43aa8b","#4d908e","#577590","#277da1"],
+                }
+                ]
+            }
+            //-------------
+            //- PIE CHART -
+            //-------------
+            // Get context with jQuery - using jQuery's .get() method.
+            var pieChartCanvas = $('#profanitiesChart').get(0).getContext('2d')
+            var pieData        = graphData;
+            var pieOptions     = {
+                maintainAspectRatio : false,
+                responsive : true,
+            }
+            new Chart(pieChartCanvas, {
+                type: 'pie',
+                data: pieData,
+                options: pieOptions
+            })
+
+        })
+    </script>
+    {% endif %}
+
+    {% if viewdata.get('bleepedvideoinfo').get('top10profanities') %}
+    <script>
+        $(function () {
+            //========================================================
+            let words = []
+            $("input[name=mostfrequentprofanitiesword]").each(function(){
+                words.push($(this).val())
+            });
+            let occurrence = []
+            $("input[name=mostfrequentprofanitiesoccurrence]").each(function(){
+                occurrence.push($(this).val())
+            });
+            occurrence.push(0) //This will set as the min value
+
+            //---------------------
+            var barChartCanvas = $('#mostFrequentProfanitiesChart').get(0).getContext('2d')
+            //---------------------
+            var xValues = words;
+            var yValues = occurrence;
+            var barColors = ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d',"#43aa8b","#4d908e","#577590","#277da1"];
+
+            new Chart(barChartCanvas, {
+            type: "horizontalBar",
+            data: {
+            labels: xValues,
+            datasets: [{
+                backgroundColor: barColors,
+                data: yValues
+            }]
+            },
+            options: {
+                legend: {display: false},
+                title: {
+                display: true,
+                text: "Profanities detected base on occurence"
+                }
+            }
+            });
+        })
+    </script>
+    {% endif %}
+
+{% endif %}
+

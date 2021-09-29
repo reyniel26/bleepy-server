@@ -32,11 +32,8 @@ db = Model(
     app.config["DB_PWD"],
     app.config["DB_NAME"]
     )
-video = VideoFile()
-audio = AudioFile()
-stt = SpeechToText("stt-language-models/model-wideband-en")
-extractor = ProfanityExtractor()
-blocker = ProfanityBlocker()
+
+
 
 #================================================== Control Methods
 def testConn(f):
@@ -125,6 +122,12 @@ def authentication(f):
         return f(*args, **kwargs)
     return wrap
 
+def getIdViaAuth() -> str:
+    cookies = request.cookies
+    token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+    tokenvalues = getTokenValues(token)
+    return tokenvalues["authid"]
+
 def viewData(**kwargs:str):
     """
     This method will pass constant data that will be use by the templates
@@ -182,6 +185,64 @@ def saveVideo(file,filename,uniquefilename,acc_id):
     fileinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
 
     return fileinfo
+
+def removeStaticDirectory(directory):
+    "This remove static"
+    filelocation = ""
+    if "static" in directory:
+        for i in directory.split("/")[1:]:
+            filelocation+=i+"/"
+        filelocation = filelocation[:-1]
+    else:
+        filelocation = directory
+    return filelocation
+
+def getFileNameFromDirectory(directory):
+    directory = removeStaticDirectory(directory)
+    return directory.split("/")[-1]
+
+def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory,profanities:list):
+    bleepedvideoinfo = {
+        "filename":"NaN",
+        "filelocation":"NaN"
+    }
+
+    try:
+        msg = db.insertBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
+        print(msg)
+        
+        bleepedvideoinfo = db.selectBleepVideoByFileName(pfilename)
+        pvid_id = bleepedvideoinfo.get("pvideo_id")
+        vals = []
+
+        for profanity in profanities:
+            item = (profanity["word"],profanity["start"],profanity["end"],pvid_id)
+            vals.append(item)
+        
+        msg = db.insertProfanities(vals)
+
+
+        bleepedvideoinfo["profanitycount"] = db.countProfanityWordsByBleepedVideo(pvid_id).get("count")
+        bleepedvideoinfo["uniqueprofanitycount"] = db.countUniqueProfanityWordsByBleepedVideo(pvid_id).get("count")
+        mostfrequent = db.selectMostFrequentProfanityWordByVideo(pvid_id)
+        bleepedvideoinfo["mostfrequentword"] = mostfrequent.get("word")
+        bleepedvideoinfo["mostfrequentwordoccurence"]  = mostfrequent.get("occurence")
+        bleepedvideoinfo["profanities"] = db.selectProfanitiesOfVideo(pvid_id) #list
+        bleepedvideoinfo["uniqueprofanities"] = db.selectUniqueProfanityWordsByVideo(pvid_id) #list
+        bleepedvideoinfo["top10profanities"] = db.selectTop10ProfanitiesByVideo(pvid_id)
+
+
+    except Exception as e:
+        print (e)
+        bleepedvideoinfo["error"] = e
+    
+    return bleepedvideoinfo
+
+
+    
+
+
+
 #================================================== Routes 
 
 #Index Page
@@ -273,10 +334,7 @@ def settings():
 @testConn
 @authentication
 def dashboard():
-    cookies = request.cookies
-    token = cookies.get(app.config["AUTH_TOKEN_NAME"])
-    tokenvalues = getTokenValues(token)
-    acc_id = tokenvalues["authid"]
+    acc_id = getIdViaAuth() 
 
     data = db.selectAccountViaId(acc_id)
     fullname = str(data.get("fname")+" "+data.get("lname")).title()
@@ -316,10 +374,7 @@ def logout():
 @testConn
 @authentication
 def bleepvideo():
-    cookies = request.cookies
-    token = cookies.get(app.config["AUTH_TOKEN_NAME"])
-    tokenvalues = getTokenValues(token)
-    acc_id = tokenvalues["authid"]
+    acc_id = getIdViaAuth() 
 
     videos = db.selectVideosUploadedByAccount(acc_id)
     
@@ -334,10 +389,7 @@ def bleepvideo():
 @authentication
 def getvideoinfo():
     if request.method == "POST":
-        cookies = request.cookies
-        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
-        tokenvalues = getTokenValues(token)
-        acc_id = tokenvalues["authid"]
+        acc_id = getIdViaAuth() 
 
 
         vid_id = request.form.get("vid_id")
@@ -378,10 +430,7 @@ def getbleepsoundinfo():
 @authentication
 def bleepstep1():
     if request.method == "POST":
-        cookies = request.cookies
-        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
-        tokenvalues = getTokenValues(token)
-        acc_id = tokenvalues["authid"]
+        acc_id = getIdViaAuth() 
 
         videoinfo = {
             "filename":"Error",
@@ -409,6 +458,7 @@ def bleepstep1():
                 errormsg = "File too large. Maximum File size allowed is "+str(app.config["MAX_FILESIZE_GB"])+" gb"
                 return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
 
+            video = VideoFile()
             
             if not video.isAllowedExt(video.getExtension(file.filename)):
                 errormsg = "File type is not allowed. Allowed file extension are: "+str(video.getAllowedExts())
@@ -433,6 +483,74 @@ def bleepstep1():
 @testConn
 @authentication
 def bleepstep2():
+    if request.method == "POST":
+        acc_id = getIdViaAuth()
+
+        vid_id = request.form.get("vid_id")
+        bleepsound_id = request.form.get("bleepsound_id")
+
+        if not (vid_id and bleepsound_id):
+            errormsg = "Invalid request! Video and Bleep Sound has no value"
+            return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+        
+        videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+        bleepsoundinfo = db.selectBleepSoundById(bleepsound_id)
+
+        video_filelocation = videoinfo.get("filelocation")
+        bleep_longversion = bleepsoundinfo.get("longversion") #This file will be use as bleep sound
+
+        if not (video_filelocation and bleep_longversion):
+            errormsg = "Invalid request! There is no data for video and bleep sound"
+            return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+        
+        video = VideoFile()
+        audio = AudioFile()
+
+        if not ( video.isFileAllowed("static/"+video_filelocation) and audio.isFileAllowed("static/"+bleep_longversion) ):
+            errormsg = "Invalid request! Video or Bleep Sound doesnt exist"
+            return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+        
+        video.setFile("static/"+video_filelocation)
+        audio.setFile("static/"+bleep_longversion)
+        
+
+        try:
+            
+            stt = SpeechToText("stt-language-models/model-en")
+            extractor = ProfanityExtractor()
+            blocker = ProfanityBlocker()
+            blocker.setClipsDirectory("static/media/Trash/Videos")
+            blocker.setSaveDirectory("static/media/Storage/Videos/Processed")
+            
+            stt.run(video)
+
+            extractor.setProfanities([]) #Reset Profanities
+            extractor.run(stt.getResults())
+            profanities = extractor.getProfanities()
+            
+
+            if len(profanities) > 0:
+                blocker.run(video,audio,profanities)
+                block_directory = blocker.getFileLocation()
+                block_filelocation = removeStaticDirectory(block_directory)
+                block_filename = getFileNameFromDirectory(block_filelocation)
+                bleepedvideoinfo = saveBleepedVideo(vid_id,bleepsound_id,block_filename,block_filelocation,block_directory,profanities)
+                #Save to db
+            else:
+                msg = "This video is already profanity free. No profanities detected"
+                print(msg)
+                return jsonify({ 'bleepstep2response': render_template('includes/bleepstep/_bleepstep3.html', viewdata = viewData() ) ,
+                        'responsemsg': render_template('includes/_messages.html', msg=msg)
+                    })
+
+        except Exception as e:
+            errormsg = e
+            return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+        
+        msg = "The video is now profanity free"
+        return jsonify({ 'bleepstep2response': render_template('includes/bleepstep/_bleepstep3.html', viewdata = viewData(bleepedvideoinfo=bleepedvideoinfo)) ,
+                        'responsemsg': render_template('includes/_messages.html', msg=msg)
+                    })
 
     return jsonify('')
 
