@@ -1,6 +1,6 @@
 #================================================== Imports
 #Flask
-from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify
+from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify, send_file
 #For decorator
 from functools import wraps 
 #JWT
@@ -553,6 +553,31 @@ def bleepstep2():
                     })
 
     return jsonify('')
+
+
+#BleepStep3
+#RunBleepy 
+@app.route('/bleepstep3/<path>', methods=["POST",'GET'])
+@testConn
+@authentication
+def bleepstep3(path):
+    
+    try:
+        acc_id = getIdViaAuth()
+        bleepvideo_id = path
+        bleepedvideoinfo = db.selectBleepedVideosByAccountAndPvid(acc_id,bleepvideo_id)
+        file_path = "static/"+bleepedvideoinfo.get("pfilelocation")
+        filename = "bleepedversion"+bleepedvideoinfo.get("filename")
+        attachment = True
+        print(file_path)
+
+        return send_file(file_path,as_attachment=attachment,attachment_filename=filename)
+    
+    except Exception as e:
+        errormsg = "Request has been denied"
+        return render_template('includes/_messages.html', error=errormsg)
+    
+    
 
 #================================================== Run APP 
 if __name__ == '__main__':

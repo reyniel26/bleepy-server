@@ -185,6 +185,9 @@ class Model:
     
     def selectBleepedVideosByAccount(self,id:str):
         return self.querySelectAll("call sp_select_censored_videos_by_account(%s)",id)
+
+    def selectBleepedVideosByAccountAndPvid(self,id:str,pvid:str):
+        return self.querySelect("call sp_select_censored_videos_by_acc_pvid(%s,%s)",id,pvid)
     
     def selectVideosUploadedByAccount(self,id:str):
         return self.querySelectAll("call sp_select_videos_uploadedby_account(%s)",id)

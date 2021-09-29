@@ -21,7 +21,7 @@
             <h3 class=" font-weight-light">Download Bleep Video</h3>
             {% if viewdata.get("bleepedvideoinfo") %}
 
-                <form action="">
+                <form>
                     <p>{{viewdata.get('bleepedvideoinfo').get('filename')}} Bleeped Version</p>
                     <div class="embed-responsive embed-responsive-16by9 mb-3" id="downloadvideo">
                         <video class="embed-responsive-item" controls id="choosevideopreview">
@@ -29,8 +29,14 @@
                             This video is not supported by your browser...
                         </video>
                     </div>
+                    <input type="hidden" name="bleepvideoid" id="bleepvideoid" value="{{viewdata.get('bleepedvideoinfo').get('pvideo_id')}}">
                     <div class="form-group" id="downloadSubmitDiv">
-                        <input type="submit" id="downloadSubmit" value="Download" class="btn btn-info" />
+                        <a href="/bleepstep3/{{viewdata.get('bleepedvideoinfo').get('pvideo_id')}}" target="_blank">
+                        <button type="button" class="btn btn-theme-secondary text-theme-secondary">Download</button>
+                        </a>
+                    </div>
+                    <div id="bleepstep3responsediv">
+
                     </div>
                 </form>
                 <hr>
