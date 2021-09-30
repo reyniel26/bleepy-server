@@ -245,6 +245,8 @@ class Model:
     def insertProfanities(self,vals:list):
         return self.queryInsertMany("call sp_add_profanityword(%s, %s,%s,%s)",vals)
     
+    def insertUser(self,email:str,fname:str,lname:str,pwd):
+        return self.queryInsert("call sp_add_user(%s, %s, %s, %s)",email,fname,lname,pwd)
     
     
 

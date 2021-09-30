@@ -331,14 +331,39 @@ def signup():
         
         checkemail = db.selectAccountViaEmail(email)
         if checkemail:
-            flash('Email is already taken or used by other user', 'danger')
-            return redirect(url_for('signup'))
+            if checkemail.get("email"):
+                flash('Email is already taken or used by other user', 'danger')
+                return redirect(url_for('signup'))
+            else:
+                flash('Error: '+checkemail.get("error"), 'danger')
+                return redirect(url_for('signup'))
+        
+        #hash password
+        hash_pwd = sha256_crypt.encrypt(str(pwd))
         
         #Save to db if valid
+        msg = db.insertUser(email,fname,lname,hash_pwd)
+        print(msg)
+
+        #validate to db if the account save
+        account = db.selectAccountViaEmail(email)
+
+        if not account:
+            flash('Sign up failed due to internal error. Account not save', 'danger')
+            return redirect(url_for('signup'))
         
+        acc_id = account.get("account_id")
+        
+        if not acc_id:
+            flash('Sign up failed due to internal error', 'danger')
+            return redirect(url_for('signup'))
+        
+        #set cookie
+        max_age = app.config["AUTH_MIN_AGE"]
+        res = setAuth(redirect(url_for('dashboard')),acc_id=acc_id,max_age=max_age)
 
         flash('You are now logged in ', 'success')
-        return redirect(url_for('dashboard'))
+        return res
     return render_template('signup.html', viewdata = viewData() )
 
 #Signin Page
@@ -359,15 +384,15 @@ def signin():
             return redirect(url_for('signin'))
 
         #DB Model
-        data = db.selectAccountViaEmail(email)
+        account = db.selectAccountViaEmail(email)
 
-        if not data:
+        if not account:
             flash('Wrong Email', 'danger')
             return redirect(url_for('signin'))
         
         
-        acc_pwd = data.get("pwd")
-        acc_id = data.get("account_id")
+        acc_pwd = account.get("pwd")
+        acc_id = account.get("account_id")
 
         if acc_pwd == None or acc_id == None:
             flash('Internal Error', 'danger')
