@@ -119,6 +119,26 @@ def authentication(f):
             return reserror
         # if not exist return error
 
+        max_age = tokenvalues.get("validuntil")
+        if max_age == app.config["AUTH_MIN_AGE"]: #reset auth
+            res = setAuth(f(*args, **kwargs),acc_id=acc_id,max_age=max_age)
+            return res
+
+        return f(*args, **kwargs)
+    return wrap
+
+def isAlreadyLoggedin(f):
+    """
+    If the user is already logged in go to dashboard
+    Applicable to sign in and sign up page
+    """
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        cookies = request.cookies
+        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+        if token:
+            flash("You are already logged in","warning")
+            return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
     return wrap
 
@@ -127,6 +147,27 @@ def getIdViaAuth() -> str:
     token = cookies.get(app.config["AUTH_TOKEN_NAME"])
     tokenvalues = getTokenValues(token)
     return tokenvalues["authid"]
+
+def setAuth(response,**kwargs):
+    """
+    set acc_id and max_age
+    example setAuth(render_template("home.html"),acc_id=acc_id,max_age=max_age)
+    if the acc_id and max_age is not set auth will set no value with expire 0
+    """
+    #set response
+    res = make_response(response)
+    #set cookie token
+    if kwargs.get("acc_id") and kwargs.get("max_age"):
+        res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
+            value = generateToken(authid=kwargs.get("acc_id"),validuntil=kwargs.get("max_age")),
+            max_age = kwargs.get("max_age")
+            )
+    else:
+        res.set_cookie(app.config["AUTH_TOKEN_NAME"],
+        value = "",
+        expires=0
+        )
+    return res
 
 def viewData(**kwargs:str):
     """
@@ -263,8 +304,19 @@ def error():
 #Signup Page
 @app.route('/signup', methods=["POST",'GET'])
 @testConn
+@isAlreadyLoggedin
 def signup():
     if request.method == "POST":
+
+        fname = request.form.get("fname")
+        lname = request.form.get("lname")
+        email = sanitizeEmail(request.form.get("email"))
+        pwd = request.form.get("pwd")
+        confirmpwd = request.form.get("confirmpwd")
+        isagree = request.form.getlist("agreetandc")
+
+
+
         flash('You are now logged in ', 'success')
         return redirect(url_for('dashboard'))
     return render_template('signup.html', viewdata = viewData() )
@@ -272,13 +324,14 @@ def signup():
 #Signin Page
 @app.route('/signin', methods=["POST",'GET'])
 @testConn
+@isAlreadyLoggedin
 def signin():
     if request.method == "POST":
         email = sanitizeEmail(request.form.get("email"))
         pwd = request.form.get("pwd")
         remember = request.form.getlist("remember")
         #remember 30days or else remember for 5mins
-        max_age = (60*60*24*30) if remember else (60*5)
+        max_age = app.config["AUTH_MAX_AGE"] if remember else app.config["AUTH_MIN_AGE"]
 
         #Validation
         if email == "" or pwd == "":
@@ -306,13 +359,14 @@ def signin():
             flash('Wrong Password', 'danger')
             return redirect(url_for('signin'))
 
-        #set response
-        res = make_response(redirect(url_for('dashboard')))
-        #set cookie token
-        res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
-            value = generateToken(authid=acc_id,validuntil=max_age),
-            max_age = max_age
-            )
+        # #set response
+        # res = make_response(redirect(url_for('dashboard')))
+        # #set cookie token
+        # res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
+        #     value = generateToken(authid=acc_id,validuntil=max_age),
+        #     max_age = max_age
+        #     )
+        res = setAuth(redirect(url_for('dashboard')),acc_id=acc_id,max_age=max_age)
 
         flash('You are now logged in ', 'success')
         return res
@@ -360,12 +414,13 @@ def dashboard():
 @authentication
 def logout():
     #set response
-    res = make_response(redirect(url_for('signin')))
-    #set cookie token | expires = 0 to delete cookie
-    res.set_cookie(app.config["AUTH_TOKEN_NAME"],
-        value = "",
-        expires=0
-        )
+    # res = make_response(redirect(url_for('signin')))
+    # #set cookie token | expires = 0 to delete cookie
+    # res.set_cookie(app.config["AUTH_TOKEN_NAME"],
+    #     value = "",
+    #     expires=0
+    #     )
+    res = setAuth(redirect(url_for('signin')))
     flash('You are now logged out ', 'success')
     return res
 
@@ -452,9 +507,10 @@ def bleepstep1():
 
         elif request.files.get("uploadFile"):
             file = request.files.get("uploadFile")
-            print(request.cookies.get('filesize'))
+            # print(request.cookies.get('filesize'))
 
-            if not allowedFileSize(request.cookies.get('filesize')):
+            # if not allowedFileSize(request.cookies.get('filesize')):
+            if not allowedFileSize(request.form.get('uploadfilesize')):
                 errormsg = "File too large. Maximum File size allowed is "+str(app.config["MAX_FILESIZE_GB"])+" gb"
                 return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
 

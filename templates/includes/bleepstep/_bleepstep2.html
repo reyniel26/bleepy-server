@@ -17,8 +17,18 @@
     </div>
     <div class="card-body">
       <div class="tab-content" id="custom-tabs-two-tabContent">
-        <div class="tab-pane fade show active" id="step2-run-bleepy" role="tabpanel" aria-labelledby="step2-run-bleepy-tab">
-            <h3 class=" font-weight-light">Run Bleepy</h3>
+        <div class="tab-pane fade show active" id="step2-run-bleepy" role="tabpanel" aria-labelledby="step2-run-bleepy-tab">        
+            <div class="row">
+                <div class="col-6">
+                    <h3 class=" font-weight-light">
+                        Run Bleepy
+                    </h3>
+                </div>
+                <div class="col-6 ">
+                    <a href="/bleepvideo"> <button class="btn btn-theme-secondary float-right">Back to Step 1</button></a>
+                </div>
+            </div>
+
             <hr>
             <p>{{viewdata.get('videoinfo').get('filename')}}</p>
             <form action="/bleepstep2" id="runbleepyform" method="POST">

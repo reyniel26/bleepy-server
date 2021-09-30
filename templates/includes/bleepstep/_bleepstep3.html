@@ -18,7 +18,15 @@
     <div class="card-body">
       <div class="tab-content" id="custom-tabs-two-tabContent">
         <div class="tab-pane fade show active" id="step3-download" role="tabpanel" aria-labelledby="step3-download-tab">
-            <h3 class=" font-weight-light">Download Bleep Video</h3>
+            <div class="row">
+                <div class="col-6">
+                    <h3 class=" font-weight-light">Download Bleep Video</h3>
+                </div>
+                <div class="col-6 ">
+                    <a href="/bleepvideo"> <button class="btn btn-theme-secondary float-right">Back to Step 1</button></a>
+                </div>
+            </div>
+            <hr>
             {% if viewdata.get("bleepedvideoinfo") %}
 
                 <form>

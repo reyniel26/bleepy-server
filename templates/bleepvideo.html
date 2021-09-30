@@ -85,6 +85,7 @@
                                     <input type="file" class="custom-file-input" id="uploadFile" name="uploadFile" accept="video/mp4, video/mkv">
                                     <label class="custom-file-label" for="uploadFile">Choose file</label>
                                     </div>
+                                    <input type="hidden" name="uploadfilesize" id="uploadfilesize" value="">
                                     <div class="form-group" id="uploadSubmitDiv" style="display: none;">
                                         <input type="submit" id="uploadSubmit" value="Upload" class="btn btn-info" />
                                     </div>
@@ -193,8 +194,7 @@
         $('#uploadProgress').hide();
         $('#cancelUploadMsg').html("");
         if($('#uploadFile').val()){
-            document.cookie = `filesize= ${this.files[0].size}`;
-            console.log(`filesize= ${this.files[0].size}`)
+            $('#uploadfilesize').val(this.files[0].size)
             $('#uploadSubmitDiv').show();
         }
     });
@@ -228,7 +228,6 @@
                     $('#targetLayer').show();
                     $('#cancelSubmitDiv').hide();
                     $('#uploadFile').show();
-                    //$('#uploadFile').prop('disabled', false);
                     $('#targetLayer').html(data.responsemsg);
                     if(data.bleepstep1response){
                         $('#bleepstep1card').CardWidget('collapse')
