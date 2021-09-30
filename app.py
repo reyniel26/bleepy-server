@@ -34,7 +34,6 @@ db = Model(
     )
 
 
-
 #================================================== Control Methods
 def testConn(f):
     """
@@ -191,7 +190,8 @@ def sanitizeEmail(email:str):
     invalids = [" ","\"","\\", "/", "<", ">","|","\t",":"]
     for x in invalids:
         email = email.strip(x)
-    return email
+    return email.strip()
+
 
 def allowedFileSize(filesize) ->bool:
     return int(filesize) <= app.config['MAX_VIDEO_FILESIZE']
@@ -282,10 +282,6 @@ def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory
     return bleepedvideoinfo
 
 
-    
-
-
-
 #================================================== Routes 
 
 #Index Page
@@ -310,14 +306,37 @@ def error():
 def signup():
     if request.method == "POST":
 
-        fname = request.form.get("fname")
-        lname = request.form.get("lname")
+        fname = request.form.get("fname").strip()
+        lname = request.form.get("lname").strip()
         email = sanitizeEmail(request.form.get("email"))
         pwd = request.form.get("pwd")
         confirmpwd = request.form.get("confirmpwd")
         isagree = request.form.getlist("agreetandc")
 
-
+        #Validations
+        if fname == "" or lname == "" or email == "" or pwd == "" or confirmpwd == "":
+            flash('Please fill up all fields', 'danger')
+            return redirect(url_for('signup'))
+        
+        if not isagree:
+            flash('Please check the Terms and Conditions', 'danger')
+            return redirect(url_for('signup'))
+        
+        if pwd != confirmpwd:
+            flash('Password and Confirm password not match', 'danger')
+            return redirect(url_for('signup'))
+        
+        if not (fname.replace(" ", "").isalpha() and lname.replace(" ", "").isalpha()):
+            flash('Invalid First Name of Last Name', 'danger')
+            return redirect(url_for('signup'))
+        
+        checkemail = db.selectAccountViaEmail(email)
+        if checkemail:
+            flash('Email is already taken or used by other user', 'danger')
+            return redirect(url_for('signup'))
+        
+        #Save to db if valid
+        
 
         flash('You are now logged in ', 'success')
         return redirect(url_for('dashboard'))
