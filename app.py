@@ -192,7 +192,6 @@ def sanitizeEmail(email:str):
         email = email.strip(x)
     return email.strip()
 
-
 def allowedFileSize(filesize) ->bool:
     return int(filesize) <= app.config['MAX_VIDEO_FILESIZE']
 
@@ -492,6 +491,22 @@ def getbleepsoundinfo():
 
     return jsonify('')
 
+#Download bleep video
+@app.route('/downloadbleeped/<path>', methods=["POST",'GET'])
+@testConn
+@authentication
+def downloadbleeped(path):
+    try:
+        acc_id = getIdViaAuth()
+        bleepvideo_id = path
+        bleepedvideoinfo = db.selectBleepedVideosByAccountAndPvid(acc_id,bleepvideo_id)
+        file_path = "static/"+bleepedvideoinfo.get("pfilelocation")
+        filename = "bleepedversion"+bleepedvideoinfo.get("filename")
+        return send_file(file_path,as_attachment=True,attachment_filename=filename)
+    except Exception as e:
+        errormsg = "Request has been denied"
+        return render_template('includes/_messages.html', error=errormsg)
+        
 #Routes for Bleep Steps
 #@authentication
 
@@ -626,28 +641,13 @@ def bleepstep2():
 
     return jsonify('')
 
-
 #BleepStep3
 #RunBleepy 
 @app.route('/bleepstep3/<path>', methods=["POST",'GET'])
 @testConn
 @authentication
 def bleepstep3(path):
-    
-    try:
-        acc_id = getIdViaAuth()
-        bleepvideo_id = path
-        bleepedvideoinfo = db.selectBleepedVideosByAccountAndPvid(acc_id,bleepvideo_id)
-        file_path = "static/"+bleepedvideoinfo.get("pfilelocation")
-        filename = "bleepedversion"+bleepedvideoinfo.get("filename")
-        attachment = True
-        print(file_path)
-
-        return send_file(file_path,as_attachment=attachment,attachment_filename=filename)
-    
-    except Exception as e:
-        errormsg = "Request has been denied"
-        return render_template('includes/_messages.html', error=errormsg)
+    return redirect(url_for('downloadbleeped',path=path))
     
     
 
