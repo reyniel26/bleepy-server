@@ -81,12 +81,14 @@ def authentication(f):
         token = cookies.get(app.config["AUTH_TOKEN_NAME"])
 
         #making sure there is no cookie left
-        reserror = make_response(redirect(url_for('signin')))
+        # reserror = make_response(redirect(url_for('signin')))
+        # reserror = setAuth(redirect(url_for('signin')))
+        reserror = setAuth(redirect(url_for('signin')))
         #set cookie token | expires = 0 to delete cookie
-        reserror.set_cookie(app.config["AUTH_TOKEN_NAME"],
-            value = "",
-            expires=0
-            )
+        # reserror.set_cookie(app.config["AUTH_TOKEN_NAME"],
+        #     value = "",
+        #     expires=0
+        #     )
 
         if not token:
             #The token not exist
@@ -411,15 +413,10 @@ def dashboard():
 #Log out route
 @app.route('/logout')
 @testConn
-@authentication
 def logout():
-    #set response
-    # res = make_response(redirect(url_for('signin')))
-    # #set cookie token | expires = 0 to delete cookie
-    # res.set_cookie(app.config["AUTH_TOKEN_NAME"],
-    #     value = "",
-    #     expires=0
-    #     )
+    """
+    Log out does not now need authentication, it just delete auth cache is exist
+    """
     res = setAuth(redirect(url_for('signin')))
     flash('You are now logged out ', 'success')
     return res
