@@ -266,7 +266,7 @@
                             <th>Video Title</th>
                             <th>Bleep Sound</th>
                             <th>Date</th>
-                            <th> <a class="btn btn-theme" href="#">View All</a></th>
+                            <th> <a class="btn btn-theme" href="/bleepvideolist">View All</a></th>
                         </tr>
                         </thead>
                         <tbody>
@@ -275,7 +275,9 @@
                                 <td>{{videoinfo.get("filename")}}</td>
                                 <td>{{videoinfo.get("bfilename")}}</td>
                                 <td>{{videoinfo.get("process_time")}}</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
+                                <td> 
+                                    <a href="/bleepvideoinfo/{{videoinfo.get('pvideo_id')}}" > <button class=" btn btn-theme-secondary"> <i class="fa fa-eye" aria-hidden="true"></i> View </button> </a>
+                                </td>
                             </tr>
                         {% endfor %}
                         

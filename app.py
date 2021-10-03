@@ -478,18 +478,6 @@ def dashboard():
     
     return render_template('dashboard.html', viewdata = viewData( dashboard=True, user_data=user_data,feeds=feeds, latestbleep_data=latestbleep_data ))
 
-
-#Bleep Video Page
-@app.route('/bleepvideo')
-@testConn
-@authentication
-def bleepvideo():
-    acc_id = getIdViaAuth() 
-
-    videos = db.selectVideosUploadedByAccount(acc_id)
-    
-    return render_template('bleepvideo.html', viewdata = viewData(videos=videos))
-
 #Profile route
 @app.route('/profile')
 @testConn
@@ -505,6 +493,32 @@ def profile():
     }
     
     return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data))
+
+#Bleep Video List route
+@app.route('/bleepvideolist')
+@testConn
+@authentication
+def bleepvideolist():
+    acc_id = getIdViaAuth()
+    data = db.selectAccountViaId(acc_id)
+
+    bleepedvideos = db.selectBleepedVideosByAccount(acc_id)
+    latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+    
+    return render_template('bleepvideolist.html', viewdata = viewData(bleepvideolist=True,bleepedvideos=bleepedvideos,latestbleep_data=latestbleep_data))
+
+
+#Bleep Video Page
+@app.route('/bleepvideo')
+@testConn
+@authentication
+def bleepvideo():
+    acc_id = getIdViaAuth() 
+
+    videos = db.selectVideosUploadedByAccount(acc_id)
+    
+    return render_template('bleepvideo.html', viewdata = viewData(videos=videos))
+
 
 #Routes that returns JSONs
 #@authentication

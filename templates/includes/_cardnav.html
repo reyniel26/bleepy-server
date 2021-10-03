@@ -23,7 +23,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link {% if viewdata.get('videolist') %} active {% endif %}">
                         <i class="nav-icon fa fa-video-camera"></i>
                         <p>
                             Videos
@@ -31,7 +31,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="bleepvideolist" class="nav-link {% if viewdata.get('bleepvideolist') %} active {% endif %}">
                         <i class="nav-icon fa fa-soundcloud"></i>
                         <p>
                             Bleeped Videos
