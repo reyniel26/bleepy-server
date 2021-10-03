@@ -494,6 +494,20 @@ def profile():
     
     return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data))
 
+#Video List route
+@app.route('/videolist')
+@testConn
+@authentication
+def videolist():
+    acc_id = getIdViaAuth()
+
+    videos = db.selectVideosUploadedByAccount(acc_id)
+    latest_video = db.selectLatestUploadedVideo(acc_id)
+    print(videos)
+    
+    return render_template('videolist.html', viewdata = viewData(videolist=True,videos=videos,latest_video=latest_video))
+
+
 #Bleep Video List route
 @app.route('/bleepvideolist')
 @testConn
@@ -507,7 +521,7 @@ def bleepvideolist():
     
     return render_template('bleepvideolist.html', viewdata = viewData(bleepvideolist=True,bleepedvideos=bleepedvideos,latestbleep_data=latestbleep_data))
 
-#Bleep Video List route
+#Bleep Video Info route
 @app.route('/bleepvideoinfo/<path>',methods=["POST",'GET'])
 @testConn
 @authentication
@@ -550,9 +564,14 @@ def getvideoinfo():
         #videoinfo contains = filelocation, filename, see db
         
         filelocation = "/static/"+videoinfo.get("filelocation") if videoinfo  else ""
+        filename = videoinfo.get("filename")
+        upload_time= videoinfo.get("upload_time")
         
-        
-        return jsonify({"filelocation":filelocation})
+        return jsonify({
+            "filelocation":filelocation,
+            "filename":filename,
+            "upload_time":upload_time
+        })
 
     return jsonify('')
 

@@ -153,6 +153,9 @@ class Model:
     def selectLatestBleep(self,id:str):
         return self.querySelect("call sp_select_latest_censored_videos_by_account(%s)",id)
     
+    def selectLatestUploadedVideo(self,id:str):
+        return self.querySelect("call sp_select_latest_video_by_account(%s)",id)
+    
     def selectLatestBleepSummaryData(self,id:str):
         latestbleep = self.selectLatestBleep(id)
         latestbleep_data = {}
