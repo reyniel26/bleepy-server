@@ -437,6 +437,17 @@ def signin():
         return res
     return render_template('signin.html', viewdata = viewData())
 
+#Log out route
+@app.route('/logout')
+@testConn
+def logout():
+    """
+    Log out does not now need authentication, it just delete auth cache is exist
+    """
+    res = setAuth(redirect(url_for('signin')))
+    flash('You are now logged out ', 'success')
+    return res
+
 #Pages and routes that can only be access when logged in
 #@authentication
 
@@ -467,16 +478,6 @@ def dashboard():
     
     return render_template('dashboard.html', viewdata = viewData( dashboard=True, user_data=user_data,feeds=feeds, latestbleep_data=latestbleep_data ))
 
-#Log out route
-@app.route('/logout')
-@testConn
-def logout():
-    """
-    Log out does not now need authentication, it just delete auth cache is exist
-    """
-    res = setAuth(redirect(url_for('signin')))
-    flash('You are now logged out ', 'success')
-    return res
 
 #Bleep Video Page
 @app.route('/bleepvideo')
@@ -492,6 +493,7 @@ def bleepvideo():
 #Profile route
 @app.route('/profile')
 @testConn
+@authentication
 def profile():
     acc_id = getIdViaAuth()
     data = db.selectAccountViaId(acc_id)
