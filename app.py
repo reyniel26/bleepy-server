@@ -179,6 +179,9 @@ def viewData(**kwargs:str):
     In rendering templates, always include this
     Example: render_template("index.html", viewdata = viewData())
     Another example: render_template("index.html", viewdata = viewData( somedata = "data"))
+
+    To add active class to cardnav, use nameOfRoute=True
+    Example: dashboard=True
     """
     viewdata = {
         "auth_token":app.config["AUTH_TOKEN_NAME"]
@@ -187,12 +190,13 @@ def viewData(**kwargs:str):
     if getIdViaAuth():
         acc_id = getIdViaAuth()
         data = db.selectAccountViaId(acc_id)
-        fullname = str(data.get("fname")+" "+data.get("lname")).title()
+        if data:
+            fullname = str(data.get("fname")+" "+data.get("lname")).title()
 
-        #User widget
-        viewdata["uw_fullname"] = fullname
-        viewdata["uw_videoscount"] = db.countVideosUploadedByAcc(acc_id).get("count")
-        viewdata["uw_bleepedvideoscount"] = db.countBleepVideosUploadedByAcc(acc_id).get("count")
+            #User widget
+            viewdata["uw_fullname"] = fullname
+            viewdata["uw_videoscount"] = db.countVideosUploadedByAcc(acc_id).get("count")
+            viewdata["uw_bleepedvideoscount"] = db.countBleepVideosUploadedByAcc(acc_id).get("count")
         
         
 
@@ -461,7 +465,7 @@ def dashboard():
     feeds = db.selectFeeds(acc_id)
     latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
     
-    return render_template('dashboard.html', viewdata = viewData( user_data=user_data,feeds=feeds, latestbleep_data=latestbleep_data ))
+    return render_template('dashboard.html', viewdata = viewData( dashboard=True, user_data=user_data,feeds=feeds, latestbleep_data=latestbleep_data ))
 
 #Log out route
 @app.route('/logout')
@@ -489,9 +493,16 @@ def bleepvideo():
 @app.route('/profile')
 @testConn
 def profile():
+    acc_id = getIdViaAuth()
+    data = db.selectAccountViaId(acc_id)
+
+    user_data = {
+        "fname":data.get("fname"),
+        "lname":data.get("lname"),
+        "email":data.get("email")
+    }
     
-    flash('You are now logged out ', 'success')
-    return render_template('profile.html', viewdata = viewData())
+    return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data))
 
 #Routes that returns JSONs
 #@authentication

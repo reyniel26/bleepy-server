@@ -7,7 +7,7 @@
             <!-- Add icons to the links using the .nav-icon class
                 with font-awesome or any other icon font library -->
                 <li class="nav-item">
-                    <a href="/dashboard" class="nav-link active">
+                    <a href="/dashboard" class="nav-link {% if viewdata.get('dashboard') %} active {% endif %}">
                         <i class="nav-icon fa fa-tachometer"></i>
                         <p>
                             Dashboard
@@ -15,7 +15,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="/profile" class="nav-link {% if viewdata.get('profile') %} active {% endif %}">
                         <i class="nav-icon fa fa-user"></i>
                         <p>
                             Profile
@@ -26,7 +26,7 @@
                     <a href="#" class="nav-link">
                         <i class="nav-icon fa fa-video-camera"></i>
                         <p>
-                            My Videos
+                            Videos
                         </p>
                     </a>
                 </li>
@@ -34,7 +34,7 @@
                     <a href="#" class="nav-link">
                         <i class="nav-icon fa fa-soundcloud"></i>
                         <p>
-                            My Bleeped Videos
+                            Bleeped Videos
                         </p>
                     </a>
                 </li>
