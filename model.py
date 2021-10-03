@@ -150,6 +150,9 @@ class Model:
         
         return feeds
 
+    def selectLatestBleepSound(self):
+        return self.querySelect("call sp_select_latest_bleep_sound()")
+
     def selectLatestBleep(self,id:str):
         return self.querySelect("call sp_select_latest_censored_videos_by_account(%s)",id)
     

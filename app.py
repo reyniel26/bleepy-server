@@ -311,6 +311,16 @@ def index():
     #inside of template folder is the home.html
     return render_template('index.html', viewdata = viewData() )
 
+#Bleep Sounds
+@app.route('/bleepsoundlist')
+@testConn
+def bleepsoundlist():
+    
+    bleepsounds = db.selectBleepSounds()
+    latest_bleepsound = db.selectLatestBleepSound()
+
+    return render_template('bleepsoundlist.html', viewdata = viewData(bleepsoundlist=True, bleepsounds=bleepsounds, latest_bleepsound =latest_bleepsound ) )
+
 #Error Page
 @app.route('/error')
 def error():
@@ -507,7 +517,6 @@ def videolist():
     
     return render_template('videolist.html', viewdata = viewData(videolist=True,videos=videos,latest_video=latest_video))
 
-
 #Bleep Video List route
 @app.route('/bleepvideolist')
 @testConn
@@ -566,7 +575,7 @@ def getvideoinfo():
         filelocation = "/static/"+videoinfo.get("filelocation") if videoinfo  else ""
         filename = videoinfo.get("filename")
         upload_time= videoinfo.get("upload_time")
-        
+
         return jsonify({
             "filelocation":filelocation,
             "filename":filename,
@@ -586,9 +595,12 @@ def getbleepsoundinfo():
         bleepsoundinfo = db.selectBleepSoundById(bleepsoundid)
     
         filelocation = "/static/"+bleepsoundinfo.get("filelocation") if bleepsoundinfo else ""
-    
+        filename = bleepsoundinfo.get("filename")
         
-        return jsonify({"filelocation":filelocation})
+        return jsonify({
+            "filelocation":filelocation,
+            "filename":filename
+        })
 
     return jsonify('')
 
