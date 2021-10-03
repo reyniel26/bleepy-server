@@ -165,6 +165,22 @@ class Model:
             }
         return latestbleep_data
     
+    def selectBleepedVideoFullInfo(self,id:str,pvid:str):
+        bleepinfo = self.selectBleepedVideosByAccountAndPvid(id,pvid)
+        bleepinfo_data = {}
+        if bleepinfo:
+            bleepinfo_data ={
+                "bleepinfo":bleepinfo,
+                "uniqueprofanities":self.selectUniqueProfanityWordsByVideo(bleepinfo.get("pvideo_id")),
+                "uniqueprofanitiesall":self.selectUniqueProfanityWordsByVideoAll(bleepinfo.get("pvideo_id")),
+                "profanitiesall":self.selectProfanitiesOfVideoAll(bleepinfo.get("pvideo_id")),
+                "uniqueprofanitycount":self.countUniqueProfanityWordsByBleepedVideo(bleepinfo.get("pvideo_id")).get("count"),
+                "profanitycount":self.countProfanityWordsByBleepedVideo(bleepinfo.get("pvideo_id")).get("count"),
+                "mostfrequentword":self.selectMostFrequentProfanityWordByVideo(bleepinfo.get("pvideo_id")).get("word"),
+                "top10profanities":self.selectTop10ProfanitiesByVideo(bleepinfo.get("pvideo_id"))
+            }
+        return bleepinfo_data
+
     def selectUniqueProfanityWordsByVideo(self,pvid:str):
         return self.querySelectAll("call sp_select_unique_profanitywords_of_video(%s)",pvid)
     

@@ -507,6 +507,18 @@ def bleepvideolist():
     
     return render_template('bleepvideolist.html', viewdata = viewData(bleepvideolist=True,bleepedvideos=bleepedvideos,latestbleep_data=latestbleep_data))
 
+#Bleep Video List route
+@app.route('/bleepvideoinfo/<path>',methods=["POST",'GET'])
+@testConn
+@authentication
+def bleepvideoinfo(path):
+    acc_id = getIdViaAuth()
+    bleepinfo_data = {}
+    if path:
+        bleepvideo_id = path
+        bleepinfo_data = db.selectBleepedVideoFullInfo(acc_id,bleepvideo_id)
+
+    return render_template('bleepvideoinfo.html', viewdata = viewData(bleepvideolist=True,bleepinfo_data=bleepinfo_data))
 
 #Bleep Video Page
 @app.route('/bleepvideo')
