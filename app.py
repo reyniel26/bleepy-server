@@ -143,11 +143,14 @@ def isAlreadyLoggedin(f):
         return f(*args, **kwargs)
     return wrap
 
-def getIdViaAuth() -> str:
-    cookies = request.cookies
-    token = cookies.get(app.config["AUTH_TOKEN_NAME"])
-    tokenvalues = getTokenValues(token)
-    return tokenvalues["authid"]
+def getIdViaAuth():
+    try:
+        cookies = request.cookies
+        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+        tokenvalues = getTokenValues(token)
+        return str(tokenvalues["authid"])
+    except:
+        return None
 
 def setAuth(response,**kwargs):
     """
@@ -180,6 +183,19 @@ def viewData(**kwargs:str):
     viewdata = {
         "auth_token":app.config["AUTH_TOKEN_NAME"]
     }
+    #If the user is logged in
+    if getIdViaAuth():
+        acc_id = getIdViaAuth()
+        data = db.selectAccountViaId(acc_id)
+        fullname = str(data.get("fname")+" "+data.get("lname")).title()
+
+        #User widget
+        viewdata["uw_fullname"] = fullname
+        viewdata["uw_videoscount"] = db.countVideosUploadedByAcc(acc_id).get("count")
+        viewdata["uw_bleepedvideoscount"] = db.countBleepVideosUploadedByAcc(acc_id).get("count")
+        
+        
+
     viewdata.update(**kwargs)
     return viewdata
 
@@ -434,15 +450,9 @@ def settings():
 @authentication
 def dashboard():
     acc_id = getIdViaAuth() 
-
-    data = db.selectAccountViaId(acc_id)
-    fullname = str(data.get("fname")+" "+data.get("lname")).title()
     now = datetime.datetime.now()
 
     user_data = {
-        "fullname":fullname,
-        "videoscount":db.countVideosUploadedByAcc(acc_id).get("count"),
-        "bleepedvideoscount":db.countBleepVideosUploadedByAcc(acc_id).get("count"),
         "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
         "bleepedvideos":db.selectBleepedVideosByAccount(acc_id),
         "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A")
@@ -474,6 +484,14 @@ def bleepvideo():
     videos = db.selectVideosUploadedByAccount(acc_id)
     
     return render_template('bleepvideo.html', viewdata = viewData(videos=videos))
+
+#Profile route
+@app.route('/profile')
+@testConn
+def profile():
+    
+    flash('You are now logged out ', 'success')
+    return render_template('profile.html', viewdata = viewData())
 
 #Routes that returns JSONs
 #@authentication
