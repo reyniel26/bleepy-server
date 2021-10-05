@@ -523,7 +523,6 @@ def videolist():
 @authentication
 def bleepvideolist():
     acc_id = getIdViaAuth()
-    data = db.selectAccountViaId(acc_id)
 
     bleepedvideos = db.selectBleepedVideosByAccount(acc_id)
     latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
@@ -558,6 +557,27 @@ def bleepvideo():
 #Routes that returns JSONs
 #@authentication
 
+#Get BleepSound Link
+#This doesnt need authentication
+@app.route('/getbleepsoundinfo', methods=["POST",'GET'])
+@testConn
+def getbleepsoundinfo():
+    if request.method == "POST":
+
+        bleepsoundid= request.form.get("bleepsound_id")
+        bleepsoundinfo = db.selectBleepSoundById(bleepsoundid)
+    
+        filelocation = "/static/"+bleepsoundinfo.get("filelocation") if bleepsoundinfo else ""
+        filename = bleepsoundinfo.get("filename")
+        
+        return jsonify({
+            "filelocation":filelocation,
+            "filename":filename
+        })
+
+    return jsonify('')
+
+
 #Get Video Link
 @app.route('/getvideoinfo', methods=["POST",'GET'])
 @testConn
@@ -580,26 +600,6 @@ def getvideoinfo():
             "filelocation":filelocation,
             "filename":filename,
             "upload_time":upload_time
-        })
-
-    return jsonify('')
-
-#Get BleepSound Link
-@app.route('/getbleepsoundinfo', methods=["POST",'GET'])
-@testConn
-@authentication
-def getbleepsoundinfo():
-    if request.method == "POST":
-
-        bleepsoundid= request.form.get("bleepsound_id")
-        bleepsoundinfo = db.selectBleepSoundById(bleepsoundid)
-    
-        filelocation = "/static/"+bleepsoundinfo.get("filelocation") if bleepsoundinfo else ""
-        filename = bleepsoundinfo.get("filename")
-        
-        return jsonify({
-            "filelocation":filelocation,
-            "filename":filename
         })
 
     return jsonify('')
