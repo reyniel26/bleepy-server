@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="primary">
 <head>
-    <!--LAYOUT-->
+    <!--LAYOUT2-->
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,7 +29,52 @@
 
     <section class="" style="min-height: 500px;">
         {% include 'includes/_messages.html' %}
-        {% block body %}{% endblock %}
+        <div class="row my-3 container-fluid">
+            <div class="col-md-3">
+                <!-- Widget: user widget style 1 -->
+                <div class="card card-widget widget-user shadow">
+                    <!-- Add the bg color to the header using any of the bg-* classes -->
+                    <div class="widget-user-header bg-theme-secondary text-theme-secondary">
+                    <h3 class="widget-user-username">{{viewdata.get("uw_fullname")}}</h3>
+                    <h5 class="widget-user-desc">YouTube Streamer</h5>
+                    </div>
+                    <div class="widget-user-image">
+                    <img class="img-circle elevation-2" src="{{url_for('static', filename='Bleepy_UI/src/mark-decile-WA84FtTi7NU-unsplash.jpg')}}" alt="User Avatar">
+                    </div>
+                    <div class="card-footer">
+                    <div class="row">
+                        <div class="col-sm-6 border-right">
+                        <div class="description-block">
+                            <h5 class="description-header">{{viewdata.get("uw_videoscount")}}</h5>
+                            <span class="description-text">Videos</span>
+                        </div>
+                        <!-- /.description-block -->
+                        </div>
+                        <!-- /.col -->
+                        <div class="col-sm-6 border-right">
+                        <div class="description-block">
+                            <h5 class="description-header">{{viewdata.get("uw_bleepedvideoscount")}}</h5>
+                            <span class="description-text">Bleeps</span>
+                        </div>
+                        <!-- /.description-block -->
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                    <!-- /.row -->
+                    </div>
+                </div>
+                <!-- /.widget-user -->
+
+                {% include 'includes/_cardnav.html' %}
+
+            </div>
+            <div class="col-md-9">
+                <section>
+                    <!-- Input code here -->
+                    {% block body %} {% endblock %}
+                </section>
+            </div>
+        </div>
     </section>
 
     {% include 'includes/_footer.html' %}

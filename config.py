@@ -4,6 +4,8 @@ class Config(object):
 
     SECRET_KEY = 'bL33py_sE12v3r'
     AUTH_TOKEN_NAME = 'blpytkn'
+    AUTH_MAX_AGE = (60*60*24*30) #30days
+    AUTH_MIN_AGE = (60*5) #5mins
 
     DB_HOST = 'localhost'
     DB_USER = 'root'
@@ -12,8 +14,14 @@ class Config(object):
 
     #PATHS
     VIDEO_UPLOADS_TEMP = ''
-    VIDEO_UPLOADS = ''
+    VIDEO_UPLOADS = 'media/Storage/Videos/Uploads'
+    VIDEO_PROCESSED = 'media/Storage/Videos/Uploads/Processed'
     VIDEO_TRASH = ''
+
+    MAX_VIDEO_FILESIZE = (1024*1024*1024)*1 #In Bytes : (1024*1024*1024) = 1GB
+    MAX_FILESIZE_GB = MAX_VIDEO_FILESIZE / (1024*1024*1024)
+
+
 
 class ProductionConfig(Config):
     pass
@@ -24,6 +32,13 @@ class DevelopmentConfig(Config):
     because of DEBUG = True
     """
     DEBUG = True
+
+    SECRET_KEY = 'bL33py_sE12v3r'
+
+    DB_HOST = 'localhost'
+    DB_USER = 'root'
+    DB_PWD = ''
+    DB_NAME = 'bleepyserverprototype'
 
 class TestingConfig(Config):
     TESTING = True

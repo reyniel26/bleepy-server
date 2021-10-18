@@ -1,0 +1,174 @@
+<div class="card card-tabs" id="bleepstep2card">
+    <div class="card-header p-0 pt-1 bg-theme-secondary text-theme-secondary">
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                <i class="fa fa-expand text-theme-secondary"></i>
+            </button>
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fa fa-minus text-theme-secondary"></i>
+            </button>
+        </div>
+        <ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">
+            <li class="pt-2 px-3"><h3 class="card-title">Step 2:</h3></li>
+            <li class="nav-item">
+            <a class="nav-link active" id="step2-run-bleepy-tab" data-toggle="pill" href="#step2-run-bleepy" role="tab" aria-controls="custom-tabs-two-home" aria-selected="true">Run Bleepy</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+      <div class="tab-content" id="custom-tabs-two-tabContent">
+        <div class="tab-pane fade show active" id="step2-run-bleepy" role="tabpanel" aria-labelledby="step2-run-bleepy-tab">        
+            <div class="row">
+                <div class="col-6">
+                    <h3 class=" font-weight-light">
+                        Run Bleepy
+                    </h3>
+                </div>
+                <div class="col-6 ">
+                    <a href="/bleepvideo"> <button class="btn btn-theme-secondary float-right">Back to Step 1</button></a>
+                </div>
+            </div>
+
+            <hr>
+            <p>{{viewdata.get('videoinfo').get('filename')}}</p>
+            <form action="/bleepstep2" id="runbleepyform" method="POST">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video class="embed-responsive-item" controls id="choosevideopreview">
+                        <source src="{{url_for('static', filename=viewdata.get('videoinfo').get('filelocation') )}}" type="video/mp4" />
+                        This video is not supported by your browser...
+                    </video>
+                </div>
+
+                <input type="hidden" name="runbleepyvid_id" id="runbleepyvid_id" value="{{viewdata.get('videoinfo').get('video_id')}}">
+                
+                {% if viewdata.get("bleepsounds") %}
+                <p class="mt-3 font-weight-bold">Bleep Sound</p>
+                <div class="input-group mb-3">
+                    <select name="choosebleepsound" class="custom-select" id="choosebleepsound">
+                        {% for bleepsound in viewdata.get("bleepsounds") %}
+                        <option value="{{bleepsound.get('bleep_sound_id')}}">{{bleepsound.get("filename")}}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="input-group-append">
+                      <button class="btn btn-info" type="button" id="listenfirst">Listen First</button>
+                    </div>
+                </div>
+                <div class="" id="bleepsoundpreview">
+                    <audio controls class=" w-100 mb-3" id="bleepsoundplayer">
+                        <source src="" id="mp3_src" type="audio/mp3">
+                        Your browser does not support the audio tag.
+                    </audio>
+                </div>
+                {% endif %}
+                <div class="form-group" id="runBleepySubmitDiv">
+                    <button type="submit" class="btn btn-primary">Run Bleepy!</button>
+                </div>
+                <div class="form-group" id="runBleepyCancelSubmitDiv" style="display: none;">
+                    <button class="btn btn-info" disabled id="loader-icon">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Loading..
+                    </button>
+                    <input type="button" id="runBleepyCancelSubmit" value="Cancel" class="btn btn-danger" />
+                </div>
+                
+                <div class="progress" id="runBleepyProgress" style="display: none;">
+                    <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">50%</div>
+                </div>
+
+                <div id="runbleepyresponsemsg" class="mt-3">
+
+                </div>
+            </form>
+        </div>
+      </div>
+    </div>
+    <!-- /.card -->
+</div>   
+
+<script>
+    $('#bleepsoundpreview').hide();
+    $('#listenfirst').on('click', function() {
+        requestAudioSrc()
+    });
+
+    $('#choosebleepsound').on('change', function() {
+        $('#bleepsoundpreview').hide();
+        requestAudioSrc()
+    });
+
+    $('#runbleepyform').submit(function(event){
+        event.preventDefault();
+        if($('#runbleepyvid_id').val()){
+            if($('#choosebleepsound').val()){
+                $('#runBleepySubmitDiv').hide();
+                $('#runBleepyCancelSubmitDiv').show();
+                $('#runBleepyProgress').show();
+                $.ajax ({
+                    type:"POST",
+                    url:"/bleepstep2",
+                    data: {
+                        bleepsound_id:$('#choosebleepsound').val(),
+                        vid_id:$('#runbleepyvid_id').val()
+                    },
+                    cache: false,
+                    success:function(data){
+                        $('#runbleepyresponsemsg').html(data.responsemsg)
+                        $('#runBleepySubmitDiv').show();
+                        $('#runBleepyCancelSubmitDiv').hide();
+                        $('#runBleepyProgress').hide();
+                        if(data.bleepstep2response){
+                            $('#bleepstep2card').CardWidget('collapse')
+                            $('#bleepstep2card').CardWidget('minimize')
+                            $('#bleepstep3div').show();
+                            $('#bleepstep3div').html(data.bleepstep2response);
+                            $('#runBleepySubmitDiv').hide();
+                        }
+                    },error:function(e){
+                        alert("error: "+e)
+                        $('#runBleepySubmitDiv').show();
+                        $('#runBleepyCancelSubmitDiv').hide();
+                        $('#runBleepyProgress').hide();
+                    }
+                });
+            }
+            else{
+                alert("No Data for the bleep sound")
+            }
+        }
+        else{
+            alert("No Data for the video")
+        }
+    });
+
+    function requestAudioSrc(){
+        if($('#choosebleepsound').val()){
+            $.ajax ({
+                type:"POST",
+                url:"/getbleepsoundinfo",
+                data: {
+                    bleepsound_id:$('#choosebleepsound').val()
+                },
+                cache: false,
+                success:function(data){
+                    $('#bleepsoundpreview').show();
+                    changeAudioSrc(data.filelocation)
+                    
+                },error:function(e){
+                    alert("error: "+e)
+                }
+            });
+        }
+        else{
+            //Stops audio
+            changeAudioSrc("")
+            $('#bleepsoundpreview').hide();
+        }
+    }
+
+    function changeAudioSrc(sourceUrl) {
+        var audio = $("#bleepsoundplayer");      
+        $("#mp3_src").attr("src", sourceUrl);
+        /****************/
+        audio[0].load();
+    }
+</script>

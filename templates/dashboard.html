@@ -1,137 +1,56 @@
-{% extends 'layout.html' %}
+{% extends 'layout2.html' %}
 
 {% block body %}
-<div class="row my-3 container-fluid">
-    <div class="col-md-3">
-        <!-- Widget: user widget style 1 -->
-        <div class="card card-widget widget-user shadow">
-            <!-- Add the bg color to the header using any of the bg-* classes -->
-            <div class="widget-user-header bg-theme-secondary text-theme-secondary">
-            <h3 class="widget-user-username">Joe Doe</h3>
-            <h5 class="widget-user-desc">YouTube Streamer</h5>
-            </div>
-            <div class="widget-user-image">
-            <img class="img-circle elevation-2" src="{{url_for('static', filename='Bleepy_UI/src/mark-decile-WA84FtTi7NU-unsplash.jpg')}}" alt="User Avatar">
-            </div>
-            <div class="card-footer">
-            <div class="row">
-                <div class="col-sm-6 border-right">
-                <div class="description-block">
-                    <h5 class="description-header">3,200</h5>
-                    <span class="description-text">Videos</span>
-                </div>
-                <!-- /.description-block -->
-                </div>
-                <!-- /.col -->
-                <div class="col-sm-6 border-right">
-                <div class="description-block">
-                    <h5 class="description-header">13,000</h5>
-                    <span class="description-text">Bleeps</span>
-                </div>
-                <!-- /.description-block -->
-                </div>
-                <!-- /.col -->
-            </div>
-            <!-- /.row -->
-            </div>
-        </div>
-        <!-- /.widget-user -->
-
-        {% include 'includes/_cardnav.html' %}
+    <!-- Bleep new video -->
+    <div class="jumbotron shadow bg-theme-secondary text-theme-secondary text-center">
+        <h2>Bleep New Video</h2> <br>
+        <a class="btn btn-theme-secondary border" href="/bleepvideo?step1=step1-upload-video"> Upload New Video </a> 
+        <a class="btn btn-theme-secondary border" href="/bleepvideo?step1=step1-choose-video"> Choose from your videos</a>
     </div>
-    <div class="col-md-9">
-        <!-- Bleep new video -->
-        <div class="jumbotron shadow bg-theme-secondary text-theme-secondary text-center">
-                <h2>Bleep New Video</h2> <br>
-                <a class="btn btn-theme-secondary border" href="/bleepvideo?step1=step1-upload-video"> Upload New Video </a> 
-                <a class="btn btn-theme-secondary border" href="/bleepvideo?step1=step1-choose-video"> Choose from your videos</a>
-        </div>
 
-        <!-- Dashboard label-->
-        <div class="row jumbotron bg-theme-quaternary text-theme shadow p-4 mb-4">
-            <div class="col-md-6"> 
-                <h1 class=" font-weight-light">Dashboard</h1>
-            </div>
-            <div class="col-md-6">
-                <span class="float-md-right">September 15 2021 Wednesday</span>
-            </div>
+    <!-- Dashboard label-->
+    <div class="row jumbotron bg-theme-quaternary text-theme shadow p-4 mb-4">
+        <div class="col-md-6"> 
+            <h1 class=" font-weight-light">Dashboard</h1>
         </div>
+        <div class="col-md-6">
+            <span class="float-md-right">{{ viewdata.get("user_data").get("datetoday")}}</span>
+        </div>
+    </div>
 
-        <!-- Feeds -->
-        <div class="row">
-            <div class="col-lg-3 col-6">
-                <!-- small card -->
-                <div class="small-box bg-info">
-                    <div class="inner">
-                    <h3>150</h3>
-    
-                    <p>Uploaded Videos</p>
-                    </div>
-                    <div class="icon">
-                    <i class="fa fa-video-camera"></i>
-                    </div>
-                    <a href="#" class="small-box-footer">
-                    More info <i class="fa fa-arrow-circle-right"></i>
-                    </a>
+    <!-- Feeds -->
+    {% if viewdata.get("feeds") %}
+    <div class="row">
+        {% for feed in viewdata.get("feeds") %}
+        <div class="col-lg-3 col-6">
+            <!-- small card -->
+            <div class="small-box bg-{{feed.get('bgcolor')}}">
+                <div class="inner">
+                <h3>{{feed.get("count")}}</h3>
+
+                <p>{{feed.get("title")}}</p>
                 </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <!-- small card -->
-                <div class="small-box bg-olive">
-                    <div class="inner">
-                    <h3>150</h3>
-    
-                    <p>Bleeped Videos</p>
-                    </div>
-                    <div class="icon">
-                    <i class="fa fa-soundcloud"></i>
-                    </div>
-                    <a href="#" class="small-box-footer">
-                    More info <i class="fa fa-arrow-circle-right"></i>
-                    </a>
+                <div class="icon">
+                <i class="fa fa-{{feed.get('icon')}}"></i>
                 </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <!-- small card -->
-                <div class="small-box bg-maroon">
-                    <div class="inner">
-                    <h3>150</h3>
-    
-                    <p>Profanities Collected</p>
-                    </div>
-                    <div class="icon">
-                    <i class="fa fa-comments-o"></i>
-                    </div>
-                    <a href="#" class="small-box-footer">
-                    More info <i class="fa fa-arrow-circle-right"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <!-- small card -->
-                <div class="small-box bg-purple">
-                    <div class="inner">
-                    <h3>150</h3>
-    
-                    <p>Unique Profanities</p>
-                    </div>
-                    <div class="icon">
-                    <i class="fa fa-commenting-o"></i>
-                    </div>
-                    <a href="#" class="small-box-footer">
-                    More info <i class="fa fa-arrow-circle-right"></i>
-                    </a>
-                </div>
+                <a href="{{feed.get('link')}}" class="small-box-footer">
+                More info <i class="fa fa-arrow-circle-right"></i>
+                </a>
             </div>
         </div>
-        
-        <!-- Last bleep video summary report-->
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Last bleep video summary report-->
+    {% if viewdata.get("latestbleep_data") %}
+        {% if viewdata.get("latestbleep_data").get("latestbleep") %}
         <div class="row">
             <div class="col-12">
                 <div class="card shadow ">
                     <div class="card-header bg-theme-secondary text-theme-secondary">
-                        <h3 class="card-title">Last Bleeped Video</h3>
-        
+                        <h3 class="card-title">Latest Bleeped Video</h3>
+
                         <div class="card-tools">
                             <button type="button" class="btn btn-tool" data-card-widget="maximize">
                                 <i class="fa fa-expand text-theme-secondary"></i>
@@ -147,7 +66,7 @@
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
-                        <p class=" font-weight-bold">Summary <span class="float-md-right"> <a href="">View Full Report</a></span></p>
+                        <p class=" font-weight-bold">Summary <span class="float-md-right"> <a href="/bleepvideoinfo/{{viewdata.get('latestbleep_data').get('latestbleep').get('pvideo_id')}}">View Full Report</a></span></p>
                         
                         <div class=" table-responsive-xl shadow my-3">
                             <table class="table table-bordered table-hover">
@@ -163,11 +82,11 @@
                 
                                 <tbody>
                                     <tr>
-                                        <th class="text-center">1V1 IN OVERWATCH- WINNER GETS MACAIYLA.mkv</th>
-                                        <th class="text-center">Dolphin</th>
-                                        <th class="text-center">10</th>
-                                        <th class="text-center">fuck</th>
-                                        <th class="text-center">September 15 2021 </th>
+                                        <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('filename')}}</th>
+                                        <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('bfilename')}}</th>
+                                        <th class="text-center">{{viewdata.get('latestbleep_data').get('uniqueprofanitycount')}}</th>
+                                        <th class="text-center">{{viewdata.get('latestbleep_data').get('mostfrequentword')}}</th>
+                                        <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('process_time')}}</th>
                                     </tr>
                                 </tbody>
                             </table>
@@ -189,7 +108,10 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="embed-responsive embed-responsive-16by9">
-                                            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/CTiNKWusB_0"></iframe>
+                                            <video class="embed-responsive-item" controls>
+                                                <source src="{{url_for('static', filename=viewdata.get('latestbleep_data').get('latestbleep').get('filelocation') )}}" type="video/mp4" />
+                                                This video is not supported by your browser...
+                                            </video>
                                         </div>
                                     </div>
                                     <!-- /.card-body -->
@@ -210,7 +132,10 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="embed-responsive embed-responsive-16by9">
-                                            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/CTiNKWusB_0"></iframe>
+                                            <video class="embed-responsive-item" controls>
+                                                <source src="{{url_for('static', filename=viewdata.get('latestbleep_data').get('latestbleep').get('pfilelocation') )}}" type="video/mp4" />
+                                                This video is not supported by your browser...
+                                            </video>
                                         </div>
                                     </div>
                                     <!-- /.card-body -->
@@ -219,6 +144,7 @@
                             </div>
                         </div>
 
+                        {% if viewdata.get('latestbleep_data').get('uniqueprofanities') %}
                         <!-- Insights -->
                         <div class="row">
                             <div class="col-md-8">
@@ -242,61 +168,23 @@
                                     <table class="table table-head-fixed text-nowrap table-hover">
                                         <thead>
                                             <tr>
-                                              <th>Word</th>
-                                              <th>Occurrence</th>
+                                            <th>Word</th>
+                                            <th>Occurrence</th>
                                             </tr>
                                         </thead>
                                         <tbody>
+                                        {% for profanities in viewdata.get('latestbleep_data').get('uniqueprofanities') %}
+                                        <tr>
+                                            {% if profanities.get('occurrence') != "0" %}
+                                            <td data-="">{{profanities.get('word')}}</td>
+                                            <td>{{profanities.get('occurrence')}}</td>
+                                            <input type="hidden" name="word" value="{{profanities.get('word')}}">
+                                            <input type="hidden" name="occurrence" value="{{profanities.get('occurrence')}}">
+                                            {% endif %}
+                                        </tr>
+                                        {% endfor %}
                                         
-                                          <tr>
-                                            <td>fuck</td>
-                                            <td>13</td>
-                                          </tr>
                                         
-                                          <tr>
-                                            <td>fucking</td>
-                                            <td>6</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>sex</td>
-                                            <td>3</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>shit</td>
-                                            <td>2</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>fucker</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>stinky</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>racist</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>stupid</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>idiot</td>
-                                            <td>1</td>
-                                          </tr>
-                                        
-                                          <tr>
-                                            <td>sick</td>
-                                            <td>1</td>
-                                          </tr>
                                         
                                         </tbody> 
                                     </table>
@@ -328,361 +216,358 @@
                                 <!-- /.card -->
                             </div>
                         </div>
-                        
+                        {% endif %}
+
+                        <div>
+                            <a href="/downloadbleeped/{{viewdata.get('latestbleep_data').get('latestbleep').get('pvideo_id')}}" target="_blank"> <button class=" btn btn-theme-secondary"> <i class="fa fa-download" aria-hidden="true"></i> Download Bleeped Video </button> </a>
+                        </div>
                     </div>
                     <!-- /.card-body -->
                 </div>
             </div>
         </div>
-
-        <!-- Widgets-->
-        <div class="row">
-            <div class="col-lg-7">
-                <!-- My Bleep Videos -->
-                <section>
-                    <div class="card shadow">
-                        <div class="card-header bg-theme-secondary text-theme-secondary">
-                        <h3 class="card-title">My Bleep Videos</h3>        
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="card-refresh" data-source="widgets.html" data-source-selector="#card-refresh-content" data-load-on-init="false">
-                                <i class="fa fa-refresh text-theme-secondary"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                                <i class="fa fa-expand text-theme-secondary"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fa fa-minus text-theme-secondary"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                                <i class="fa fa-times text-theme-secondary"></i>
-                            </button>
-                        </div>
-                        </div>
-                        <!-- /.card-header -->
-                        <div class="card-body table-responsive p-0" style="height: 300px;">
-                        <table class="table table-head-fixed text-nowrap table-hover">
-                            <thead>
-                            <tr>
-                                <th>Video Title</th>
-                                <th>Bleep Sound</th>
-                                <th>Date</th>
-                                <th> <a class="btn btn-theme" href="#">View All</a></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            <tr>
-                                <td>videoone.mp4</td>
-                                <td>Dolphin</td>
-                                <td>September 10 2021</td>
-                                <td> <button class="btn btn-theme"> View </button></td>
-                            </tr>
-                            
-                            </tbody>
-                        </table>
-                        </div>
-                        <!-- /.card-body -->
-                    </div>
-                </section>
-            </div>
-            <div class="col-lg-5">
-                <section>
-                    <!-- PIE CHART -->
-                    <div class="card shadow">
-                        <div class="card-header bg-theme-secondary text-theme-secondary">
-                        <h3 class="card-title">My Most Frequent Profanities</h3>
-        
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                            <i class="fa fa-minus"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="remove">
-                            <i class="fa fa-times"></i>
-                            </button>
-                        </div>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="mostFrequentProfanityChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                        </div>
-                        <!-- /.card-body -->
-                    </div>
-                    <!-- /.card -->
-                </section>
-            </div>
-        </div>
-
-        <hr>
-        <!-- Latest Activity-->
-        <section class="jumbotron bg-theme-quaternary shadow p-4 mb-4">
-            <h4 class=" font-weight-light">Latest Activity</h4>
-            <!-- Timelime example  -->
-            <div class="row">
-                <div class="col-md-12">
-                <!-- The time line -->
-                <div class="timeline">
-                    <!-- TIME LINE LABEL -->
-                    <div class="time-label">
-                        <span class="bg-theme-secondary text-theme-secondary">September 15 2021</span>
-                    </div>
-                    <div>
-                        <i class="fa fa-user bg-green"></i>
-                        <div class="timeline-item">
-                            <span class="time"><i class="fa fa-clock-o"></i> 30 mins</span>
-                            <h3 class="timeline-header"><a href="#">You</a> updated your profile</h3>
-                            <div class="timeline-body">
-                                Profile has been updated
-                            </div>
-                            <div class="timeline-footer">
-                                <button class="btn btn-theme"> View Profile</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- TIME LINE LABEL -->
-                    <div class="time-label">
-                        <span class="bg-theme-secondary text-theme-secondary">September 13 2021</span>
-                    </div>
-                    <div>
-                        <i class="fa fa-download bg-maroon"></i>
-                        <div class="timeline-item">
-                            <span class="time"><i class="fa fa-clock-o"></i> 2 days ago</span>
-                            <h3 class="timeline-header"><a href="#">You</a> download a bleeped video</h3>
-                            <div class="timeline-body">
-                                mygameplaylol.mp4
-                                Bleep sound: Buzzer
-                            </div>
-                            <div class="timeline-footer">
-                                <button class="btn btn-theme"> View </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <i class="fa fa-soundcloud bg-purple"></i>
-                        <div class="timeline-item">
-                            <span class="time"><i class="fa fa-clock-o"></i> 2 days ago</span>
-                            <h3 class="timeline-header"><a href="#">You</a> bleeped a video</h3>
-                            <div class="timeline-body">
-                                mygameplaylol.mp4 <br>
-                                Bleep Sound: Buzzer
-                            </div>
-                            <div class="timeline-footer">
-                                <button class="btn btn-theme"> View Full Report</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <i class="fa fa-upload bg-maroon"></i>
-                        <div class="timeline-item">
-                            <span class="time"><i class="fa fa-clock-o"></i> 2 days ago</span>
-                            <h3 class="timeline-header"><a href="#">You</a> uploaded new video</h3>
-                            <div class="timeline-body">
-                                mygameplaylol.mp4
-                            </div>
-                            <div class="timeline-footer">
-                                <button class="btn btn-theme"> View </button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- TIME LINE LABEL -->
-                    <div class="time-label">
-                        <span class="bg-theme-secondary text-theme-secondary">September 12 2021</span>
-                    </div>
-                    <div>
-                        <i class="fa fa-key bg-green"></i>
-                        <div class="timeline-item">
-                            <span class="time"><i class="fa fa-clock-o"></i> 3 days ago</span>
-                            <h3 class="timeline-header"><a href="#">You</a> change your password</h3>
-                            <div class="timeline-body">
-                                Your password has been updated
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <i class="fa fa-soundcloud bg-purple"></i>
-                        <div class="timeline-item">
-                            <span class="time"><i class="fa fa-clock-o"></i> 3 days ago</span>
-                            <h3 class="timeline-header"><a href="#">You</a> bleeped a video</h3>
-                            <div class="timeline-body">
-                                1V1 IN OVERWATCH- WINNER GETS MACAIYLA.mkv <br>
-                                Bleep Sound: Buzzer
-                            </div>
-                            <div class="timeline-footer">
-                                <button class="btn btn-theme"> View Full Report</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- TIME LINE LABEL -->
-                    <div class="time-label">
-                        <span class="bg-theme-secondary text-theme-secondary">September 10 2021</span>
-                    </div>
-                    <div>
-                        <i class="fa fa-camera bg-green"></i>
-                        <div class="timeline-item">
-                            <span class="time"><i class="fa fa-clock-o"></i> 5 days ago</span>
-                            <h3 class="timeline-header"><a href="#">You</a> change your profile photo</h3>
-                            <div class="timeline-body">
-                                <img src="{{url_for('static', filename='Bleepy_UI/src/mark-decile-WA84FtTi7NU-unsplash.jpg')}}" alt="" class="w-75">
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <i class="fa fa-soundcloud bg-purple"></i>
-                        <div class="timeline-item">
-                            <span class="time"><i class="fa fa-clock-o"></i> 5 days ago</span>
-                            <h3 class="timeline-header"><a href="#">You</a> bleeped a video</h3>
-                            <div class="timeline-body">
-                                1V1 IN OVERWATCH- WINNER GETS MACAIYLA.mkv <br>
-                                Bleep Sound: Dolphin
-                            </div>
-                            <div class="timeline-footer">
-                                <button class="btn btn-theme"> View Full Report</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <i class="fa fa-upload bg-maroon"></i>
-                        <div class="timeline-item">
-                            <span class="time"><i class="fa fa-clock-o"></i> 5 days ago</span>
-                            <h3 class="timeline-header"><a href="#">You</a> uploaded new video</h3>
-                            <div class="timeline-body">
-                                1V1 IN OVERWATCH- WINNER GETS MACAIYLA.mkv
-                            </div>
-                            <div class="timeline-footer">
-                                <button class="btn btn-theme"> View </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <i class="fa fa-user bg-green"></i>
-                        <div class="timeline-item">
-                            <span class="time"><i class="fa fa-clock-o"></i> 5 days ago</span>
-                            <h3 class="timeline-header"><a href="#">You</a> joined Bleepy</h3>
-                            <div class="timeline-body">
-                                <h3 class=" font-weight-light"> Welcome to Bleepy!</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <i class="fa fa-clock-o bg-gray"></i>
-                    </div>
-                </div>
-                </div>
-                <!-- /.col -->
-            </div>
-        </section>
+        {% endif %}
+    {% else %}
+    <div class="jumbotron bg-white text-theme text-center shadow">
+        <h3> You have no bleeped videos </h3>
+        <a href="/bleepvideo">
+            <button type="button" class="btn btn-theme"> Get Started >> </button>
+        </a>
     </div>
-</div>
+    {% endif %}
+
+
+    <!-- Widgets-->
+    <div class="row">
+        <div class="col-lg-7">
+            <!-- My Bleep Videos -->
+            {% if viewdata.get('user_data').get('bleepedvideos') %}
+            <section>
+                <div class="card shadow">
+                    <div class="card-header bg-theme-secondary text-theme-secondary">
+                    <h3 class="card-title">Bleep Videos</h3>        
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="card-refresh" data-source="widgets.html" data-source-selector="#card-refresh-content" data-load-on-init="false">
+                            <i class="fa fa-refresh text-theme-secondary"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                            <i class="fa fa-expand text-theme-secondary"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fa fa-minus text-theme-secondary"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fa fa-times text-theme-secondary"></i>
+                        </button>
+                    </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body table-responsive p-0" style="height: 300px;">
+                    <table class="table table-head-fixed text-nowrap table-hover">
+                        <thead>
+                        <tr>
+                            <th>Video Title</th>
+                            <th>Bleep Sound</th>
+                            <th>Date</th>
+                            <th> <a class="btn btn-theme" href="/bleepvideolist">View All</a></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for videoinfo in viewdata.get('user_data').get('bleepedvideos') %}    
+                            <tr>
+                                <td>{{videoinfo.get("filename")}}</td>
+                                <td>{{videoinfo.get("bfilename")}}</td>
+                                <td>{{videoinfo.get("process_time")}}</td>
+                                <td> 
+                                    <a href="/bleepvideoinfo/{{videoinfo.get('pvideo_id')}}" > <button class=" btn btn-theme-secondary"> <i class="fa fa-eye" aria-hidden="true"></i> View </button> </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        
+                        </tbody>
+                    </table>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+            </section>
+            {% endif %}
+        </div>
+        <div class="col-lg-5">
+            {% if viewdata.get('user_data').get('mostfrequentprofanities') %}
+            <section>
+                <!-- PIE CHART -->
+                <div class="card shadow">
+                    <div class="card-header bg-theme-secondary text-theme-secondary">
+                    <h3 class="card-title">Top 10 Most Frequent Profanities</h3>
+
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                        <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="mostFrequentProfanityChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                        {% for profanities in viewdata.get('user_data').get('mostfrequentprofanities') %}
+                            {% if profanities.get("occurrence") != "0" %}
+                            <input type="hidden" name="mostfrequentprofanitiesword" value="{{profanities.get('word')}}" >
+                            <input type="hidden" name="mostfrequentprofanitiesoccurrence" value="{{profanities.get('occurrence')}}" >
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+            </section>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr>
+    <!-- Latest Activity-->
+    <section class="jumbotron bg-theme-quaternary shadow p-4 mb-4">
+        <h4 class=" font-weight-light">Latest Activity</h4>
+        <!-- Timelime example  -->
+        <div class="row">
+            <div class="col-md-12">
+            <!-- The time line -->
+            <div class="timeline">
+                <!-- TIME LINE LABEL -->
+                <div class="time-label">
+                    <span class="bg-theme-secondary text-theme-secondary">September 15 2021</span>
+                </div>
+                <div>
+                    <i class="fa fa-user bg-green"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> 30 mins</span>
+                        <h3 class="timeline-header"><a href="#">You</a> updated your profile</h3>
+                        <div class="timeline-body">
+                            Profile has been updated
+                        </div>
+                        <div class="timeline-footer">
+                            <button class="btn btn-theme"> View Profile</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- TIME LINE LABEL -->
+                <div class="time-label">
+                    <span class="bg-theme-secondary text-theme-secondary">September 13 2021</span>
+                </div>
+                <div>
+                    <i class="fa fa-download bg-maroon"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> 2 days ago</span>
+                        <h3 class="timeline-header"><a href="#">You</a> download a bleeped video</h3>
+                        <div class="timeline-body">
+                            mygameplaylol.mp4
+                            Bleep sound: Buzzer
+                        </div>
+                        <div class="timeline-footer">
+                            <button class="btn btn-theme"> View </button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <i class="fa fa-soundcloud bg-purple"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> 2 days ago</span>
+                        <h3 class="timeline-header"><a href="#">You</a> bleeped a video</h3>
+                        <div class="timeline-body">
+                            mygameplaylol.mp4 <br>
+                            Bleep Sound: Buzzer
+                        </div>
+                        <div class="timeline-footer">
+                            <button class="btn btn-theme"> View Full Report</button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <i class="fa fa-upload bg-maroon"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> 2 days ago</span>
+                        <h3 class="timeline-header"><a href="#">You</a> uploaded new video</h3>
+                        <div class="timeline-body">
+                            mygameplaylol.mp4
+                        </div>
+                        <div class="timeline-footer">
+                            <button class="btn btn-theme"> View </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- TIME LINE LABEL -->
+                <div class="time-label">
+                    <span class="bg-theme-secondary text-theme-secondary">September 12 2021</span>
+                </div>
+                <div>
+                    <i class="fa fa-key bg-green"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> 3 days ago</span>
+                        <h3 class="timeline-header"><a href="#">You</a> change your password</h3>
+                        <div class="timeline-body">
+                            Your password has been updated
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <i class="fa fa-soundcloud bg-purple"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> 3 days ago</span>
+                        <h3 class="timeline-header"><a href="#">You</a> bleeped a video</h3>
+                        <div class="timeline-body">
+                            1V1 IN OVERWATCH- WINNER GETS MACAIYLA.mkv <br>
+                            Bleep Sound: Buzzer
+                        </div>
+                        <div class="timeline-footer">
+                            <button class="btn btn-theme"> View Full Report</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- TIME LINE LABEL -->
+                <div class="time-label">
+                    <span class="bg-theme-secondary text-theme-secondary">September 10 2021</span>
+                </div>
+                <div>
+                    <i class="fa fa-camera bg-green"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> 5 days ago</span>
+                        <h3 class="timeline-header"><a href="#">You</a> change your profile photo</h3>
+                        <div class="timeline-body">
+                            <img src="{{url_for('static', filename='Bleepy_UI/src/mark-decile-WA84FtTi7NU-unsplash.jpg')}}" alt="" class="w-75">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <i class="fa fa-soundcloud bg-purple"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> 5 days ago</span>
+                        <h3 class="timeline-header"><a href="#">You</a> bleeped a video</h3>
+                        <div class="timeline-body">
+                            1V1 IN OVERWATCH- WINNER GETS MACAIYLA.mkv <br>
+                            Bleep Sound: Dolphin
+                        </div>
+                        <div class="timeline-footer">
+                            <button class="btn btn-theme"> View Full Report</button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <i class="fa fa-upload bg-maroon"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> 5 days ago</span>
+                        <h3 class="timeline-header"><a href="#">You</a> uploaded new video</h3>
+                        <div class="timeline-body">
+                            1V1 IN OVERWATCH- WINNER GETS MACAIYLA.mkv
+                        </div>
+                        <div class="timeline-footer">
+                            <button class="btn btn-theme"> View </button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <i class="fa fa-user bg-green"></i>
+                    <div class="timeline-item">
+                        <span class="time"><i class="fa fa-clock-o"></i> 5 days ago</span>
+                        <h3 class="timeline-header"><a href="#">You</a> joined Bleepy</h3>
+                        <div class="timeline-body">
+                            <h3 class=" font-weight-light"> Welcome to Bleepy!</h3>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <i class="fa fa-clock-o bg-gray"></i>
+                </div>
+            </div>
+            </div>
+            <!-- /.col -->
+        </div>
+    </section>
 {% endblock %}
 
 {% block script %}
-<script>
-    $(function () {
-      /* ChartJS
-       * -------
-       * Here we will create a few charts using ChartJS
-       */
-  
-      //========================================================
-      var graphData   = {
-        labels: [
-            'Others',
-            'fuck',
-            'fucking',
-            'sex',
-            'shit',
-            'fucker',
-        ],
-        datasets: [
-          {
-            data: [5,13,6,3,2,1],
-            backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'],
-          }
-        ]
-      }
-      
-  
-      //-------------
-      //- PIE CHART -
-      //-------------
-      // Get context with jQuery - using jQuery's .get() method.
-      var pieChartCanvas = $('#profanitiesChartSummary').get(0).getContext('2d')
-      var pieData        = graphData;
-      var pieOptions     = {
-        maintainAspectRatio : false,
-        responsive : true,
-      }
 
-      //========================================================
-      var graphData  = {
-        labels: [
-            'fuck',
-            'fucking',
-            'sex',
-            'shit',
-            'fucker',
-            'stinky',
-            'racist',
-            'stupid',
-            'idiot',
-            'sick'
-        ],
-        datasets: [
-          {
-            data: [131,62,33,24,15,14,13,10,9,5],
-            backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6ee','#f569a5', '#00a65b', '#f39c13', '#11d0ab'],
-          }
-        ]
-      }
-      new Chart(pieChartCanvas, {
-        type: 'pie',
-        data: pieData,
-        options: pieOptions
-      })
+    {% if viewdata.get('latestbleep_data').get('uniqueprofanities') %}
+    <script>
+        $(function () {
+            let words = []
+            $("input[name=word]").each(function(){
+                words.push($(this).val())
+            });
+            let occurrence = []
+            $("input[name=occurrence]").each(function(){
+                occurrence.push($(this).val())
+            });
+            var graphData   = {
+                labels: words,
+                datasets: [
+                {
+                    data: occurrence,
+                    backgroundColor : ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d',"#43aa8b","#4d908e","#577590","#277da1"],
+                }
+                ]
+            }
+            //-------------
+            //- PIE CHART -
+            //-------------
+            // Get context with jQuery - using jQuery's .get() method.
+            var pieChartCanvas = $('#profanitiesChartSummary').get(0).getContext('2d')
+            var pieData        = graphData;
+            var pieOptions     = {
+                maintainAspectRatio : false,
+                responsive : true,
+            }
+            new Chart(pieChartCanvas, {
+                type: 'pie',
+                data: pieData,
+                options: pieOptions
+            })
 
-      //---------------------
-      var pieChartCanvas = $('#mostFrequentProfanityChart').get(0).getContext('2d')
-      var pieData        = graphData;
-      var pieOptions     = {
-        maintainAspectRatio : false,
-        responsive : true,
-      }
-      //Create pie or douhnut chart
-      // You can switch between pie and douhnut using the method below.
-      new Chart(pieChartCanvas, {
-        type: 'pie',
-        data: pieData,
-        options: pieOptions
-      })
-  
-      
-    })
-</script>
+        })
+    </script>
+    {% endif %}
+
+    {% if viewdata.get('user_data').get('mostfrequentprofanities') %}
+    <script>
+        $(function () {
+            //========================================================
+            let words = []
+            $("input[name=mostfrequentprofanitiesword]").each(function(){
+                words.push($(this).val())
+            });
+            let occurrence = []
+            $("input[name=mostfrequentprofanitiesoccurrence]").each(function(){
+                occurrence.push($(this).val())
+            });
+            occurrence.push(0) //This will set as the min value
+
+            //---------------------
+            var barChartCanvas = $('#mostFrequentProfanityChart').get(0).getContext('2d')
+            //---------------------
+            var xValues = words;
+            var yValues = occurrence;
+            var barColors = ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d',"#43aa8b","#4d908e","#577590","#277da1"];
+
+            new Chart(barChartCanvas, {
+            type: "horizontalBar",
+            data: {
+            labels: xValues,
+            datasets: [{
+                backgroundColor: barColors,
+                data: yValues
+            }]
+            },
+            options: {
+                legend: {display: false},
+                title: {
+                display: true,
+                text: "Profanities detected base on occurence"
+                }
+            }
+            });
+        })
+    </script>
+    {% endif %}
+
 {% endblock %}

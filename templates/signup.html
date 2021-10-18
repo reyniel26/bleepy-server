@@ -27,6 +27,17 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="bg-light m-2 p-4 shadow" id="pwdMessage">
+                    <p>
+                        <b>Password must contain the following: </b> <br>
+                        <span class="text-danger" id="smallpwd"><i class="fa fa-times" aria-hidden="true" id="smallicon"></i>    A smallcase letter</span> <br>
+                        <span class="text-danger" id="upperpwd"><i class="fa fa-times" aria-hidden="true" id="uppericon"></i>    A capital (uppercase) letter</span> <br>
+                        <span class="text-danger" id="numberpwd"><i class="fa fa-times" aria-hidden="true" id="numbericon"></i>    A number</span> <br>
+                        <span class="text-danger" id="minpwd"><i class="fa fa-times" aria-hidden="true" id="minicon"></i>    Minimum 8 characters</span> <br>
+                    </p>
+                </div>
+
                 <div class="form-group">
                     <label for="confirmpwd">Confirm Password: <span class="invalid text-danger">*</span></label> 
                     <div class="input-group mb-3 ">
@@ -48,7 +59,7 @@
                 </div>
                 <div class=" text-center">
                     Already have an account? <br>
-                    <a href="signin.html">Sign in</a>
+                    <a href="/signin">Sign in</a>
                 </div>
             </form>
         </div>
@@ -64,4 +75,5 @@
 <script src="{{url_for('static', filename='Bleepy_UI/js/validation_validname.js')}}"></script>
 <script src="{{url_for('static', filename='Bleepy_UI/js/showpwd.js')}}"></script>
 <script src="{{url_for('static', filename='Bleepy_UI/js/signup.js')}}"></script>
+<script src="{{url_for('static', filename='Bleepy_UI/js/pwdmessage.js')}}"></script>
 {% endblock %}

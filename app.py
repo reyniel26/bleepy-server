@@ -1,11 +1,18 @@
 #================================================== Imports
 #Flask
-from typing import Dict
-from flask import Flask, config, render_template, flash, redirect, url_for, request, make_response
+from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify, send_file
 #For decorator
 from functools import wraps 
 #JWT
 import jwt
+#Passlib
+from passlib.hash import sha256_crypt
+#Date time
+import datetime
+#OS
+import os
+#Uuid = for unique random id
+import uuid
 
 #Model for DB
 from model import Model
@@ -25,6 +32,7 @@ db = Model(
     app.config["DB_PWD"],
     app.config["DB_NAME"]
     )
+
 
 #================================================== Control Methods
 def testConn(f):
@@ -70,30 +78,100 @@ def authentication(f):
     def wrap(*args, **kwargs):
         cookies = request.cookies
         token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+
+        #making sure there is no cookie left
+        # reserror = make_response(redirect(url_for('signin')))
+        # reserror = setAuth(redirect(url_for('signin')))
+        reserror = setAuth(redirect(url_for('signin')))
+        #set cookie token | expires = 0 to delete cookie
+        # reserror.set_cookie(app.config["AUTH_TOKEN_NAME"],
+        #     value = "",
+        #     expires=0
+        #     )
+
         if not token:
             #The token not exist
             flash("Invalid Authentication. Please try to login","warning")
-            return redirect(url_for('signin'))
+            return reserror
         
         tokenvalues = getTokenValues(token)
 
         if not tokenvalues:
             #The token values is None
             flash("Invalid Authentication","danger")
-            return redirect(url_for('signin'))
+            return reserror
         
         try:
-            acc_id = tokenvalues["authid"]
+            acc_id = tokenvalues.get("authid")
         except:
             #The token doenst contain authid
             flash("Invalid Authentication","danger")
-            return redirect(url_for('signin'))
+            return reserror
         
         # Query the acc_id
+        data = db.selectAccountViaId(acc_id)
+        if data == None:
+            flash("Invalid Authentication. User not found: "+data,"danger")
+            return reserror
+        try:
+            id = data["account_id"]
+        except Exception as e:
+            flash("Error: "+data,"danger")
+            return reserror
         # if not exist return error
+
+        max_age = tokenvalues.get("validuntil")
+        if max_age == app.config["AUTH_MIN_AGE"]: #reset auth
+            res = setAuth(f(*args, **kwargs),acc_id=acc_id,max_age=max_age)
+            return res
 
         return f(*args, **kwargs)
     return wrap
+
+def isAlreadyLoggedin(f):
+    """
+    If the user is already logged in go to dashboard
+    Applicable to sign in and sign up page
+    """
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        cookies = request.cookies
+        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+        if token:
+            flash("You are already logged in","warning")
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return wrap
+
+def getIdViaAuth():
+    try:
+        cookies = request.cookies
+        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+        tokenvalues = getTokenValues(token)
+        return str(tokenvalues["authid"])
+    except:
+        return None
+
+def setAuth(response,**kwargs):
+    """
+    set acc_id and max_age
+    example setAuth(render_template("home.html"),acc_id=acc_id,max_age=max_age)
+    if the acc_id and max_age is not set auth will set no value with expire 0
+    """
+    #set response
+    res = make_response(response)
+    #set cookie token
+    if kwargs.get("acc_id") and kwargs.get("max_age"):
+        res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
+            value = generateToken(authid=kwargs.get("acc_id"),validuntil=kwargs.get("max_age")),
+            max_age = kwargs.get("max_age")
+            )
+    else:
+        res.set_cookie(app.config["AUTH_TOKEN_NAME"],
+        value = "",
+        expires=0
+        )
+    return res
 
 def viewData(**kwargs:str):
     """
@@ -101,12 +179,128 @@ def viewData(**kwargs:str):
     In rendering templates, always include this
     Example: render_template("index.html", viewdata = viewData())
     Another example: render_template("index.html", viewdata = viewData( somedata = "data"))
+
+    To add active class to cardnav, use nameOfRoute=True
+    Example: dashboard=True
     """
     viewdata = {
         "auth_token":app.config["AUTH_TOKEN_NAME"]
     }
+    #If the user is logged in
+    if getIdViaAuth():
+        acc_id = getIdViaAuth()
+        data = db.selectAccountViaId(acc_id)
+        if data:
+            fullname = str(data.get("fname")+" "+data.get("lname")).title()
+
+            #User widget
+            viewdata["uw_fullname"] = fullname
+            viewdata["uw_videoscount"] = db.countVideosUploadedByAcc(acc_id).get("count")
+            viewdata["uw_bleepedvideoscount"] = db.countBleepVideosUploadedByAcc(acc_id).get("count")
+        
+        
+
     viewdata.update(**kwargs)
     return viewdata
+
+def sanitizeEmail(email:str):
+    """
+    Sanitize email by removing invalid characters
+    """
+    invalids = [" ","\"","\\", "/", "<", ">","|","\t",":"]
+    for x in invalids:
+        email = email.strip(x)
+    return email.strip()
+
+def allowedFileSize(filesize) ->bool:
+    return int(filesize) <= app.config['MAX_VIDEO_FILESIZE']
+
+def saveVideo(file,filename,uniquefilename,acc_id):
+    fileinfo = {
+        "filename":"NaN",
+        "filelocation":"NaN"
+    }
+
+    parent_folder = "static/"+app.config['VIDEO_UPLOADS']
+    folder = str(acc_id)
+    savefolder = app.config['VIDEO_UPLOADS']+"/"+folder
+
+    #Try to create folder if not exist
+    try:
+        path = os.path.join(parent_folder, folder)
+        os.mkdir(path)
+    except(FileExistsError):
+        pass
+
+    #SaveToDirectories
+    file.save(os.path.join("static/"+savefolder, uniquefilename))
+
+    #SaveToDB
+    filelocation = savefolder+"/"+uniquefilename
+    savedirectory = "static/"+filelocation
+    msg = db.insertVideo(filename,uniquefilename,filelocation,savedirectory)
+    print(msg)
+    vid_id = db.selectVideoByUniqueFilename(uniquefilename).get("video_id")
+    msg = db.insertUploadedBy(vid_id,acc_id)
+    print(msg)
+
+    fileinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+
+    return fileinfo
+
+def removeStaticDirectory(directory):
+    "This remove static"
+    filelocation = ""
+    if "static" in directory:
+        for i in directory.split("/")[1:]:
+            filelocation+=i+"/"
+        filelocation = filelocation[:-1]
+    else:
+        filelocation = directory
+    return filelocation
+
+def getFileNameFromDirectory(directory):
+    directory = removeStaticDirectory(directory)
+    return directory.split("/")[-1]
+
+def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory,profanities:list):
+    bleepedvideoinfo = {
+        "filename":"NaN",
+        "filelocation":"NaN"
+    }
+
+    try:
+        msg = db.insertBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
+        print(msg)
+        
+        bleepedvideoinfo = db.selectBleepVideoByFileName(pfilename)
+        pvid_id = bleepedvideoinfo.get("pvideo_id")
+        vals = []
+
+        for profanity in profanities:
+            item = (profanity["word"],profanity["start"],profanity["end"],pvid_id)
+            vals.append(item)
+        
+        msg = db.insertProfanities(vals)
+
+
+        bleepedvideoinfo["profanitycount"] = db.countProfanityWordsByBleepedVideo(pvid_id).get("count")
+        bleepedvideoinfo["uniqueprofanitycount"] = db.countUniqueProfanityWordsByBleepedVideo(pvid_id).get("count")
+        mostfrequent = db.selectMostFrequentProfanityWordByVideo(pvid_id)
+        bleepedvideoinfo["mostfrequentword"] = mostfrequent.get("word")
+        bleepedvideoinfo["mostfrequentwordoccurence"]  = mostfrequent.get("occurence")
+        bleepedvideoinfo["profanities"] = db.selectProfanitiesOfVideo(pvid_id) #list
+        bleepedvideoinfo["uniqueprofanities"] = db.selectUniqueProfanityWordsByVideo(pvid_id) #list
+        bleepedvideoinfo["top10profanities"] = db.selectTop10ProfanitiesByVideo(pvid_id)
+
+
+    except Exception as e:
+        print (e)
+        bleepedvideoinfo["error"] = e
+    
+    return bleepedvideoinfo
+
+
 #================================================== Routes 
 
 #Index Page
@@ -116,6 +310,16 @@ def index():
     #create template folder
     #inside of template folder is the home.html
     return render_template('index.html', viewdata = viewData() )
+
+#Bleep Sounds
+@app.route('/bleepsoundlist')
+@testConn
+def bleepsoundlist():
+    
+    bleepsounds = db.selectBleepSounds()
+    latest_bleepsound = db.selectLatestBleepSound()
+
+    return render_template('bleepsoundlist.html', viewdata = viewData(bleepsoundlist=True, bleepsounds=bleepsounds, latest_bleepsound =latest_bleepsound ) )
 
 #Error Page
 @app.route('/error')
@@ -127,41 +331,132 @@ def error():
 #Signup Page
 @app.route('/signup', methods=["POST",'GET'])
 @testConn
+@isAlreadyLoggedin
 def signup():
     if request.method == "POST":
+
+        fname = request.form.get("fname").strip()
+        lname = request.form.get("lname").strip()
+        email = sanitizeEmail(request.form.get("email"))
+        pwd = request.form.get("pwd")
+        confirmpwd = request.form.get("confirmpwd")
+        isagree = request.form.getlist("agreetandc")
+
+        #Validations
+        if fname == "" or lname == "" or email == "" or pwd == "" or confirmpwd == "":
+            flash('Please fill up all fields', 'danger')
+            return redirect(url_for('signup'))
+        
+        if not isagree:
+            flash('Please check the Terms and Conditions', 'danger')
+            return redirect(url_for('signup'))
+        
+        if pwd != confirmpwd:
+            flash('Password and Confirm password not match', 'danger')
+            return redirect(url_for('signup'))
+        
+        if not (fname.replace(" ", "").isalpha() and lname.replace(" ", "").isalpha()):
+            flash('Invalid First Name of Last Name', 'danger')
+            return redirect(url_for('signup'))
+        
+        checkemail = db.selectAccountViaEmail(email)
+        if checkemail:
+            if checkemail.get("email"):
+                flash('Email is already taken or used by other user', 'danger')
+                return redirect(url_for('signup'))
+            else:
+                flash('Error: '+checkemail.get("error"), 'danger')
+                return redirect(url_for('signup'))
+        
+        #hash password
+        hash_pwd = sha256_crypt.encrypt(str(pwd))
+        
+        #Save to db if valid
+        msg = db.insertUser(email,fname,lname,hash_pwd)
+        print(msg)
+
+        #validate to db if the account save
+        account = db.selectAccountViaEmail(email)
+
+        if not account:
+            flash('Sign up failed due to internal error. Account not save', 'danger')
+            return redirect(url_for('signup'))
+        
+        acc_id = account.get("account_id")
+        
+        if not acc_id:
+            flash('Sign up failed due to internal error', 'danger')
+            return redirect(url_for('signup'))
+        
+        #set cookie
+        max_age = app.config["AUTH_MIN_AGE"]
+        res = setAuth(redirect(url_for('dashboard')),acc_id=acc_id,max_age=max_age)
+
         flash('You are now logged in ', 'success')
-        return redirect(url_for('dashboard'))
+        return res
     return render_template('signup.html', viewdata = viewData() )
 
 #Signin Page
 @app.route('/signin', methods=["POST",'GET'])
 @testConn
+@isAlreadyLoggedin
 def signin():
     if request.method == "POST":
-        email = request.form["email"]
-        pwd = request.form["pwd"]
+        email = sanitizeEmail(request.form.get("email"))
+        pwd = request.form.get("pwd")
         remember = request.form.getlist("remember")
         #remember 30days or else remember for 5mins
-        max_age = (60*60*24*30) if remember else (60*5)  
+        max_age = app.config["AUTH_MAX_AGE"] if remember else app.config["AUTH_MIN_AGE"]
 
-        if email != "sampleemail@gmail.com":
+        #Validation
+        if email == "" or pwd == "":
+            flash('Invalid! Email or Password should not be empty', 'danger')
+            return redirect(url_for('signin'))
+
+        #DB Model
+        account = db.selectAccountViaEmail(email)
+
+        if not account:
             flash('Wrong Email', 'danger')
-            return render_template('signin.html', viewdata = viewData() )
-        if pwd != "password":
-            flash('Wrong Password', 'danger')
-            return render_template('signin.html', viewdata = viewData() )
+            return redirect(url_for('signin'))
+        
+        
+        acc_pwd = account.get("pwd")
+        acc_id = account.get("account_id")
 
-        #set response
-        res = make_response(redirect(url_for('dashboard')))
-        #set cookie token
-        res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
-            value = generateToken(authid="1",validuntil=max_age),
-            max_age = max_age
-            )
+        if acc_pwd == None or acc_id == None:
+            flash('Internal Error', 'danger')
+            return redirect(url_for('signin'))
+
+        pwd_candidate = pwd
+        
+        if not sha256_crypt.verify(pwd_candidate, acc_pwd):
+            flash('Wrong Password', 'danger')
+            return redirect(url_for('signin'))
+
+        # #set response
+        # res = make_response(redirect(url_for('dashboard')))
+        # #set cookie token
+        # res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
+        #     value = generateToken(authid=acc_id,validuntil=max_age),
+        #     max_age = max_age
+        #     )
+        res = setAuth(redirect(url_for('dashboard')),acc_id=acc_id,max_age=max_age)
 
         flash('You are now logged in ', 'success')
         return res
     return render_template('signin.html', viewdata = viewData())
+
+#Log out route
+@app.route('/logout')
+@testConn
+def logout():
+    """
+    Log out does not now need authentication, it just delete auth cache is exist
+    """
+    res = setAuth(redirect(url_for('signin')))
+    flash('You are now logged out ', 'success')
+    return res
 
 #Pages and routes that can only be access when logged in
 #@authentication
@@ -179,31 +474,296 @@ def settings():
 @testConn
 @authentication
 def dashboard():
-    
-    return render_template('dashboard.html', viewdata = viewData())
+    acc_id = getIdViaAuth() 
+    now = datetime.datetime.now()
 
-#Log out route
-@app.route('/logout')
+    user_data = {
+        "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
+        "bleepedvideos":db.selectBleepedVideosByAccount(acc_id),
+        "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A")
+    }
+
+    feeds = db.selectFeeds(acc_id)
+    latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+    
+    return render_template('dashboard.html', viewdata = viewData( dashboard=True, user_data=user_data,feeds=feeds, latestbleep_data=latestbleep_data ))
+
+#Profile route
+@app.route('/profile')
 @testConn
 @authentication
-def logout():
-    #set response
-    res = make_response(redirect(url_for('signin')))
-    #set cookie token | expires = 0 to delete cookie
-    res.set_cookie(app.config["AUTH_TOKEN_NAME"],
-        value = "",
-        expires=0
-        )
-    flash('You are now logged out ', 'success')
-    return res
+def profile():
+    acc_id = getIdViaAuth()
+    data = db.selectAccountViaId(acc_id)
+
+    user_data = {
+        "fname":data.get("fname"),
+        "lname":data.get("lname"),
+        "email":data.get("email")
+    }
+    
+    return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data))
+
+#Video List route
+@app.route('/videolist')
+@testConn
+@authentication
+def videolist():
+    acc_id = getIdViaAuth()
+
+    videos = db.selectVideosUploadedByAccount(acc_id)
+    latest_video = db.selectLatestUploadedVideo(acc_id)
+    print(videos)
+    
+    return render_template('videolist.html', viewdata = viewData(videolist=True,videos=videos,latest_video=latest_video))
+
+#Bleep Video List route
+@app.route('/bleepvideolist')
+@testConn
+@authentication
+def bleepvideolist():
+    acc_id = getIdViaAuth()
+
+    bleepedvideos = db.selectBleepedVideosByAccount(acc_id)
+    latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+    
+    return render_template('bleepvideolist.html', viewdata = viewData(bleepvideolist=True,bleepedvideos=bleepedvideos,latestbleep_data=latestbleep_data))
+
+#Bleep Video Info route
+@app.route('/bleepvideoinfo/<path>',methods=["POST",'GET'])
+@testConn
+@authentication
+def bleepvideoinfo(path):
+    acc_id = getIdViaAuth()
+    bleepinfo_data = {}
+    if path:
+        bleepvideo_id = path
+        bleepinfo_data = db.selectBleepedVideoFullInfo(acc_id,bleepvideo_id)
+
+    return render_template('bleepvideoinfo.html', viewdata = viewData(bleepvideolist=True,bleepinfo_data=bleepinfo_data))
 
 #Bleep Video Page
 @app.route('/bleepvideo')
 @testConn
 @authentication
 def bleepvideo():
+    acc_id = getIdViaAuth() 
+
+    videos = db.selectVideosUploadedByAccount(acc_id)
     
-    return render_template('bleepvideo.html', viewdata = viewData())
+    return render_template('bleepvideo.html', viewdata = viewData(videos=videos))
+
+
+#Routes that returns JSONs
+#@authentication
+
+#Get BleepSound Link
+#This doesnt need authentication
+@app.route('/getbleepsoundinfo', methods=["POST",'GET'])
+@testConn
+def getbleepsoundinfo():
+    if request.method == "POST":
+
+        bleepsoundid= request.form.get("bleepsound_id")
+        bleepsoundinfo = db.selectBleepSoundById(bleepsoundid)
+    
+        filelocation = "/static/"+bleepsoundinfo.get("filelocation") if bleepsoundinfo else ""
+        filename = bleepsoundinfo.get("filename")
+        
+        return jsonify({
+            "filelocation":filelocation,
+            "filename":filename
+        })
+
+    return jsonify('')
+
+
+#Get Video Link
+@app.route('/getvideoinfo', methods=["POST",'GET'])
+@testConn
+@authentication
+def getvideoinfo():
+    if request.method == "POST":
+        acc_id = getIdViaAuth() 
+
+
+        vid_id = request.form.get("vid_id")
+
+        videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+        #videoinfo contains = filelocation, filename, see db
+        
+        filelocation = "/static/"+videoinfo.get("filelocation") if videoinfo  else ""
+        filename = videoinfo.get("filename")
+        upload_time= videoinfo.get("upload_time")
+
+        return jsonify({
+            "filelocation":filelocation,
+            "filename":filename,
+            "upload_time":upload_time
+        })
+
+    return jsonify('')
+
+#Download bleep video
+@app.route('/downloadbleeped/<path>', methods=["POST",'GET'])
+@testConn
+@authentication
+def downloadbleeped(path):
+    try:
+        acc_id = getIdViaAuth()
+        bleepvideo_id = path
+        bleepedvideoinfo = db.selectBleepedVideosByAccountAndPvid(acc_id,bleepvideo_id)
+        file_path = "static/"+bleepedvideoinfo.get("pfilelocation")
+        filename = "bleepedversion"+bleepedvideoinfo.get("filename")
+        return send_file(file_path,as_attachment=True,attachment_filename=filename)
+    except Exception as e:
+        errormsg = "Request has been denied"
+        return render_template('includes/_messages.html', error=errormsg)
+        
+#Routes for Bleep Steps
+#@authentication
+
+#BleepStep1 
+@app.route('/bleepstep1', methods=["POST",'GET'])
+@testConn
+@authentication
+def bleepstep1():
+    if request.method == "POST":
+        acc_id = getIdViaAuth() 
+
+        videoinfo = {
+            "filename":"Error",
+            "filelocation":"Error"
+        }
+
+        bleepsounds = db.selectBleepSounds()
+
+        #If choose video
+        if request.form.get("choosevideo"):
+
+            vid_id = request.form.get("vid_id")
+            videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+
+            msg = str(videoinfo.get("filename"))+" has been choosen"
+            return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo, bleepsounds=bleepsounds)),
+                             'responsemsg': render_template('includes/_messages.html', msg=msg)
+                        })
+
+        elif request.files.get("uploadFile"):
+            file = request.files.get("uploadFile")
+            # print(request.cookies.get('filesize'))
+
+            # if not allowedFileSize(request.cookies.get('filesize')):
+            if not allowedFileSize(request.form.get('uploadfilesize')):
+                errormsg = "File too large. Maximum File size allowed is "+str(app.config["MAX_FILESIZE_GB"])+" gb"
+                return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+
+            video = VideoFile()
+            
+            if not video.isAllowedExt(video.getExtension(file.filename)):
+                errormsg = "File type is not allowed. Allowed file extension are: "+str(video.getAllowedExts())
+                return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+            
+            #Save Video
+            filename = file.filename
+            uniquefilename = str(uuid.uuid4()) +"."+video.getExtension(file.filename)
+
+            videoinfo = saveVideo(file,filename,uniquefilename,acc_id)
+
+            msg = "File Uploaded Successfully"
+            return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo,bleepsounds=bleepsounds)) ,
+                            'responsemsg': render_template('includes/_messages.html', msg=msg)
+                        })
+
+    return jsonify('')
+
+#BleepStep2
+#RunBleepy 
+@app.route('/bleepstep2', methods=["POST",'GET'])
+@testConn
+@authentication
+def bleepstep2():
+    if request.method == "POST":
+        acc_id = getIdViaAuth()
+
+        vid_id = request.form.get("vid_id")
+        bleepsound_id = request.form.get("bleepsound_id")
+
+        if not (vid_id and bleepsound_id):
+            errormsg = "Invalid request! Video and Bleep Sound has no value"
+            return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+        
+        videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+        bleepsoundinfo = db.selectBleepSoundById(bleepsound_id)
+
+        video_filelocation = videoinfo.get("filelocation")
+        bleep_longversion = bleepsoundinfo.get("longversion") #This file will be use as bleep sound
+
+        if not (video_filelocation and bleep_longversion):
+            errormsg = "Invalid request! There is no data for video and bleep sound"
+            return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+        
+        video = VideoFile()
+        audio = AudioFile()
+
+        if not ( video.isFileAllowed("static/"+video_filelocation) and audio.isFileAllowed("static/"+bleep_longversion) ):
+            errormsg = "Invalid request! Video or Bleep Sound doesnt exist"
+            return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+        
+        video.setFile("static/"+video_filelocation)
+        audio.setFile("static/"+bleep_longversion)
+        
+
+        try:
+            
+            stt = SpeechToText("stt-language-models/model-en")
+            extractor = ProfanityExtractor()
+            blocker = ProfanityBlocker()
+            blocker.setClipsDirectory("static/media/Trash/Videos")
+            blocker.setSaveDirectory("static/media/Storage/Videos/Processed")
+            
+            stt.run(video)
+
+            extractor.setProfanities([]) #Reset Profanities
+            extractor.run(stt.getResults())
+            profanities = extractor.getProfanities()
+            
+
+            if len(profanities) > 0:
+                blocker.run(video,audio,profanities)
+                block_directory = blocker.getFileLocation()
+                block_filelocation = removeStaticDirectory(block_directory)
+                block_filename = getFileNameFromDirectory(block_filelocation)
+                bleepedvideoinfo = saveBleepedVideo(vid_id,bleepsound_id,block_filename,block_filelocation,block_directory,profanities)
+                #Save to db
+            else:
+                msg = "This video is already profanity free. No profanities detected"
+                print(msg)
+                return jsonify({ 'bleepstep2response': render_template('includes/bleepstep/_bleepstep3.html', viewdata = viewData() ) ,
+                        'responsemsg': render_template('includes/_messages.html', msg=msg)
+                    })
+
+        except Exception as e:
+            errormsg = e
+            return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
+        
+        msg = "The video is now profanity free"
+        return jsonify({ 'bleepstep2response': render_template('includes/bleepstep/_bleepstep3.html', viewdata = viewData(bleepedvideoinfo=bleepedvideoinfo)) ,
+                        'responsemsg': render_template('includes/_messages.html', msg=msg)
+                    })
+
+    return jsonify('')
+
+#BleepStep3
+#RunBleepy 
+@app.route('/bleepstep3/<path>', methods=["POST",'GET'])
+@testConn
+@authentication
+def bleepstep3(path):
+    return redirect(url_for('downloadbleeped',path=path))
+    
+    
+
 #================================================== Run APP 
 if __name__ == '__main__':
     app.run()

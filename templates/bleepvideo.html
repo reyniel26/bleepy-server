@@ -55,7 +55,7 @@
                 </div>
             </div>
             <div id="bleepstep1div">
-                <div class="card card-tabs">
+                <div class="card card-tabs" id="bleepstep1card">
                     <div class="card-header p-0 pt-1 bg-theme-secondary text-theme-secondary">
                         <div class="card-tools">
                             <button type="button" class="btn btn-tool" data-card-widget="maximize">
@@ -76,155 +76,84 @@
                         </ul>
                     </div>
                     <div class="card-body">
-                      <div class="tab-content" id="custom-tabs-two-tabContent">
-                        <div class="tab-pane fade show active" id="step1-upload-video" role="tabpanel" aria-labelledby="step1-upload-video-tab">
-                            <h3 class=" font-weight-light">Upload new video</h3>
-                            <form>
-                                <div class="custom-file mb-3">
-                                  <input type="file" class="custom-file-input" id="uploadFile" name="uploadFile">
-                                  <label class="custom-file-label" for="customFile">Choose file</label>
-                                </div>
-                                <div class="form-group" id="uploadSubmitDiv" style="display: none;">
-                                    <input type="submit" id="uploadSubmit" value="Upload" class="btn btn-info" />
-                                </div>
-                                <div class="form-group" id="cancelSubmitDiv" style="display: none;">
-                                    <button class="btn btn-info" disabled id="loader-icon">
-                                        <span class="spinner-border spinner-border-sm"></span>
-                                        Loading..
-                                    </button>
-                                    <input type="button" id="cancelSubmit" value="Cancel" class="btn btn-danger" />
-                                </div>
-                                
-                                <div class="progress" id="uploadProgress" style="display: none;">
-                                    <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">50%</div>
-                                </div>
-                                <div id="targetLayer" style="display:none;" class="mt-3">
-                
-                                </div>
-                            </form>
-                        </div>
-                        <div class="tab-pane fade" id="step1-choose-video" role="tabpanel" aria-labelledby="step1-choose-video-tab">
-                            <h3 class=" font-weight-light">Choose from your videos</h3>
-                            <form action="">
-                                <div class="input-group mb-3">
-                                    <select name="chooseVideo" class="custom-select" id="chooseVideo">
-                                      <option selected value="">Choose video</option>
-                                      <option value="1">Video1.mp4</option>
-                                      <option value="2">Video2.mp4</option>
-                                      <option value="3">Video3.mp4</option>
-                                    </select>
-                                    <div class="input-group-append">
-                                      <button class="btn btn-info" type="button" id="viewfirst">View First</button>
+                        <div class="tab-content" id="custom-tabs-two-tabContent">
+                            <div class="tab-pane fade show active" id="step1-upload-video" role="tabpanel" aria-labelledby="step1-upload-video-tab">
+                                <h3 class=" font-weight-light">Upload new video</h3>
+                                <span class="text-danger"id="cancelUploadMsg"></span>
+                                <form action="/bleepstep1" id="uploadVideoForm" method="POST" enctype="multipart/form-data">
+                                    <div class="custom-file mb-3">
+                                    <input type="file" class="custom-file-input" id="uploadFile" name="uploadFile" accept="video/mp4, video/mkv">
+                                    <label class="custom-file-label" for="uploadFile">Choose file</label>
                                     </div>
+                                    <input type="hidden" name="uploadfilesize" id="uploadfilesize" value="">
+                                    <div class="form-group" id="uploadSubmitDiv" style="display: none;">
+                                        <input type="submit" id="uploadSubmit" value="Upload" class="btn btn-info" />
+                                    </div>
+                                    <div class="form-group" id="cancelSubmitDiv" style="display: none;">
+                                        <button class="btn btn-info" disabled id="loader-icon">
+                                            <span class="spinner-border spinner-border-sm"></span>
+                                            Loading..
+                                        </button>
+                                        <input type="button" id="cancelSubmit" value="Cancel" class="btn btn-danger" />
+                                    </div>
+                                    
+                                    <div class="progress" id="uploadProgress" style="display: none;">
+                                        <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">50%</div>
+                                    </div>
+                                    <div id="targetLayer" style="display:none;" class="mt-3">
+                    
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="tab-pane fade" id="step1-choose-video" role="tabpanel" aria-labelledby="step1-choose-video-tab">
+                                <h3 class=" font-weight-light">Choose from your videos</h3>
+                                {% if viewdata.get("videos") %}
+                                <form action="" id="chooseVideoForm">
+                                    <div class="input-group mb-3">
+                                        <select name="chooseVideo" class="custom-select" id="chooseVideo">
+                                        <option selected value="">Choose video</option>
+                                        {% for videoinfo in viewdata.get("videos") %}
+                                        <option value="{{videoinfo.get('video_id')}}">{{videoinfo.get("filename")}}</option>
+                                        {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="embed-responsive embed-responsive-16by9 mb-3" id="choosevideopreviewdiv">
+                                        <video class="embed-responsive-item" controls id="choosevideopreview">
+                                            <source src="" type="video/mp4" />
+                                            This video is not supported by your browser...
+                                        </video>
+                                    </div>
+
+                                    <div class="form-group" id="chooseSubmitDiv" style="display: none;">
+                                        <input type="submit" id="chooseSubmit" value="Choose" class="btn btn-info" />
+                                    </div>
+
+                                    <div id="choosevideomsgdiv">
+
+                                    </div>
+                                </form>
+                                {% else %}
+                                <div class="jumbotron bg-white text-theme text-center shadow">
+                                    <h3> You have no uploaded videos </h3>
+                                    <a href="/bleepvideo?step1=step1-upload-video">
+                                        <button type="button" class="btn btn-theme"> Upload Videos </button>
+                                    </a>
                                 </div>
-                                <div class="embed-responsive embed-responsive-16by9 mb-3" id="choosevideopreview">
-                                    <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/tgbNymZ7vqY"></iframe>
-                                </div>
-                                <div class="form-group" id="chooseSubmitDiv" style="display: none;">
-                                    <input type="submit" id="chooseSubmit" value="Choose" class="btn btn-info" />
-                                </div>
-                            </form>
+                                {% endif %}
+                            </div>
                         </div>
-                      </div>
                     </div>
                     <!-- /.card -->
                 </div>
             </div>
 
             <div id="bleepstep2div" style="display: none;">
-                <div class="card card-tabs">
-                    <div class="card-header p-0 pt-1 bg-theme-secondary text-theme-secondary">
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                                <i class="fa fa-expand text-theme-secondary"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fa fa-minus text-theme-secondary"></i>
-                            </button>
-                        </div>
-                        <ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">
-                            <li class="pt-2 px-3"><h3 class="card-title">Step 2:</h3></li>
-                            <li class="nav-item">
-                            <a class="nav-link active" id="step2-run-bleepy-tab" data-toggle="pill" href="#step2-run-bleepy" role="tab" aria-controls="custom-tabs-two-home" aria-selected="true">Run Bleepy</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="card-body">
-                      <div class="tab-content" id="custom-tabs-two-tabContent">
-                        <div class="tab-pane fade show active" id="step2-run-bleepy" role="tabpanel" aria-labelledby="step2-run-bleepy-tab">
-                            <h3 class=" font-weight-light">Run Bleepy</h3>
-                            <hr>
-                            <p>Video1.mp4</p>
-                            <form action="">
-                                <div class="embed-responsive embed-responsive-16by9">
-                                    <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/tgbNymZ7vqY"></iframe>
-                                </div>
-                            </form>
-                            <p class="mt-3 font-weight-bold">Bleep Sound</p>
-                            <div class="input-group mb-3">
-                                <select name="choosebleepsound" class="custom-select" id="choosebleepsound">
-                                  <option selected value="1">Beep</option>
-                                  <option value="2">Dolphin</option>
-                                  <option value="3">Buzzer</option>
-                                  <option value="4">Horn</option>
-                                </select>
-                                <div class="input-group-append">
-                                  <button class="btn btn-info" type="button" id="listenfirst">Listen First</button>
-                                </div>
-                            </div>
-                            <div class="" id="bleepsoundpreview">
-                                <audio controls class=" w-100 mb-3" id="bleepsoundplayer">
-                                    <source src="sample.mp3" id="mp3_src" type="audio/mp3">
-                                    Your browser does not support the audio tag.
-                                </audio>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Run Bleepy!</button>
-
-                            
-                        </div>
-                      </div>
-                    </div>
-                    <!-- /.card -->
-                </div>                        
+                                     
             </div>
 
             <div id="bleepstep3div" style="display: none;">
-                <div class="card card-tabs">
-                    <div class="card-header p-0 pt-1 bg-theme-secondary text-theme-secondary">
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                                <i class="fa fa-expand text-theme-secondary"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fa fa-minus text-theme-secondary"></i>
-                            </button>
-                        </div>
-                        <ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">
-                            <li class="pt-2 px-3"><h3 class="card-title">Step 3:</h3></li>
-                            <li class="nav-item">
-                            <a class="nav-link active" id="step3-download-tab" data-toggle="pill" href="#step3-download" role="tab" aria-controls="custom-tabs-two-home" aria-selected="true">Download</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="card-body">
-                      <div class="tab-content" id="custom-tabs-two-tabContent">
-                        <div class="tab-pane fade show active" id="step3-download" role="tabpanel" aria-labelledby="step3-download-tab">
-                            <h3 class=" font-weight-light">Download Bleep Video</h3>
-                            <form action="">
-                                <div class="embed-responsive embed-responsive-16by9 mb-3" id="downloadvideo">
-                                    <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/tgbNymZ7vqY"></iframe>
-                                </div>
-                                <div class="form-group" id="downloadSubmitDiv">
-                                    <input type="submit" id="downloadSubmit" value="Download" class="btn btn-info" />
-                                </div>
-                            </form>
-                            <hr>
-                            <h3 class=" font-weight-light">Profanity Report Summary</h3>
-                        </div>
-                      </div>
-                    </div>
-                    <!-- /.card -->
-                </div>  
+                
             </div>
         </div>
     </div>
@@ -258,14 +187,75 @@
         var fileName = $(this).val().split("\\").pop();
         $(this).siblings(".custom-file-label").addClass("selected").html(fileName == "" ? "Choose file":fileName);
     });
+
     $('#uploadSubmitDiv').hide();
     $('#uploadFile').on('change', function() {
         $('#uploadSubmitDiv').hide();
+        $('#uploadProgress').hide();
+        $('#cancelUploadMsg').html("");
         if($('#uploadFile').val()){
-            document.cookie = `filesize= ${this.files[0].size}`;
+            $('#uploadfilesize').val(this.files[0].size)
             $('#uploadSubmitDiv').show();
         }
     });
+
+    $('#uploadVideoForm').submit(function(event){
+        if($('#uploadFile').val()){
+            event.preventDefault();
+            $('.progress-bar').removeClass("bg-danger");
+            $('.progress-bar').addClass("bg-primary");
+            $('#uploadFile').hide();
+            $('#uploadSubmitDiv').hide();
+            $('#cancelSubmitDiv').show();
+            $('#uploadProgress').show();
+            $('#loader-icon').show();
+            $('#cancelUploadMsg').html("");
+            //FROM THIS USES JQUERY FORM
+            $('#targetLayer').hide();
+            $('#targetLayer').hide();
+            var form = $(this).ajaxSubmit({
+                target: '#targetLayer',
+                beforeSubmit:function(){
+                    $('.progress-bar').width('0%')
+                },
+                uploadProgress: function(event, position, total, percentageComplete){
+                    $('.progress-bar').width(percentageComplete+ '%');
+                    $('.progress-bar').html(percentageComplete+ '%');
+                    $('#uploadSubmitDiv').hide();
+                },
+                success:function(data){
+                    $('#loader-icon').hide();
+                    $('#targetLayer').show();
+                    $('#cancelSubmitDiv').hide();
+                    $('#uploadFile').show();
+                    $('#targetLayer').html(data.responsemsg);
+                    if(data.bleepstep1response){
+                        $('#bleepstep1card').CardWidget('collapse')
+                        $('#bleepstep1card').CardWidget('minimize')
+                        $('#bleepstep2div').show();
+                        $('#bleepstep2div').html(data.bleepstep1response);
+                    }
+                },
+                resetForm: true
+            })
+            xhr = form.data('jqxhr');
+            //To this
+
+        }
+        return false;
+    });
+
+    $("#cancelSubmit").click(function(){
+            xhr.abort();
+            $('#loader-icon').hide();
+            $('#cancelUploadMsg').html("Cancelled");
+            $('.progress-bar').removeClass("bg-primary");
+            $('.progress-bar').addClass("bg-danger");
+            $('#cancelSubmitDiv').hide();
+            $('#uploadFile').show();
+    });
+
+    ////
 
     $('#chooseSubmitDiv').hide();
     $('#chooseVideo').on('change', function() {
@@ -275,33 +265,62 @@
         }
     });
 
-    $('#choosevideopreview').hide();
-    $('#viewfirst').on('click', function() {
-        $('#choosevideopreview').hide();
+    $('#choosevideopreviewdiv').hide();
+    $('#chooseVideo').on('change', function() {
+        $('#choosevideopreviewdiv').hide();
         if($('#chooseVideo').val()){
-            $('#choosevideopreview').show();
+            $.ajax ({
+                type:"POST",
+                url:"/getvideoinfo",
+                data: {
+                    vid_id:$('#chooseVideo').val()
+                },
+                cache: false,
+                success:function(data){
+                    
+                    $('#choosevideopreviewdiv').show();
+                    $('#choosevideopreview source').attr('src',data.filelocation);
+                    $("#choosevideopreview ")[0].load();
+                    
+                },error:function(e){
+                    alert("error: "+e)
+                }
+            });
+        }
+        else{
+            //Stops video 
+            $('#choosevideopreview source').attr('src', $('#chooseVideo').val());
+            $("#choosevideopreview ")[0].load();
         }
     });
 
-    $('#bleepsoundpreview').hide();
-    $('#listenfirst').on('click', function() {
-        $('#bleepsoundpreview').hide();
-        if($('#choosebleepsound').val()){
-            changeAudioSrc($('#choosebleepsound').val())
-            $('#bleepsoundpreview').show();
+    
+    $('#chooseVideoForm').submit(function(event){
+        event.preventDefault();
+        if($('#chooseVideo').val()){
+            $.ajax ({
+                type:"POST",
+                url:"/bleepstep1",
+                data: {
+                    vid_id:$('#chooseVideo').val(),
+                    choosevideo:true
+                },
+                cache: false,
+                success:function(data){
+                    if(data.bleepstep1response){
+                        $('#bleepstep1card').CardWidget('collapse')
+                        $('#bleepstep1card').CardWidget('minimize')
+                        $('#bleepstep2div').show();
+                        $('#bleepstep2div').html(data.bleepstep1response);
+                    }
+                    $('#choosevideomsgdiv').html(data.responsemsg);
+                },error:function(e){
+                    alert("error: "+e)
+                }
+            });
+
         }
     });
 
-    function changeAudioSrc(sourceUrl) {
-        var audio = $("#bleepsoundplayer");      
-        $("#mp3_src").attr("src", sourceUrl);
-        /****************/
-        audio[0].pause();
-        audio[0].load();//suspends and restores all audio element
-
-        //audio[0].play(); changed based on Sprachprofi's comment below
-        audio[0].oncanplaythrough = audio[0].play();
-        /****************/
-    }
 </script>
 {% endblock %}

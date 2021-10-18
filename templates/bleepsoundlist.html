@@ -1,0 +1,135 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-6">
+            <p class="text-theme-tertiary font-weight-bold">BLEEP SOUNDS</p>
+            <h1 class=" display-4 font-weight-bold">Enjoy our engaging and creative bleep sounds available!</h1>
+            <p class="text-justify mt-3">
+                Make your video more engaging by customizing the bleep sound. We offer different bleep sounds. 
+                Have a better content by bleeping your video with the help of Bleepy. Bleeping your video will help 
+                you to monetize your video. 
+            </p>
+            <a href="/bleepvideo">
+                <button type="button" class="btn btn-theme"> Get Started >> </button>
+            </a>
+        </div>
+        <div class="col-md-6">
+            <img src="{{url_for('static', filename='Bleepy_UI/src/pexels-yan-krukov-9072376.jpg')}}" class="w-100 mt-3 ml-md-5" alt="gamerpic">
+        </div>
+    </div>
+    <div id="targetdivscroll"></div>
+</div>
+
+
+
+<section class=" bg-theme my-5 py-3" >
+    <div class="container my-5">
+        <div class="" id="bleepsoundpreview">
+            <div class="text-center text-theme-secondary">
+                <h3 class=" font-weight-light" id="bleepsoundpreviewtitle">{{viewdata.get('latest_bleepsound').get('filename')}}</h3>
+            </div>
+
+            <audio controls class=" w-100" id="bleepsoundplayer">
+                <source src="{{url_for('static', filename=viewdata.get('latest_bleepsound').get('filelocation'))}}" id="mp3_src" type="audio/mp3">
+                Your browser does not support the audio tag.
+            </audio>
+        </div>
+    </div>
+</section>
+
+<div class=" container my-5">
+    
+    <div class="card w-100">
+        <div class="card-header">
+          <h3 class="card-title">Bleep Sounds</h3>
+
+          <div class="card-tools">
+            <div class="input-group input-group-sm" style="width: 150px;">
+              <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
+
+              <div class="input-group-append">
+                <button type="submit" class="btn btn-default">
+                  <i class="fa fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body table-responsive p-0">
+          <table class="table table-hover text-nowrap">
+            <thead>
+              <tr>
+                <th>Track Name</th>
+                <th>Added on</th>
+                <th></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+                {% for bleepsound in viewdata.get('bleepsounds')%}
+                <tr>
+                    <td>{{bleepsound.get('filename')}}</td>
+                    <td>{{bleepsound.get('upload_time')}}</td>
+                    <td>
+                        <button class="btn btn-theme-secondary btnbleepsoundplayer" value="{{bleepsound.get('bleep_sound_id')}}"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>
+                    </td>
+                    <td> 
+                        <a href="" target="_blank"> <button class=" btn btn-theme-secondary"> <i class="fa fa-download" aria-hidden="true"></i> Download </button> </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <!-- /.card-body -->
+      </div>
+      <!-- /.card -->
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    $('.btnbleepsoundplayer').on('click', function() {
+        requestAudioSrc($(this).val())
+    });
+
+    function requestAudioSrc(id){
+        if(id){
+            $.ajax ({
+                type:"POST",
+                url:"/getbleepsoundinfo",
+                data: {
+                    bleepsound_id:id
+                },
+                cache: false,
+                success:function(data){
+                    changeAudioSrc(data.filelocation)
+                    $('#bleepsoundpreviewtitle').html(data.filename);
+
+                    $('html, body').animate({
+                                scrollTop: $("#targetdivscroll").offset().top
+                    }, 1000);
+
+                },error:function(e){
+                    alert("error: "+e)
+                }
+            });
+        }
+        else{
+            //Stops audio
+            changeAudioSrc("")
+        }
+    }
+
+    function changeAudioSrc(sourceUrl) {
+        var audio = $("#bleepsoundplayer");      
+        $("#mp3_src").attr("src", sourceUrl);
+        /****************/
+        audio[0].load();
+        audio[0].play();
+    }
+</script>
+{% endblock %}

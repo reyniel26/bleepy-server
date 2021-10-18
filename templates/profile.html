@@ -1,0 +1,273 @@
+{% extends 'layout2.html' %}
+
+{% block body %}
+<section>
+    <!-- Input code here -->
+    <div class=" jumbotron bg-white shadow">
+        <h1 class=" font-weight-light"> Profile </h1>
+        <hr>
+        <div class="row ">
+            <div class="col-md-6 mb-3">
+                <div class="border border-success rounded text-center">
+                    <img src="{{url_for('static', filename='Bleepy_UI/src/mark-decile-WA84FtTi7NU-unsplash.jpg')}}" class="rounded mt-3 w-75 img-thumbnail"  alt="Cinque Terre">
+                    <br>
+                    <button class="btn btn-theme-secondary my-3" data-toggle="modal" data-target="#changephotomodal"> Change Photo </button>
+                </div>   
+            </div>
+            <div class="col-md-6">
+                <label for="fname">First Name:</label>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" name="viewfname" id="viewfname" value="{{viewdata.get('user_data').get('fname')}}" disabled>
+                    <div class="input-group-append">
+                    <button class="btn btn-theme-secondary" type="button" id="editfname" data-toggle="modal" data-target="#changefnamemodal">Change</button>
+                    </div>
+                </div>
+
+                <label for="lname">Last Name:</label>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" name="viewlname" id="viewlname" value="{{viewdata.get('user_data').get('lname')}}" disabled>
+                    <div class="input-group-append">
+                        <button class="btn btn-theme-secondary" type="button" id="editlname" data-toggle="modal" data-target="#changelnamemodal">Change</button>
+                    </div>
+                </div>
+
+                <label for="email">Email Address:</label>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" name="viewemail" id="viewemail" value="{{viewdata.get('user_data').get('email')}}"  disabled>
+                    <div class="input-group-append">
+                    <button class="btn btn-theme-secondary" type="button" id="editemail" data-toggle="modal" data-target="#changeemailmodal">Change</button>
+                    </div>
+                </div>
+
+                <p>Password:
+                    <button class="btn btn-theme-secondary" type="button" id="editpwd" data-toggle="modal" data-target="#changepwdmodal">Change Password</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div>
+        <!-- The Modal  Change photo-->
+        <div class="modal fade" id="changephotomodal">
+            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header">
+                <h4 class="modal-title">Change Photo</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form action="" method="post" id="updatephotoform">
+                        <label for="uploadfilesize">Maximum file size allowed: 5MB: <span class="invalid text-danger">*</span></label>
+                        <br>
+                        <label for="updatephoto">Photo: <span class="invalid text-danger">*</span></label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="updatephoto" name="updatephoto" accept="image/png, image/gif, image/jpeg">
+                            <label class="custom-file-label" for="">Choose file</label>
+                        </div>
+                        <input type="hidden" name="uploadfilesize" id="uploadfilesize" value="">
+                        <input type="hidden" name="maxfilesize" id="maxfilesize" value="5"> <!-- In mb -->
+
+                        <button type="submit" class="btn btn-theme-secondary mt-3">Update</button>
+                    </form>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
+        </div>
+
+        <!-- The Modal Fname-->
+        <div class="modal fade" id="changefnamemodal">
+            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header">
+                <h4 class="modal-title">Update First Name</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form action="" method="post" id="updatefnameform">
+                        <div class="form-group">
+                            <label for="fname">First Name: <span class="invalid text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter first name" id="fname" name="fname" value="{{viewdata.get('user_data').get('fname')}}">
+                        </div>
+                        <button type="submit" class="btn btn-theme-secondary">Update</button>
+                    </form>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
+        </div>
+
+        <!-- The Modal Lname-->
+        <div class="modal fade" id="changelnamemodal">
+            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header">
+                <h4 class="modal-title">Update Last Name</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form action="" method="post" id="updatelnameform">
+                        <div class="form-group">
+                            <label for="lname">Last Name: <span class="invalid text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter last name" id="lname" name="lname" value="{{viewdata.get('user_data').get('lname')}}">
+                        </div>
+                        <button type="submit" class="btn btn-theme-secondary">Update</button>
+                    </form>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
+        </div>
+
+        <!-- The Modal Email-->
+        <div class="modal fade" id="changeemailmodal">
+            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header">
+                <h4 class="modal-title">Update Email</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form action="" method="post" id="updateemailform">
+                        <div class="form-group">
+                            <label for="email">Email: <span class="invalid text-danger">*</span></label>
+                            <input type="email" class="form-control" placeholder="Enter email" id="email" name="email" value="{{viewdata.get('user_data').get('email')}}">
+                        </div>
+                        <hr>
+                        <p>
+                            Enter your password to validate your request
+                        </p>
+                        <div class="form-group">
+                            <label for="pwd">Password: <span class="invalid text-danger">*</span></label> 
+                            <div class="input-group mb-3 ">
+                                <input type="password" class="form-control " placeholder="Enter your password" id="pwd" name="pwd">
+                                <div class="input-group-append">
+                                    <button class="btn btn-theme" type="button" id="showpwd"><i class="fa fa-eye-slash" aria-hidden="true" id="eyepwd"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-theme-secondary">Update</button>
+                    </form>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
+        </div>
+
+        <!-- The Modal Password-->
+        <div class="modal fade" id="changepwdmodal">
+            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header">
+                <h4 class="modal-title">Update Password</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form action="" method="post" id="updatepwdform">
+                        <div class="form-group">
+                            <label for="oldpwd">Old Password: <span class="invalid text-danger">*</span></label> 
+                            <div class="input-group mb-3 ">
+                                <input type="password" class="form-control " placeholder="Enter your old password" id="oldpwd" name="oldpwd">
+                                <div class="input-group-append">
+                                    <button class="btn btn-theme" type="button" id="showoldpwd"><i class="fa fa-eye-slash" aria-hidden="true" id="eyeoldpwd"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="newpwd">New Password: <span class="invalid text-danger">*</span></label> 
+                            <div class="input-group mb-3 ">
+                                <input type="password" class="form-control " placeholder="Enter your desired new password" id="newpwd" name="newpwd">
+                                <div class="input-group-append">
+                                    <button class="btn btn-theme" type="button" id="shownewpwd"><i class="fa fa-eye-slash" aria-hidden="true" id="eyenewpwd"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-light m-2 p-4 shadow" id="pwdMessage" >
+                            <p>
+                                <b>Password must contain the following: </b> <br>
+                                <span class="text-danger" id="smallpwd"><i class="fa fa-times" aria-hidden="true" id="smallicon"></i>    A smallcase letter</span> <br>
+                                <span class="text-danger" id="upperpwd"><i class="fa fa-times" aria-hidden="true" id="uppericon"></i>    A capital (uppercase) letter</span> <br>
+                                <span class="text-danger" id="numberpwd"><i class="fa fa-times" aria-hidden="true" id="numbericon"></i>    A number</span> <br>
+                                <span class="text-danger" id="minpwd"><i class="fa fa-times" aria-hidden="true" id="minicon"></i>    Minimum 8 characters</span> <br>
+                            </p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmpwd">Confirm Password: <span class="invalid text-danger">*</span></label> 
+                            <div class="input-group mb-3 ">
+                                <input type="password" class="form-control " placeholder="Re-enter your desired new password" id="confirmpwd" name="confirmpwd">
+                                <div class="input-group-append">
+                                    <button class="btn btn-theme" type="button" id="showconfirmpwd"><i class="fa fa-eye-slash" aria-hidden="true" id="eyeconfirmpwd"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-theme-secondary">Update</button>
+                    </form>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
+        </div>
+    </div>
+
+
+</section>
+{% endblock %}
+
+{% block script %}
+<script src="{{url_for('static', filename='Bleepy_UI/js/validation_hasNumber.js')}}"></script>
+<script src="{{url_for('static', filename='Bleepy_UI/js/validation_hasSmall.js')}}"></script>
+<script src="{{url_for('static', filename='Bleepy_UI/js/validation_hasUpper.js')}}"></script>
+<script src="{{url_for('static', filename='Bleepy_UI/js/validation_nowhitespace.js')}}"></script>
+<script src="{{url_for('static', filename='Bleepy_UI/js/validation_validname.js')}}"></script>
+<script src="{{url_for('static', filename='Bleepy_UI/js/showpwd.js')}}"></script>
+<script src="{{url_for('static', filename='Bleepy_UI/js/pwdmessage.js')}}"></script>
+<script src="{{url_for('static', filename='Bleepy_UI/js/profile.js')}}"></script>
+{% endblock %}
