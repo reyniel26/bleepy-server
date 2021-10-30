@@ -15,12 +15,12 @@
         <div class="row justify-content-center my-5  text-white">
             <div class="col-md-4 jumbotron bg-dark">
                 <div class="text-center">
-                    <i class="fa fa-exclamation-triangle fa-5x text-danger" aria-hidden="true"></i>
-                    <h1> ERROR <span class=" text-danger">404</span></h1>
-                    <p> This site can't be reached </p>
-                    <a class="btn btn-danger" href="/"> Reload </a>
+                    <i class="fa fa-exclamation-triangle fa-5x text-{{error_status}}" aria-hidden="true"></i>
+                    <h1> ERROR <span class=" text-{{error_status}}">{{error_code}}</span></h1>
+                    <p> {{error_msg}} </p>
+                    <a class="btn btn-{{error_status}}" href="/"> Reload </a>
                 </div>
-                <div class="jumbotron bg-dark border border-light my-3 px-5">
+                <div class="jumbotron bg-dark border border-{{error_status}} my-3 px-5">
                     Try:
                     <ul>
                         <li>Reload Page</li>

@@ -1,6 +1,6 @@
 #================================================== Imports
 #Flask
-from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify, send_file
+from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify, send_file,abort
 #For decorator
 from functools import wraps 
 #JWT
@@ -46,7 +46,7 @@ def testConn(f):
         if db.hasConnection():
             return f(*args, **kwargs)
         else:
-            return redirect(url_for('error'))
+            abort(500)
     return wrap
 
 def generateToken(**kwargs:str):
@@ -300,11 +300,28 @@ def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory
     
     return bleepedvideoinfo
 
+#================================================== Error handlers
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('error.html',error_msg = error, error_code = 404,error_status = "danger"), 404
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('error.html',error_msg = error, error_code = 403,error_status = "warning"), 403
+
+@app.errorhandler(410)
+def gone_error(error):
+    return render_template('error.html',error_msg = error, error_code = 410,error_status = "warning"), 410
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return render_template('error.html',error_msg = error, error_code = 500,error_status = "danger"), 500
+
 
 #================================================== Routes 
 
 #Index Page
-@app.route('/')
+@app.route('/' )
 @testConn
 def index():
     #create template folder
@@ -321,12 +338,6 @@ def bleepsoundlist():
 
     return render_template('bleepsoundlist.html', viewdata = viewData(bleepsoundlist=True, bleepsounds=bleepsounds, latest_bleepsound =latest_bleepsound ) )
 
-#Error Page
-@app.route('/error')
-def error():
-    if db.hasConnection():
-        return redirect(url_for('index'))
-    return render_template('error.html')
 
 #Signup Page
 @app.route('/signup', methods=["POST",'GET'])
