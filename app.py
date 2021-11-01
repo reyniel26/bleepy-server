@@ -192,9 +192,11 @@ def viewData(**kwargs:str):
         data = db.selectAccountViaId(acc_id)
         if data:
             fullname = str(data.get("fname")+" "+data.get("lname")).title()
+            photo = data.get("photo")
 
             #User widget
             viewdata["uw_fullname"] = fullname
+            viewdata["uw_photo"] = photo
             viewdata["uw_videoscount"] = db.countVideosUploadedByAcc(acc_id).get("count")
             viewdata["uw_bleepedvideoscount"] = db.countBleepVideosUploadedByAcc(acc_id).get("count")
         
@@ -510,7 +512,8 @@ def profile():
     user_data = {
         "fname":data.get("fname"),
         "lname":data.get("lname"),
-        "email":data.get("email")
+        "email":data.get("email"),
+        "photo":data.get("photo")
     }
     
     return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data))

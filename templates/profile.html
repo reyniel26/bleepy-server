@@ -9,7 +9,7 @@
         <div class="row ">
             <div class="col-md-6 mb-3">
                 <div class="border border-success rounded text-center">
-                    <img src="{{url_for('static', filename='Bleepy_UI/src/mark-decile-WA84FtTi7NU-unsplash.jpg')}}" class="rounded mt-3 w-75 img-thumbnail"  alt="Cinque Terre">
+                    <img src="{{url_for('static', filename=viewdata.get('user_data').get('photo'))}}" class="rounded mt-3 w-75 img-thumbnail"  alt="Cinque Terre">
                     <br>
                     <button class="btn btn-theme-secondary my-3" data-toggle="modal" data-target="#changephotomodal"> Change Photo </button>
                 </div>   
