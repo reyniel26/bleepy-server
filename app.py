@@ -19,7 +19,7 @@ from model import Model
 #Configs
 from config import ProductionConfig, DevelopmentConfig
 #Bleepy module
-from bleepy.bleepy import VideoFile, AudioFile, SpeechToText, ProfanityExtractor, ProfanityBlocker
+from bleepy.bleepy import VideoFile, AudioFile, MediaFile, SpeechToText, ProfanityExtractor, ProfanityBlocker
 
 #================================================== Configs
 app = Flask(__name__)
@@ -152,6 +152,12 @@ def getIdViaAuth():
     except:
         return None
 
+def getEmailViaAuth():
+    try:
+        return db.selectAccountViaId(getIdViaAuth()).get("email")
+    except:
+        return None
+
 def setAuth(response,**kwargs):
     """
     set acc_id and max_age
@@ -192,9 +198,11 @@ def viewData(**kwargs:str):
         data = db.selectAccountViaId(acc_id)
         if data:
             fullname = str(data.get("fname")+" "+data.get("lname")).title()
+            photo = data.get("photo")
 
             #User widget
             viewdata["uw_fullname"] = fullname
+            viewdata["uw_photo"] = photo
             viewdata["uw_videoscount"] = db.countVideosUploadedByAcc(acc_id).get("count")
             viewdata["uw_bleepedvideoscount"] = db.countBleepVideosUploadedByAcc(acc_id).get("count")
         
@@ -212,8 +220,17 @@ def sanitizeEmail(email:str):
         email = email.strip(x)
     return email.strip()
 
-def allowedFileSize(filesize) ->bool:
-    return int(filesize) <= app.config['MAX_VIDEO_FILESIZE']
+def allowedVideoFileSize(filesize) ->bool:
+    return float(filesize) <= app.config['MAX_VIDEO_FILESIZE']
+
+def allowedPhotoFileSize(filesize) ->bool:
+    return float(filesize) <= bytesToMb(app.config['MAX_PHOTO_FILESIZE'])
+
+def bytesToGb(bytesize):
+    return bytesize / (1024*1024*1024)
+
+def bytesToMb(bytesize):
+    return bytesize / (1024*1024)
 
 def saveVideo(file,filename,uniquefilename,acc_id):
     fileinfo = {
@@ -301,13 +318,17 @@ def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory
     return bleepedvideoinfo
 
 #================================================== Error handlers
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('error.html',error_msg = error, error_code = 403,error_status = "warning"), 403
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('error.html',error_msg = error, error_code = 404,error_status = "danger"), 404
 
-@app.errorhandler(403)
-def forbidden_error(error):
-    return render_template('error.html',error_msg = error, error_code = 403,error_status = "warning"), 403
+@app.errorhandler(405)
+def method_not_allowed_error(error):
+    return render_template('error.html',error_msg = error, error_code = 405,error_status = "danger"), 405
 
 @app.errorhandler(410)
 def gone_error(error):
@@ -510,10 +531,12 @@ def profile():
     user_data = {
         "fname":data.get("fname"),
         "lname":data.get("lname"),
-        "email":data.get("email")
+        "email":data.get("email"),
+        "photo":data.get("photo"),
     }
+    max_photo_filesize = bytesToMb(app.config["MAX_PHOTO_FILESIZE"])
     
-    return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data))
+    return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data,max_photo_filesize=max_photo_filesize))
 
 #Video List route
 @app.route('/videolist')
@@ -524,7 +547,6 @@ def videolist():
 
     videos = db.selectVideosUploadedByAccount(acc_id)
     latest_video = db.selectLatestUploadedVideo(acc_id)
-    print(videos)
     
     return render_template('videolist.html', viewdata = viewData(videolist=True,videos=videos,latest_video=latest_video))
 
@@ -664,9 +686,9 @@ def bleepstep1():
             file = request.files.get("uploadFile")
             # print(request.cookies.get('filesize'))
 
-            # if not allowedFileSize(request.cookies.get('filesize')):
-            if not allowedFileSize(request.form.get('uploadfilesize')):
-                errormsg = "File too large. Maximum File size allowed is "+str(app.config["MAX_FILESIZE_GB"])+" gb"
+            # if not allowedVideoFileSize(request.cookies.get('filesize')):
+            if not allowedVideoFileSize(request.form.get('uploadfilesize')):
+                errormsg = "File too large. Maximum File size allowed is "+str(bytesToGb(app.config["MAX_VIDEO_FILESIZE"]))+" gb"
                 return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
 
             video = VideoFile()
@@ -772,8 +794,199 @@ def bleepstep2():
 @authentication
 def bleepstep3(path):
     return redirect(url_for('downloadbleeped',path=path))
-    
-    
+
+#==============Update Profile   
+#Update FNAME
+@app.route('/updatefname', methods=["POST",'GET'])
+@testConn
+@authentication
+def updatefname():
+    if request.method == "POST":
+
+        fname = request.form.get("fname").strip()
+        acc_id = getIdViaAuth()
+        acc = db.selectAccountViaId(acc_id)
+        
+        if acc:
+            email = acc.get("email")
+            oldfname = acc.get("fname")
+
+            if fname == oldfname:
+                flash('Nothing change', 'success')
+            elif fname == "":
+                flash('Invalid, Empty fields!', 'warning')
+            else:
+                db.updateAccFname(email,fname)
+                flash('Success! First name has been updated', 'success')
+
+            return redirect(url_for('profile')) 
+
+    flash('Invalid request!', 'warning')
+    return redirect(url_for('profile')) 
+
+#Update LNAME
+@app.route('/updatelname', methods=["POST",'GET'])
+@testConn
+@authentication
+def updatelname():
+    if request.method == "POST":
+
+        lname = request.form.get("lname").strip()
+        acc_id = getIdViaAuth()
+        acc = db.selectAccountViaId(acc_id)
+        
+        if acc:
+            email = acc.get("email")
+            oldlname = acc.get("lname")
+
+            if lname == oldlname:
+                flash('Nothing change', 'success')
+            elif lname == "":
+                flash('Invalid, Empty fields!', 'warning')
+            else:
+                db.updateAccLname(email,lname)
+                flash('Success! Last Name has been updated!', 'success')
+                
+            return redirect(url_for('profile')) 
+
+    flash('Invalid request!', 'warning')
+    return redirect(url_for('profile'))
+
+#Update Email
+@app.route('/updateemail', methods=["POST",'GET'])
+@testConn
+@authentication
+def updateemail():
+    if request.method == "POST":
+
+        newemail = sanitizeEmail(request.form.get("email"))
+        pwd = request.form.get("pwd")
+
+        acc_id = getIdViaAuth()
+        acc = db.selectAccountViaId(acc_id)
+        
+        if acc:
+            oldemail = acc.get("email")
+            acc_pwd = acc.get("pwd")
+
+            if newemail == oldemail:
+                flash('Nothing change', 'success')
+            elif newemail == "" or pwd == "":
+                flash('Invalid, Empty fields!', 'warning')
+            else:
+                checkemail = db.selectAccountViaEmail(newemail)
+                if checkemail:
+                    if checkemail.get("email"):
+                        flash('Email is already taken or used by other user', 'danger')
+                    else:
+                        flash('Error: '+checkemail.get("error"), 'danger')
+                else:
+                    pwd_candidate = pwd
+        
+                    if not sha256_crypt.verify(pwd_candidate, acc_pwd):
+                        flash('Wrong Password', 'danger')
+                    else:
+                        db.updateAccEmail(oldemail,newemail)
+                        flash('Success! Email has been updated!', 'success')
+                
+            return redirect(url_for('profile')) 
+
+    flash('Invalid request!', 'warning')
+    return redirect(url_for('profile'))
+
+#Update LNAME
+@app.route('/updatepwd', methods=["POST",'GET'])
+@testConn
+@authentication
+def updatepwd():
+    if request.method == "POST":
+
+        oldpwd = request.form.get("oldpwd")
+        newpwd = request.form.get("newpwd")
+        confirmpwd = request.form.get("confirmpwd")
+
+        acc_id = getIdViaAuth()
+        acc = db.selectAccountViaId(acc_id)
+        
+        if acc:
+            email = acc.get("email")
+            acc_pwd = acc.get("pwd")
+
+            if oldpwd == newpwd:
+                flash('Nothing change!', 'success')
+            elif oldpwd == "" or newpwd == "" or confirmpwd == "":
+                flash('Invalid, Empty fields!', 'warning')
+            elif newpwd != confirmpwd:
+                flash('Password not confirm', 'warning')
+            elif not sha256_crypt.verify(oldpwd, acc_pwd):
+                flash('Wrong Password', 'danger')
+            else:
+                #hash pass first
+                hash_pwd = sha256_crypt.encrypt(str(newpwd))
+
+                db.updateAccPwd(email,hash_pwd)
+                flash('Success! Password has been updated!', 'success')
+                
+            return redirect(url_for('profile')) 
+
+    flash('Invalid request!', 'warning')
+    return redirect(url_for('profile'))
+
+#Update Photo
+@app.route('/updatephoto', methods=["POST",'GET'])
+@testConn
+@authentication
+def updatephoto():
+    if request.method == "POST":
+
+        # fname = request.form.get("fname").strip()
+        file = request.files.get("updatephoto")
+        filesize = request.form.get('uploadfilesize')
+        media = MediaFile()
+        media.setAllowedExts(["png","jpg","jpeg"])
+
+        acc_id = getIdViaAuth()
+        acc = db.selectAccountViaId(acc_id)
+
+        
+        if acc:
+            email = acc.get("email")
+            oldphoto = acc.get("photo")
+
+
+            if not allowedPhotoFileSize(filesize):
+                flash("File too large. Maximum File size allowed is "+str(bytesToMb(app.config["MAX_PHOTO_FILESIZE"]))+" mb", 'warning')
+            elif not media.isAllowedExt(media.getExtension(file.filename)):
+                flash('File type is not allowed. Allowed file extension are: '+str(media.getAllowedExts()),'danger')
+            else:
+                if oldphoto != app.config["PHOTO_DEFAULT_USER"]:
+                    if os.path.exists("static/"+oldphoto):
+                        os.remove("static/"+oldphoto)
+
+                parent_folder = "static/"+app.config['PHOTO_UPLOADS']
+                folder = str(acc_id)
+                savefolder = app.config['PHOTO_UPLOADS']+"/"+folder
+
+                #Try to create folder if not exist
+                uniquefilename = str(uuid.uuid4()) +"."+media.getExtension(file.filename)
+                try:
+                    path = os.path.join(parent_folder, folder)
+                    os.mkdir(path)
+                except(FileExistsError):
+                    pass
+
+                #SaveToDirectories
+                file.save(os.path.join("static/"+savefolder, uniquefilename))
+
+                #Save to db
+                db.updateAccPhoto(email,savefolder+"/"+uniquefilename)
+                flash('Success! Profile photo has been updated', 'success')
+
+            return redirect(url_for('profile')) 
+
+    flash('Invalid request!', 'warning')
+    return redirect(url_for('profile')) 
+
 
 #================================================== Run APP 
 if __name__ == '__main__':

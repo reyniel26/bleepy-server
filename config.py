@@ -17,9 +17,12 @@ class Config(object):
     VIDEO_UPLOADS = 'media/Storage/Videos/Uploads'
     VIDEO_PROCESSED = 'media/Storage/Videos/Uploads/Processed'
     VIDEO_TRASH = ''
+    PHOTO_DEFAULT = 'media/Defaults/Images'
+    PHOTO_DEFAULT_USER = PHOTO_DEFAULT+'/default.jpg'
+    PHOTO_UPLOADS = 'media/Storage/Images'
 
     MAX_VIDEO_FILESIZE = (1024*1024*1024)*1 #In Bytes : (1024*1024*1024) = 1GB
-    MAX_FILESIZE_GB = MAX_VIDEO_FILESIZE / (1024*1024*1024)
+    MAX_PHOTO_FILESIZE = (1024*1024*5) #In bytes: (1024*1024) = 1MB
 
 
 
