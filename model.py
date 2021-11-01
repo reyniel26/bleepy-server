@@ -116,6 +116,21 @@ class Model:
                 return str(e)
         return "Error: There is no connection"
     
+    def queryUpdate(self,sql,*args):
+        if(self.initConn()):
+            try:
+                cur = self.cur
+                cur.execute(sql,args)
+
+                self.conn.commit()
+                result = cur.rowcount
+
+                self.conn.close()
+                return str(result) + " record(s) inserted"
+            except Exception as e:
+                return str(e)
+        return "Error: There is no connection"
+
     #================================================== Selects
     def selectAccounts(self):
         return self.querySelectAll("Select * from accounts")
@@ -270,8 +285,21 @@ class Model:
     def insertUser(self,email:str,fname:str,lname:str,pwd):
         return self.queryInsert("call sp_add_user(%s, %s, %s, %s)",email,fname,lname,pwd)
     
+    #================================================== Update
+    def updateAccFname(self,email,fname):
+        return self.queryUpdate("call sp_update_account_fname(%s,%s)",email,fname)
     
+    def updateAccLname(self,email,lname):
+        return self.queryUpdate("call sp_update_account_lname(%s,%s)",email,lname)
 
+    def updateAccPwd(self,email,pwd):
+        return self.queryUpdate("call sp_update_account_pwd(%s,%s)",email,pwd)
+    
+    def updateAccEmail(self,oldemail,newemail):
+        return self.queryUpdate("call sp_update_account_email(%s,%s)",oldemail,newemail)
+    
+    def updateAccPhoto(self,email,photo):
+        return self.queryUpdate("call sp_update_account_photo(%s,%s)",email,photo)
             
         
     

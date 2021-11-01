@@ -61,8 +61,8 @@
                 
                 <!-- Modal body -->
                 <div class="modal-body">
-                    <form action="" method="post" id="updatephotoform">
-                        <label for="uploadfilesize">Maximum file size allowed: 5MB: <span class="invalid text-danger">*</span></label>
+                    <form action="/updatephoto" method="post" id="updatephotoform" enctype="multipart/form-data">
+                        <label for="uploadfilesize">Maximum file size allowed: {{viewdata.get('max_photo_filesize')}}MB: <span class="invalid text-danger">*</span></label>
                         <br>
                         <label for="updatephoto">Photo: <span class="invalid text-danger">*</span></label>
                         <div class="custom-file">
@@ -70,7 +70,7 @@
                             <label class="custom-file-label" for="">Choose file</label>
                         </div>
                         <input type="hidden" name="uploadfilesize" id="uploadfilesize" value="">
-                        <input type="hidden" name="maxfilesize" id="maxfilesize" value="5"> <!-- In mb -->
+                        <input type="hidden" name="maxfilesize" id="maxfilesize" value="{{viewdata.get('max_photo_filesize')}}"> <!-- In mb -->
 
                         <button type="submit" class="btn btn-theme-secondary mt-3">Update</button>
                     </form>
@@ -98,7 +98,7 @@
                 
                 <!-- Modal body -->
                 <div class="modal-body">
-                    <form action="" method="post" id="updatefnameform">
+                    <form action="/updatefname" method="post" id="updatefnameform">
                         <div class="form-group">
                             <label for="fname">First Name: <span class="invalid text-danger">*</span></label>
                             <input type="text" class="form-control" placeholder="Enter first name" id="fname" name="fname" value="{{viewdata.get('user_data').get('fname')}}">
@@ -129,7 +129,7 @@
                 
                 <!-- Modal body -->
                 <div class="modal-body">
-                    <form action="" method="post" id="updatelnameform">
+                    <form action="/updatelname" method="post" id="updatelnameform">
                         <div class="form-group">
                             <label for="lname">Last Name: <span class="invalid text-danger">*</span></label>
                             <input type="text" class="form-control" placeholder="Enter last name" id="lname" name="lname" value="{{viewdata.get('user_data').get('lname')}}">
@@ -160,7 +160,7 @@
                 
                 <!-- Modal body -->
                 <div class="modal-body">
-                    <form action="" method="post" id="updateemailform">
+                    <form action="/updateemail" method="post" id="updateemailform">
                         <div class="form-group">
                             <label for="email">Email: <span class="invalid text-danger">*</span></label>
                             <input type="email" class="form-control" placeholder="Enter email" id="email" name="email" value="{{viewdata.get('user_data').get('email')}}">
@@ -204,7 +204,7 @@
                 
                 <!-- Modal body -->
                 <div class="modal-body">
-                    <form action="" method="post" id="updatepwdform">
+                    <form action="/updatepwd" method="post" id="updatepwdform">
                         <div class="form-group">
                             <label for="oldpwd">Old Password: <span class="invalid text-danger">*</span></label> 
                             <div class="input-group mb-3 ">
