@@ -142,10 +142,11 @@
                         <span class=" d-md-none"> Menu</span>
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="/dashboard">Dashboard</a>
-                        <a class="dropdown-item" href="/profile">Profile</a>
-                        <a class="dropdown-item" href="/videolist">Videos</a>
-                        <a class="dropdown-item" href="/bleepvideolist">Bleep Videos</a>
+                        {% for nav in viewdata.get('navigations') %}
+                            {% if nav.get('location') != '/bleepsoundlist' %}
+                                <a class="dropdown-item" href="{{nav.get('location')}}">{{nav.get('name').title()}}</a>
+                            {% endif %}
+                        {% endfor %}
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="/logout">Log out</a>
                         
