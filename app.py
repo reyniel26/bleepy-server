@@ -199,12 +199,16 @@ def viewData(**kwargs:str):
         if data:
             fullname = str(data.get("fname")+" "+data.get("lname")).title()
             photo = data.get("photo")
+            role_id = data.get("role_id")
 
             #User widget
             viewdata["uw_fullname"] = fullname
             viewdata["uw_photo"] = photo
             viewdata["uw_videoscount"] = db.countVideosUploadedByAcc(acc_id).get("count")
             viewdata["uw_bleepedvideoscount"] = db.countBleepVideosUploadedByAcc(acc_id).get("count")
+
+            #Navigation
+            viewdata["navigations"] = db.selectNavOfRole(role_id)
         
         
 

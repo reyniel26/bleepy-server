@@ -6,46 +6,16 @@
             <ul class="nav nav-pills nav-sidebar flex-column " data-widget="treeview" role="menu" data-accordion="false">
             <!-- Add icons to the links using the .nav-icon class
                 with font-awesome or any other icon font library -->
+                {% for nav in viewdata.get('navigations') %}
                 <li class="nav-item">
-                    <a href="/dashboard" class="nav-link {% if viewdata.get('dashboard') %} active {% endif %}">
-                        <i class="nav-icon fa fa-tachometer"></i>
+                    <a href="{{nav.get('location')}}" class="nav-link {% if viewdata.get(nav.name) %} active {% endif %}">
+                        <i class="nav-icon fa fa-{{nav.get('icon')}}"></i>
                         <p>
-                            Dashboard
+                            {{nav.get('name').title()}}
                         </p>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="/profile" class="nav-link {% if viewdata.get('profile') %} active {% endif %}">
-                        <i class="nav-icon fa fa-user"></i>
-                        <p>
-                            Profile
-                        </p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/videolist" class="nav-link {% if viewdata.get('videolist') %} active {% endif %}">
-                        <i class="nav-icon fa fa-video-camera"></i>
-                        <p>
-                            Videos
-                        </p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/bleepvideolist" class="nav-link {% if viewdata.get('bleepvideolist') %} active {% endif %}">
-                        <i class="nav-icon fa fa-soundcloud"></i>
-                        <p>
-                            Bleeped Videos
-                        </p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/bleepsoundlist" class="nav-link {% if viewdata.get('bleepsoundlist') %} active {% endif %}">
-                        <i class="nav-icon fa fa-music"></i>
-                        <p>
-                            Bleep Sounds
-                        </p>
-                    </a>
-                </li>
+                {% endfor %}
             </ul>
         </nav>
         <!-- /.sidebar-menu -->
