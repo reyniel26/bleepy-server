@@ -42,6 +42,144 @@
     </div>
     {% endif %}
 
+    {% if viewdata.get("admin_data") %}
+    <!-- Additional For admin -->
+    <section>
+        {% if viewdata.get("admin_data").get("trendfeeds") %}
+        <section>
+            <div class="card shadow">
+                <div class="card-header bg-theme-secondary text-theme-secondary">
+                <h3 class="card-title">Bleepy Trend</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                    <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="bleepTrendChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                    <!---->
+                    {% for trenddates in viewdata.get("admin_data").get("trendfeeds").get("dates") %}
+                            <input type="hidden" name="trenddates" value="{{trenddates}}" >
+                    {% endfor %}
+
+                    {% for trends in viewdata.get("admin_data").get("trendfeeds").get("trends") %}
+                            {% for trendname in trends%}
+                                <input type="hidden" name="trendname" value="{{trendname}}" >
+                                {% for trendvalue in trends.get(trendname) %}
+                                <input type="hidden" name="{{trendname}}" value="{{trendvalue}}" >
+                                {% endfor %}
+                            {% endfor %}
+                    {% endfor %}
+                    
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+        </section>
+        {% endif %}
+        
+
+        <div class="row">
+            <div class="col-md-8">
+                <!--Latest Users-->
+                {% if viewdata.get('admin_data').get('latestusers') %}
+                <section>
+                    <div class="card shadow">
+                        <div class="card-header bg-theme-secondary text-theme-secondary">
+                        <h3 class="card-title">Latest Registered Users</h3>        
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="card-refresh" data-source="widgets.html" data-source-selector="#card-refresh-content" data-load-on-init="false">
+                                <i class="fa fa-refresh text-theme-secondary"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                                <i class="fa fa-expand text-theme-secondary"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fa fa-minus text-theme-secondary"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fa fa-times text-theme-secondary"></i>
+                            </button>
+                        </div>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body table-responsive p-0" style="height: 300px;">
+                        <table class="table table-head-fixed text-nowrap table-hover">
+                            <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Registration Date</th>
+                                <th> <a class="btn btn-theme" href="/">View All</a></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for users in viewdata.get('admin_data').get('latestusers') %}    
+                                <tr>
+                                    <td>
+                                        <img src="{{url_for('static', filename=users.get('photo'))}}" alt="{{users.get('fullname')}} Image" width="50px" height="50px">
+                                    </td>
+                                    <td>{{users.get("fullname").title()}}</td>
+                                    <td>{{users.get("reg_date")}}</td>
+                                    <td> 
+                                        <a href="" > <button class=" btn btn-theme-secondary"> <i class="fa fa-eye" aria-hidden="true"></i> View </button> </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            
+                            </tbody>
+                        </table>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                </section>
+                {% endif %}
+
+            </div>
+            <div class="col-md-4">
+                {% if viewdata.get("admin_data").get("accountCounts") %}
+                    {% for accountfeed in viewdata.get("admin_data").get("accountCounts")%}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-{{accountfeed.get('bgcolor')}}"><i class="fa fa-{{accountfeed.get('icon')}}"></i></span>
+                
+                                <div class="info-box-content">
+                                <span class="info-box-text">{{accountfeed.get('title')}}</span>
+                                <span class="info-box-number">{{accountfeed.get('count')}}</span>
+                                </div>
+                                <!-- /.info-box-content -->
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+            
+    </section>
+    {% endif %}
+
+    {% if viewdata.get("editor_data") %}
+    <!-- Additional For editor -->
+    <section>
+        <div class="row">
+            <div class="col-12">
+                <div class="jumbotron bg-white shadow">
+                    <h1>Editor</h1>
+                    <hr>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+
     <!-- Last bleep video summary report-->
     {% if viewdata.get("latestbleep_data") %}
         {% if viewdata.get("latestbleep_data").get("latestbleep") %}
@@ -570,4 +708,87 @@
     </script>
     {% endif %}
 
+
+    {% if viewdata.get("admin_data").get("trendfeeds") %}
+    <script>
+        let dates = []
+        $("input[name=trenddates]").each(function(){
+            dates.push($(this).val())
+        });
+        let trendname = []
+        $("input[name=trendname]").each(function(){
+            trendname.push($(this).val())
+        });
+
+        let barColors = ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d',"#43aa8b","#4d908e","#577590","#277da1"];
+        let i = 0
+
+        let trenddatasets = []
+        for (let key of trendname) {
+            console.log(key)
+            let tempdata = []
+            $("input[name=\'"+key+"\']").each(function(){
+                tempdata.push($(this).val())
+            });
+            let temp = {
+                    label               : key,
+                    backgroundColor     : barColors[i],
+                    borderColor         : barColors[i],
+                    pointRadius         : false,
+                    pointColor          : barColors[i],
+                    pointStrokeColor    : barColors[i],
+                    pointHighlightFill  : '#fff',
+                    pointHighlightStroke: barColors[i],
+                    data                : tempdata
+            }
+            trenddatasets.push(temp)
+            i++
+        }
+
+        var lineChartCanvas = $('#bleepTrendChart').get(0).getContext('2d')
+
+        var lineChartOptions = {
+            maintainAspectRatio : false,
+            responsive : true,
+            legend: {
+            display: true
+            },
+            scales: {
+            xAxes: [{
+                gridLines : {
+                display : true,
+                },
+            }],
+            yAxes: [{
+                gridLines : {
+                display : false
+                },
+                ticks: {min: 0} //Set minimum, may update other charts
+            }]
+            }
+        }
+        var lineChartData = {
+            labels  : dates,
+            datasets:trenddatasets
+        }
+        lineChartData.datasets[0].fill = false;
+        lineChartData.datasets[1].fill = false;
+        lineChartData.datasets[2].fill = false;
+        lineChartOptions.datasetFill = false
+
+        var lineChart = new Chart(lineChartCanvas, {
+            type: 'line',
+            data: lineChartData,
+            options: lineChartOptions
+        })
+    </script>
+    {% endif %}
+
 {% endblock %}
+
+
+
+
+    
+
+

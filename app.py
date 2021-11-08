@@ -206,6 +206,7 @@ def viewData(**kwargs:str):
             viewdata["uw_photo"] = photo
             viewdata["uw_videoscount"] = db.countVideosUploadedByAcc(acc_id).get("count")
             viewdata["uw_bleepedvideoscount"] = db.countBleepVideosUploadedByAcc(acc_id).get("count")
+            viewdata["uw_role"] = db.selectAccRole(acc_id).get("name")
 
             #Navigation
             viewdata["navigations"] = db.selectNavOfRole(role_id)
@@ -488,7 +489,7 @@ def signin():
 @testConn
 def logout():
     """
-    Log out does not now need authentication, it just delete auth cache is exist
+    Log out does not need authentication, it just delete auth cache is exist
     """
     res = setAuth(redirect(url_for('signin')))
     flash('You are now logged out ', 'success')
@@ -512,6 +513,7 @@ def settings():
 def dashboard():
     acc_id = getIdViaAuth() 
     now = datetime.datetime.now()
+    acc_role = db.selectAccRole(acc_id).get("name")
 
     user_data = {
         "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
@@ -519,10 +521,32 @@ def dashboard():
         "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A")
     }
 
-    feeds = db.selectFeeds(acc_id)
+    feeds = db.selectFeeds(acc_id) if acc_role != app.config["ROLE_ADMIN"] else db.selectAdminFeeds()
     latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+
+    admin_data = {}
+    editor_data = {}
+
+    if acc_role == app.config["ROLE_EDITOR"] or acc_role == app.config["ROLE_ADMIN"]:
+        #Set the data that the editor and admin can have
+        editor_data = {
+            "role":"editor"
+        }
+        
+
+    if acc_role == app.config["ROLE_ADMIN"]:
+        #Set the data that the editor and admin can have
+        admin_data = {
+            "accountCounts":db.selectAccountCountsByRole(),
+            "latestusers":db.selectLatestUsers(),
+            "trendfeeds":db.selectTrendFeed()
+        }
+        
     
-    return render_template('dashboard.html', viewdata = viewData( dashboard=True, user_data=user_data,feeds=feeds, latestbleep_data=latestbleep_data ))
+    
+    return render_template('dashboard.html', viewdata = viewData( dashboard=True, 
+                            user_data=user_data, admin_data=admin_data, editor_data=editor_data,
+                            feeds=feeds, latestbleep_data=latestbleep_data ))
 
 #Profile route
 @app.route('/profile')

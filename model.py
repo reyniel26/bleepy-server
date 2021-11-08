@@ -148,8 +148,8 @@ class Model:
         """
         feeds = []
         stmts = [
-            (str(self.countVideosUploadedByAcc(id).get("count")),"Uploaded Videos","info","video-camera","/videos"),
-            (str(self.countBleepVideosUploadedByAcc(id).get("count")),"Bleeped Videos","olive","soundcloud","/bleepedvideos"),
+            (str(self.countVideosUploadedByAcc(id).get("count")),"Uploaded Videos","info","video-camera","/videolist"),
+            (str(self.countBleepVideosUploadedByAcc(id).get("count")),"Bleeped Videos","olive","soundcloud","/bleepvideolist"),
             (str(self.countProfanityWordsByAcc(id).get("count")),"Profanities Collected","maroon","comments-o","/profanities"),
             (str(self.countUniqueProfanityWordsByAcc(id).get("count")),"Unique Profanities","purple","commenting-o","/uniqueprofanities")
         ]
@@ -164,6 +164,7 @@ class Model:
             feeds.append(feed)
         
         return feeds
+    
 
     def selectLatestBleepSound(self):
         return self.querySelect("call sp_select_latest_bleep_sound()")
@@ -249,6 +250,99 @@ class Model:
 
     def selectNavOfRole(self,role_id):
         return self.querySelectAll("call sp_select_navs_of_role(%s)",role_id)
+    
+    def selectAccRole(self,id):
+        return self.querySelect("call sp_select_account_role(%s)",id)
+    
+    def selectAdminFeeds(self):
+        feeds = []
+        stmts = [
+            (str(self.countVideos().get("count")),"Overall Uploaded Videos","info","video-camera","/videos"),
+            (str(self.countBleepVideos().get("count")),"Overall Bleeped Videos","olive","soundcloud","/bleepedvideos"),
+            (str(self.countProfanityWords().get("count")),"Overall Profanities Collected","maroon","comments-o","/profanities"),
+            (str(self.countUniqueProfanityWords().get("count")),"Overall Unique Profanities","purple","commenting-o","/uniqueprofanities")
+        ]
+        for stmt in stmts:
+            feed = {
+                "count":stmt[0],
+                "title":stmt[1].title(),
+                "bgcolor":stmt[2],
+                "icon":stmt[3],
+                "link":stmt[4]
+            }
+            feeds.append(feed)
+        
+        return feeds
+
+    def selectRoles(self):
+        return self.querySelectAll("call sp_select_roles()")
+    
+    def selectAccountCountsByRole(self):
+        feeds = []
+        icons = ["user-secret","user-circle-o","user","users"]
+        bgcolors =["info","olive","success","purple"]
+        stmts = []
+        for role in self.selectRoles():
+            stmts.append([str(self.countAccountByRoles(role.get("name")).get("count")), role.get("name")])
+        
+        #add total
+        stmts.append([str(self.countAccounts().get("count")),"Total"])
+        
+        i = 0
+        for stmt in stmts:
+            feed = {
+                "count":stmt[0],
+                "title":stmt[1].title(),
+                "bgcolor":bgcolors[i],
+                "icon":icons[i]
+            }
+            i+=1
+            feeds.append(feed)
+        
+        return feeds
+
+    def selectLatestUsers(self):
+        return self.querySelectAll("call sp_select_latest_users()")
+    
+    def selectAccountRegTrend(self):
+        return self.querySelectAll("call sp_select_trend_account_reg()")
+    
+    def selectUploadVideoTrend(self):
+        return self.querySelectAll("call sp_select_trend_upload_video()")
+    
+    def selectBleepVideoTrend(self):
+        return self.querySelectAll("call sp_select_trend_bleep_video()")
+    
+    def selectTrendFeed(self):
+        dates = []
+        registration = []
+        videouploads = []
+        bleepvideos = []
+
+        for items in self.selectAccountRegTrend():
+            registration.append(items.get("count"))
+            dates.append(items.get("date"))
+
+        for items in self.selectUploadVideoTrend():
+            videouploads.append(items.get("count"))
+        
+        for items in self.selectBleepVideoTrend():
+            bleepvideos.append(items.get("count"))
+        
+        trends = [
+            {"Registration ": registration},
+            {"Video Uploads ": videouploads},
+            {"Bleep Video ": bleepvideos},
+        ]
+
+        
+        feeds = {
+            "trends":trends,
+            "dates":dates
+        }
+
+        return feeds
+
     #================================================== Counts
     def countVideosUploadedByAcc(self,id:str):
         return self.querySelect("call sp_count_videos_uploadedby_account(%s)",id)
@@ -268,6 +362,24 @@ class Model:
     def countUniqueProfanityWordsByBleepedVideo(self,id:str):
         return self.querySelect("call sp_count_unique_profanitywords_collected_by_video(%s)",id)
 
+    def countVideos(self):
+        return self.querySelect("call sp_count_videos()")
+    
+    def countBleepVideos(self):
+        return self.querySelect("call sp_count_censored_videos()")
+    
+    def countProfanityWords(self):
+        return self.querySelect("call sp_count_profanitywords_collected()")
+    
+    def countUniqueProfanityWords(self):
+        return self.querySelect("call sp_count_unique_profanitywords_collected()")
+    
+    def countAccountByRoles(self,role):
+        return self.querySelect("call sp_count_accounts_by_roles(%s)",role)
+
+    def countAccounts(self):
+        return self.querySelect("call sp_count_accounts()")
+    
     #================================================== Inserts
     def insertRole(self,rolename):
         return self.queryInsert("call sp_add_roles(%s)",rolename)
