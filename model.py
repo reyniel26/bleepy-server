@@ -343,6 +343,8 @@ class Model:
 
         return feeds
 
+    def selectAccountsAll(self):
+        return self.querySelectAll("call sp_select_accounts_all()")
     #================================================== Counts
     def countVideosUploadedByAcc(self,id:str):
         return self.querySelect("call sp_count_videos_uploadedby_account(%s)",id)
