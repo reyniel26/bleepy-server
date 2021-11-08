@@ -1,0 +1,76 @@
+
+{% if viewdata.get("admin_data").get("trendfeeds") %}
+    <script>
+        let dates = []
+        $("input[name=trenddates]").each(function(){
+            dates.push($(this).val())
+        });
+        let trendname = []
+        $("input[name=trendname]").each(function(){
+            trendname.push($(this).val())
+        });
+
+        let barColors = ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d',"#43aa8b","#4d908e","#577590","#277da1"];
+        let i = 0
+
+        let trenddatasets = []
+        for (let key of trendname) {
+            console.log(key)
+            let tempdata = []
+            $("input[name=\'"+key+"\']").each(function(){
+                tempdata.push($(this).val())
+            });
+            let temp = {
+                    label               : key,
+                    backgroundColor     : barColors[i],
+                    borderColor         : barColors[i],
+                    pointRadius         : true,
+                    pointColor          : barColors[i],
+                    pointStrokeColor    : barColors[i],
+                    pointHighlightFill  : '#fff',
+                    pointHighlightStroke: barColors[i],
+                    data                : tempdata
+            }
+            trenddatasets.push(temp)
+            i++
+        }
+
+        var lineChartCanvas = $('#bleepTrendChart').get(0).getContext('2d')
+
+        var lineChartOptions = {
+            maintainAspectRatio : false,
+            responsive : true,
+            legend: {
+            display: true
+            },
+            scales: {
+            xAxes: [{
+                gridLines : {
+                display : true,
+                },
+            }],
+            yAxes: [{
+                gridLines : {
+                display : false
+                },
+                ticks: {min: 0} //Set minimum, may update other charts
+            }]
+            }
+        }
+        var lineChartData = {
+            labels  : dates,
+            datasets: trenddatasets
+        }
+        for (let i = 0; i < trenddatasets.length; i++) {
+            lineChartData.datasets[i].fill = false;
+        }
+
+        lineChartOptions.datasetFill = false
+
+        var lineChart = new Chart(lineChartCanvas, {
+            type: 'line',
+            data: lineChartData,
+            options: lineChartOptions
+        })
+    </script>
+{% endif %}

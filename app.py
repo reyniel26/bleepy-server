@@ -1015,6 +1015,8 @@ def updatephoto():
     flash('Invalid request!', 'warning')
     return redirect(url_for('profile')) 
 
+#==============Admin Pages
+# Manage Account 
 
 #================================================== Run APP 
 if __name__ == '__main__':

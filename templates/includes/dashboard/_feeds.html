@@ -1,0 +1,22 @@
+{% if viewdata.get("feeds") %}
+    <div class="row">
+        {% for feed in viewdata.get("feeds") %}
+        <div class="col-lg-3 col-6">
+            <!-- small card -->
+            <div class="small-box bg-{{feed.get('bgcolor')}}">
+                <div class="inner">
+                <h3>{{feed.get("count")}}</h3>
+
+                <p>{{feed.get("title")}}</p>
+                </div>
+                <div class="icon">
+                <i class="fa fa-{{feed.get('icon')}}"></i>
+                </div>
+                <a href="{{feed.get('link')}}" class="small-box-footer">
+                More info <i class="fa fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
