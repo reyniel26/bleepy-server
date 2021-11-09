@@ -1,0 +1,120 @@
+<!-- Additional For admin -->
+<section>
+    {% if viewdata.get("admin_data").get("trendfeeds") %}
+    <section>
+        <div class="card shadow">
+            <div class="card-header bg-theme-secondary text-theme-secondary">
+            <h3 class="card-title">Bleepy Trend</h3>
+
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fa fa-minus"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-card-widget="remove">
+                <i class="fa fa-times"></i>
+                </button>
+            </div>
+            </div>
+            <div class="card-body">
+                <canvas id="bleepTrendChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                <!---->
+                {% for trenddates in viewdata.get("admin_data").get("trendfeeds").get("dates") %}
+                        <input type="hidden" name="trenddates" value="{{trenddates}}" >
+                {% endfor %}
+
+                {% for trends in viewdata.get("admin_data").get("trendfeeds").get("trends") %}
+                        {% for trendname in trends%}
+                            <input type="hidden" name="trendname" value="{{trendname}}" >
+                            {% for trendvalue in trends.get(trendname) %}
+                            <input type="hidden" name="{{trendname}}" value="{{trendvalue}}" >
+                            {% endfor %}
+                        {% endfor %}
+                {% endfor %}
+                
+            </div>
+            <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+    </section>
+    {% endif %}
+    
+
+    <div class="row">
+        <div class="col-md-8">
+            <!--Latest Users-->
+            {% if viewdata.get('admin_data').get('latestusers') %}
+            <section>
+                <div class="card shadow">
+                    <div class="card-header bg-theme-secondary text-theme-secondary">
+                    <h3 class="card-title">Latest Registered Users</h3>        
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="card-refresh" data-source="widgets.html" data-source-selector="#card-refresh-content" data-load-on-init="false">
+                            <i class="fa fa-refresh text-theme-secondary"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                            <i class="fa fa-expand text-theme-secondary"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fa fa-minus text-theme-secondary"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fa fa-times text-theme-secondary"></i>
+                        </button>
+                    </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body table-responsive p-0" style="height: 300px;">
+                    <table class="table table-head-fixed text-nowrap table-hover">
+                        <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Registration Date</th>
+                            <th> <a class="btn btn-theme" href="/manageaccount">View All</a></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for users in viewdata.get('admin_data').get('latestusers') %}    
+                            <tr>
+                                <td>
+                                    <img src="{{url_for('static', filename=users.get('photo'))}}" alt="{{users.get('fullname')}} Image" width="50px" height="50px">
+                                </td>
+                                <td>{{users.get("fullname").title()}}</td>
+                                <td>{{users.get("reg_date")}}</td>
+                                <td> 
+                                    <a href="" > <button class=" btn btn-theme-secondary"> <i class="fa fa-eye" aria-hidden="true"></i> View </button> </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        
+                        </tbody>
+                    </table>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+            </section>
+            {% endif %}
+
+        </div>
+        <div class="col-md-4">
+            {% if viewdata.get("admin_data").get("accountCounts") %}
+                {% for accountfeed in viewdata.get("admin_data").get("accountCounts")%}
+                <div class="row">
+                    <div class="col-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-{{accountfeed.get('bgcolor')}}"><i class="fa fa-{{accountfeed.get('icon')}}"></i></span>
+            
+                            <div class="info-box-content">
+                            <span class="info-box-text">{{accountfeed.get('title')}}</span>
+                            <span class="info-box-number">{{accountfeed.get('count')}}</span>
+                            </div>
+                            <!-- /.info-box-content -->
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+        
+</section>

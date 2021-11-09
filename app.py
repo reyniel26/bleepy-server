@@ -3,8 +3,6 @@
 from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify, send_file,abort
 #For decorator
 from functools import wraps 
-#JWT
-import jwt
 #Passlib
 from passlib.hash import sha256_crypt
 #Date time
@@ -16,6 +14,8 @@ import uuid
 
 #Model for DB
 from model import Model
+#Controls
+from control import TokenControls, BasicControls
 #Configs
 from config import ProductionConfig, DevelopmentConfig
 #Bleepy module
@@ -32,9 +32,161 @@ db = Model(
     app.config["DB_PWD"],
     app.config["DB_NAME"]
     )
+tknctrl = TokenControls(app.secret_key)
+bsctrl = BasicControls()
 
 
-#================================================== Control Methods
+#================================================== App Control Methods
+def getIdViaAuth():
+    try:
+        cookies = request.cookies
+        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
+        tokenvalues = tknctrl.getTokenValues(token)
+        return str(tokenvalues["authid"])
+    except:
+        return None
+
+def getEmailViaAuth():
+    try:
+        return db.selectAccountViaId(getIdViaAuth()).get("email")
+    except:
+        return None
+
+def setAuth(response,**kwargs):
+    """
+    set acc_id and max_age
+    example setAuth(render_template("home.html"),acc_id=acc_id,max_age=max_age)
+    if the acc_id and max_age is not set auth will set no value with expire 0
+    """
+    #set response
+    res = make_response(response)
+    #set cookie token
+    if kwargs.get("acc_id") and kwargs.get("max_age"):
+        res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
+            value = tknctrl.generateToken(authid=kwargs.get("acc_id"),validuntil=kwargs.get("max_age")),
+            max_age = kwargs.get("max_age")
+            )
+    else:
+        res.set_cookie(app.config["AUTH_TOKEN_NAME"],
+        value = "",
+        expires=0
+        )
+    return res
+
+def viewData(**kwargs:str):
+    """
+    This method will pass constant data that will be use by the templates
+    In rendering templates, always include this
+    Example: render_template("index.html", viewdata = viewData())
+    Another example: render_template("index.html", viewdata = viewData( somedata = "data"))
+
+    To add active class to cardnav, use nameOfRoute=True
+    Example: dashboard=True
+    """
+    viewdata = {
+        "auth_token":app.config["AUTH_TOKEN_NAME"]
+    }
+    #If the user is logged in
+    if getIdViaAuth():
+        acc_id = getIdViaAuth()
+        data = db.selectAccountViaId(acc_id)
+        if data:
+            fullname = str(data.get("fname")+" "+data.get("lname")).title()
+            photo = data.get("photo")
+            role_id = data.get("role_id")
+
+            #User widget
+            viewdata["uw_fullname"] = fullname
+            viewdata["uw_photo"] = photo
+            viewdata["uw_videoscount"] = db.countVideosUploadedByAcc(acc_id).get("count")
+            viewdata["uw_bleepedvideoscount"] = db.countBleepVideosUploadedByAcc(acc_id).get("count")
+            viewdata["uw_role"] = db.selectAccRole(acc_id).get("name")
+
+            #Navigation
+            viewdata["navigations"] = db.selectNavOfRole(role_id)
+        
+        
+
+    viewdata.update(**kwargs)
+    return viewdata
+
+def allowedVideoFileSize(filesize) ->bool:
+    return float(filesize) <= app.config['MAX_VIDEO_FILESIZE']
+
+def allowedPhotoFileSize(filesize) ->bool:
+    return float(filesize) <= bsctrl.bytesToMb(app.config['MAX_PHOTO_FILESIZE'])
+
+def saveVideo(file,filename,uniquefilename,acc_id):
+    fileinfo = {
+        "filename":"NaN",
+        "filelocation":"NaN"
+    }
+
+    parent_folder = "static/"+app.config['VIDEO_UPLOADS']
+    folder = str(acc_id)
+    savefolder = app.config['VIDEO_UPLOADS']+"/"+folder
+
+    #Try to create folder if not exist
+    try:
+        path = os.path.join(parent_folder, folder)
+        os.mkdir(path)
+    except(FileExistsError):
+        pass
+
+    #SaveToDirectories
+    file.save(os.path.join("static/"+savefolder, uniquefilename))
+
+    #SaveToDB
+    filelocation = savefolder+"/"+uniquefilename
+    savedirectory = "static/"+filelocation
+    msg = db.insertVideo(filename,uniquefilename,filelocation,savedirectory)
+    print(msg)
+    vid_id = db.selectVideoByUniqueFilename(uniquefilename).get("video_id")
+    msg = db.insertUploadedBy(vid_id,acc_id)
+    print(msg)
+
+    fileinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+
+    return fileinfo
+
+def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory,profanities:list):
+    bleepedvideoinfo = {
+        "filename":"NaN",
+        "filelocation":"NaN"
+    }
+
+    try:
+        msg = db.insertBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
+        print(msg)
+        
+        bleepedvideoinfo = db.selectBleepVideoByFileName(pfilename)
+        pvid_id = bleepedvideoinfo.get("pvideo_id")
+        vals = []
+
+        for profanity in profanities:
+            item = (profanity["word"],profanity["start"],profanity["end"],pvid_id)
+            vals.append(item)
+        
+        msg = db.insertProfanities(vals)
+
+
+        bleepedvideoinfo["profanitycount"] = db.countProfanityWordsByBleepedVideo(pvid_id).get("count")
+        bleepedvideoinfo["uniqueprofanitycount"] = db.countUniqueProfanityWordsByBleepedVideo(pvid_id).get("count")
+        mostfrequent = db.selectMostFrequentProfanityWordByVideo(pvid_id)
+        bleepedvideoinfo["mostfrequentword"] = mostfrequent.get("word")
+        bleepedvideoinfo["mostfrequentwordoccurence"]  = mostfrequent.get("occurence")
+        bleepedvideoinfo["profanities"] = db.selectProfanitiesOfVideo(pvid_id) #list
+        bleepedvideoinfo["uniqueprofanities"] = db.selectUniqueProfanityWordsByVideo(pvid_id) #list
+        bleepedvideoinfo["top10profanities"] = db.selectTop10ProfanitiesByVideo(pvid_id)
+
+
+    except Exception as e:
+        print (e)
+        bleepedvideoinfo["error"] = e
+    
+    return bleepedvideoinfo
+
+#================================================== Decorators
 def testConn(f):
     """
     Check if the db server is up | Decorator | from functools import wraps
@@ -48,24 +200,6 @@ def testConn(f):
         else:
             abort(500)
     return wrap
-
-def generateToken(**kwargs:str):
-    """
-    To generate token, specify the key and values
-    Example: key_one="the value_one",key_two="value_two" 
-    """
-    token = jwt.encode(kwargs,app.secret_key,algorithm="HS256")
-    return token
-
-def getTokenValues(token:str):
-    """
-    Return Dict value of JWT or return None if the token is invalid
-    """
-    try:
-        values = jwt.decode(token,app.secret_key,algorithms=["HS256"])
-        return values
-    except:
-        return None
 
 def authentication(f):
     """
@@ -94,7 +228,7 @@ def authentication(f):
             flash("Invalid Authentication. Please try to login","warning")
             return reserror
         
-        tokenvalues = getTokenValues(token)
+        tokenvalues = tknctrl.getTokenValues(token)
 
         if not tokenvalues:
             #The token values is None
@@ -143,183 +277,33 @@ def isAlreadyLoggedin(f):
         return f(*args, **kwargs)
     return wrap
 
-def getIdViaAuth():
-    try:
-        cookies = request.cookies
-        token = cookies.get(app.config["AUTH_TOKEN_NAME"])
-        tokenvalues = getTokenValues(token)
-        return str(tokenvalues["authid"])
-    except:
-        return None
-
-def getEmailViaAuth():
-    try:
-        return db.selectAccountViaId(getIdViaAuth()).get("email")
-    except:
-        return None
-
-def setAuth(response,**kwargs):
+def isAdmin(f):
     """
-    set acc_id and max_age
-    example setAuth(render_template("home.html"),acc_id=acc_id,max_age=max_age)
-    if the acc_id and max_age is not set auth will set no value with expire 0
+    Check if the role of the user is admin
     """
-    #set response
-    res = make_response(response)
-    #set cookie token
-    if kwargs.get("acc_id") and kwargs.get("max_age"):
-        res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
-            value = generateToken(authid=kwargs.get("acc_id"),validuntil=kwargs.get("max_age")),
-            max_age = kwargs.get("max_age")
-            )
-    else:
-        res.set_cookie(app.config["AUTH_TOKEN_NAME"],
-        value = "",
-        expires=0
-        )
-    return res
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        acc_id = getIdViaAuth() 
+        acc_role = db.selectAccRole(acc_id).get("name")
+        if acc_role != app.config["ROLE_ADMIN"]:
+            flash("You are not authorize to access this page","danger")
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return wrap
 
-def viewData(**kwargs:str):
+def isEditor(f):
     """
-    This method will pass constant data that will be use by the templates
-    In rendering templates, always include this
-    Example: render_template("index.html", viewdata = viewData())
-    Another example: render_template("index.html", viewdata = viewData( somedata = "data"))
-
-    To add active class to cardnav, use nameOfRoute=True
-    Example: dashboard=True
+    Check if the role of the user is editor or admin
     """
-    viewdata = {
-        "auth_token":app.config["AUTH_TOKEN_NAME"]
-    }
-    #If the user is logged in
-    if getIdViaAuth():
-        acc_id = getIdViaAuth()
-        data = db.selectAccountViaId(acc_id)
-        if data:
-            fullname = str(data.get("fname")+" "+data.get("lname")).title()
-            photo = data.get("photo")
-            role_id = data.get("role_id")
-
-            #User widget
-            viewdata["uw_fullname"] = fullname
-            viewdata["uw_photo"] = photo
-            viewdata["uw_videoscount"] = db.countVideosUploadedByAcc(acc_id).get("count")
-            viewdata["uw_bleepedvideoscount"] = db.countBleepVideosUploadedByAcc(acc_id).get("count")
-
-            #Navigation
-            viewdata["navigations"] = db.selectNavOfRole(role_id)
-        
-        
-
-    viewdata.update(**kwargs)
-    return viewdata
-
-def sanitizeEmail(email:str):
-    """
-    Sanitize email by removing invalid characters
-    """
-    invalids = [" ","\"","\\", "/", "<", ">","|","\t",":"]
-    for x in invalids:
-        email = email.strip(x)
-    return email.strip()
-
-def allowedVideoFileSize(filesize) ->bool:
-    return float(filesize) <= app.config['MAX_VIDEO_FILESIZE']
-
-def allowedPhotoFileSize(filesize) ->bool:
-    return float(filesize) <= bytesToMb(app.config['MAX_PHOTO_FILESIZE'])
-
-def bytesToGb(bytesize):
-    return bytesize / (1024*1024*1024)
-
-def bytesToMb(bytesize):
-    return bytesize / (1024*1024)
-
-def saveVideo(file,filename,uniquefilename,acc_id):
-    fileinfo = {
-        "filename":"NaN",
-        "filelocation":"NaN"
-    }
-
-    parent_folder = "static/"+app.config['VIDEO_UPLOADS']
-    folder = str(acc_id)
-    savefolder = app.config['VIDEO_UPLOADS']+"/"+folder
-
-    #Try to create folder if not exist
-    try:
-        path = os.path.join(parent_folder, folder)
-        os.mkdir(path)
-    except(FileExistsError):
-        pass
-
-    #SaveToDirectories
-    file.save(os.path.join("static/"+savefolder, uniquefilename))
-
-    #SaveToDB
-    filelocation = savefolder+"/"+uniquefilename
-    savedirectory = "static/"+filelocation
-    msg = db.insertVideo(filename,uniquefilename,filelocation,savedirectory)
-    print(msg)
-    vid_id = db.selectVideoByUniqueFilename(uniquefilename).get("video_id")
-    msg = db.insertUploadedBy(vid_id,acc_id)
-    print(msg)
-
-    fileinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
-
-    return fileinfo
-
-def removeStaticDirectory(directory):
-    "This remove static"
-    filelocation = ""
-    if "static" in directory:
-        for i in directory.split("/")[1:]:
-            filelocation+=i+"/"
-        filelocation = filelocation[:-1]
-    else:
-        filelocation = directory
-    return filelocation
-
-def getFileNameFromDirectory(directory):
-    directory = removeStaticDirectory(directory)
-    return directory.split("/")[-1]
-
-def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory,profanities:list):
-    bleepedvideoinfo = {
-        "filename":"NaN",
-        "filelocation":"NaN"
-    }
-
-    try:
-        msg = db.insertBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
-        print(msg)
-        
-        bleepedvideoinfo = db.selectBleepVideoByFileName(pfilename)
-        pvid_id = bleepedvideoinfo.get("pvideo_id")
-        vals = []
-
-        for profanity in profanities:
-            item = (profanity["word"],profanity["start"],profanity["end"],pvid_id)
-            vals.append(item)
-        
-        msg = db.insertProfanities(vals)
-
-
-        bleepedvideoinfo["profanitycount"] = db.countProfanityWordsByBleepedVideo(pvid_id).get("count")
-        bleepedvideoinfo["uniqueprofanitycount"] = db.countUniqueProfanityWordsByBleepedVideo(pvid_id).get("count")
-        mostfrequent = db.selectMostFrequentProfanityWordByVideo(pvid_id)
-        bleepedvideoinfo["mostfrequentword"] = mostfrequent.get("word")
-        bleepedvideoinfo["mostfrequentwordoccurence"]  = mostfrequent.get("occurence")
-        bleepedvideoinfo["profanities"] = db.selectProfanitiesOfVideo(pvid_id) #list
-        bleepedvideoinfo["uniqueprofanities"] = db.selectUniqueProfanityWordsByVideo(pvid_id) #list
-        bleepedvideoinfo["top10profanities"] = db.selectTop10ProfanitiesByVideo(pvid_id)
-
-
-    except Exception as e:
-        print (e)
-        bleepedvideoinfo["error"] = e
-    
-    return bleepedvideoinfo
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        acc_id = getIdViaAuth() 
+        acc_role = db.selectAccRole(acc_id).get("name")
+        if not (acc_role == app.config["ROLE_ADMIN"] or acc_role == app.config["ROLE_EDITOR"]):
+            flash("You are not authorize to access this page","danger")
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return wrap
 
 #================================================== Error handlers
 @app.errorhandler(403)
@@ -373,7 +357,7 @@ def signup():
 
         fname = request.form.get("fname").strip()
         lname = request.form.get("lname").strip()
-        email = sanitizeEmail(request.form.get("email"))
+        email = bsctrl.sanitizeEmail(request.form.get("email"))
         pwd = request.form.get("pwd")
         confirmpwd = request.form.get("confirmpwd")
         isagree = request.form.getlist("agreetandc")
@@ -438,7 +422,7 @@ def signup():
 @isAlreadyLoggedin
 def signin():
     if request.method == "POST":
-        email = sanitizeEmail(request.form.get("email"))
+        email = bsctrl.sanitizeEmail(request.form.get("email"))
         pwd = request.form.get("pwd")
         remember = request.form.getlist("remember")
         #remember 30days or else remember for 5mins
@@ -488,7 +472,7 @@ def signin():
 @testConn
 def logout():
     """
-    Log out does not now need authentication, it just delete auth cache is exist
+    Log out does not need authentication, it just delete auth cache is exist
     """
     res = setAuth(redirect(url_for('signin')))
     flash('You are now logged out ', 'success')
@@ -512,6 +496,7 @@ def settings():
 def dashboard():
     acc_id = getIdViaAuth() 
     now = datetime.datetime.now()
+    acc_role = db.selectAccRole(acc_id).get("name")
 
     user_data = {
         "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
@@ -519,10 +504,32 @@ def dashboard():
         "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A")
     }
 
-    feeds = db.selectFeeds(acc_id)
+    feeds = db.selectFeeds(acc_id) if acc_role != app.config["ROLE_ADMIN"] else db.selectAdminFeeds()
     latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+
+    admin_data = {}
+    editor_data = {}
+
+    if acc_role == app.config["ROLE_EDITOR"] or acc_role == app.config["ROLE_ADMIN"]:
+        #Set the data that the editor and admin can have
+        editor_data = {
+            "role":"editor"
+        }
+        
+
+    if acc_role == app.config["ROLE_ADMIN"]:
+        #Set the data that the editor and admin can have
+        admin_data = {
+            "accountCounts":db.selectAccountCountsByRole(),
+            "latestusers":db.selectLatestUsers(),
+            "trendfeeds":db.selectTrendFeed()
+        }
+        
     
-    return render_template('dashboard.html', viewdata = viewData( dashboard=True, user_data=user_data,feeds=feeds, latestbleep_data=latestbleep_data ))
+    
+    return render_template('dashboard.html', viewdata = viewData( dashboard=True, 
+                            user_data=user_data, admin_data=admin_data, editor_data=editor_data,
+                            feeds=feeds, latestbleep_data=latestbleep_data ))
 
 #Profile route
 @app.route('/profile')
@@ -538,7 +545,7 @@ def profile():
         "email":data.get("email"),
         "photo":data.get("photo"),
     }
-    max_photo_filesize = bytesToMb(app.config["MAX_PHOTO_FILESIZE"])
+    max_photo_filesize = bsctrl.bytesToMb(app.config["MAX_PHOTO_FILESIZE"])
     
     return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data,max_photo_filesize=max_photo_filesize))
 
@@ -692,7 +699,7 @@ def bleepstep1():
 
             # if not allowedVideoFileSize(request.cookies.get('filesize')):
             if not allowedVideoFileSize(request.form.get('uploadfilesize')):
-                errormsg = "File too large. Maximum File size allowed is "+str(bytesToGb(app.config["MAX_VIDEO_FILESIZE"]))+" gb"
+                errormsg = "File too large. Maximum File size allowed is "+str(bsctrl.bytesToGb(app.config["MAX_VIDEO_FILESIZE"]))+" gb"
                 return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
 
             video = VideoFile()
@@ -769,8 +776,8 @@ def bleepstep2():
             if len(profanities) > 0:
                 blocker.run(video,audio,profanities)
                 block_directory = blocker.getFileLocation()
-                block_filelocation = removeStaticDirectory(block_directory)
-                block_filename = getFileNameFromDirectory(block_filelocation)
+                block_filelocation = bsctrl.removeStaticDirectory(block_directory)
+                block_filename = bsctrl.getFileNameFromDirectory(block_filelocation)
                 bleepedvideoinfo = saveBleepedVideo(vid_id,bleepsound_id,block_filename,block_filelocation,block_directory,profanities)
                 #Save to db
             else:
@@ -863,7 +870,7 @@ def updatelname():
 def updateemail():
     if request.method == "POST":
 
-        newemail = sanitizeEmail(request.form.get("email"))
+        newemail = bsctrl.sanitizeEmail(request.form.get("email"))
         pwd = request.form.get("pwd")
 
         acc_id = getIdViaAuth()
@@ -959,7 +966,7 @@ def updatephoto():
 
 
             if not allowedPhotoFileSize(filesize):
-                flash("File too large. Maximum File size allowed is "+str(bytesToMb(app.config["MAX_PHOTO_FILESIZE"]))+" mb", 'warning')
+                flash("File too large. Maximum File size allowed is "+str(bsctrl.bytesToMb(app.config["MAX_PHOTO_FILESIZE"]))+" mb", 'warning')
             elif not media.isAllowedExt(media.getExtension(file.filename)):
                 flash('File type is not allowed. Allowed file extension are: '+str(media.getAllowedExts()),'danger')
             else:
@@ -991,6 +998,169 @@ def updatephoto():
     flash('Invalid request!', 'warning')
     return redirect(url_for('profile')) 
 
+#==============Admin Pages
+# Manage Account 
+@app.route('/manageaccount')
+@testConn
+@authentication
+@isAdmin
+def manageaccount():
+    accounts = db.selectAccountsAll()
+    roles = db.selectRoles()
+    return render_template('admin/manageaccount.html', viewdata = viewData(accounts=accounts,roles=roles))
+
+#View Account
+@app.route('/viewaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def viewaccount():
+    data = {}
+    if request.method == "POST":
+        if request.form.get("acc_id"):
+            data = db.selectAccountViaId(request.form.get("acc_id"))
+    
+    account = {
+        'fname':str(data.get('fname')).title(),
+        'lname':str(data.get('lname')).title(),
+        'photo':url_for('static',filename = data.get('photo')),
+        'email':data.get('email'),
+        'role':str(data.get('role')).title(),
+        'role_id':data.get('role_id')
+    }
+    return jsonify(account)
+
+# Add Account 
+@app.route('/addaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def addaccount():
+    if request.method == "POST":
+        fname = request.form.get("addfname").strip()
+        lname = request.form.get("addlname").strip()
+        email = bsctrl.sanitizeEmail(request.form.get("addemail"))
+        pwd = app.config["DEFAULT_ACC_PWD"]
+        role_id = request.form.get("addrole")
+
+        #Validations
+        if fname == "" or lname == "" or email == "" or pwd == "" or role_id == "":
+            flash('Please fill up all fields', 'danger')
+            return redirect(url_for('manageaccount'))
+        
+        if not (fname.replace(" ", "").isalpha() and lname.replace(" ", "").isalpha()):
+            flash('Invalid First Name of Last Name', 'danger')
+            return redirect(url_for('manageaccount'))
+        
+        checkemail = db.selectAccountViaEmail(email)
+        if checkemail:
+            if checkemail.get("email"):
+                flash('Email is already taken or used by other user', 'danger')
+                return redirect(url_for('manageaccount'))
+            else:
+                flash('Error: '+checkemail.get("error"), 'danger')
+                return redirect(url_for('manageaccount'))
+        
+        #hash password
+        hash_pwd = sha256_crypt.encrypt(str(pwd))
+        
+        #Save to db if valid
+        msg = db.insertAccount(email,fname,lname,hash_pwd,role_id)
+        print(msg)
+
+        #validate to db if the account save
+        account = db.selectAccountViaEmail(email)
+
+        if not account:
+            flash('Sign up failed due to internal error. Account not save. Error:'+str(msg), 'danger')
+            return redirect(url_for('manageaccount'))
+        
+        fullname = (fname+" "+lname).title()
+        flash('Success! '+fullname+" has been added. "+str(msg) , 'success')
+    else:
+        flash('Invalid request!', 'warning')
+    return redirect(url_for('manageaccount'))
+
+# Edit Account 
+@app.route('/editaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def editaccount():
+    if request.method == "POST":
+        acc_id = request.form.get("editaccid")
+        fname = request.form.get("editfname").strip()
+        lname = request.form.get("editlname").strip()
+        email = bsctrl.sanitizeEmail(request.form.get("editemail"))
+        role_id = request.form.get("editrole")
+
+        acc = db.selectAccountViaId(acc_id)
+
+        if not acc:
+            flash('Account doenst exist!', 'danger')
+            return redirect(url_for('manageaccount'))
+        
+        acc_fname = acc.get("fname")
+        acc_lname = acc.get("lname")
+        acc_email = acc.get("email")
+        acc_role_id = acc.get("role_id")
+
+        #Email
+        if email != acc_email:
+            if db.selectAccountViaEmail(email):
+                flash('Email is already use by other users', 'warning')
+                return redirect(url_for('manageaccount'))
+            msg = db.updateAccEmail(acc_email,email)
+            flash('Account Email Updated! ' +str(msg), 'success')
+        #Fname
+        if fname != acc_fname:
+            msg = db.updateAccFnameById(acc_id,fname)
+            flash('Account First Name Updated! ' +str(msg), 'success')
+        #Lname
+        if lname != acc_lname:
+            msg = db.updateAccLnameById(acc_id,lname)
+            flash('Account Last Name Updated! ' +str(msg), 'success')
+        #Role id
+        if str(role_id) != str(acc_role_id):
+            msg = db.updateAccRoleIdById(acc_id,role_id)
+            flash('Account Role Updated! ' +str(msg), 'success')
+
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(url_for('manageaccount'))
+
+# Delete Account 
+@app.route('/deleteaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def deleteaccount():
+    if request.method == "POST":
+        acc_id = request.form.get("deleteaccid")
+
+        acc = db.selectAccountViaId(acc_id)
+
+        if not acc:
+            flash('Account doenst exist!', 'danger')
+            return redirect(url_for('manageaccount'))
+
+        fullname = (str(acc.get("fname"))+" "+str(acc.get("lname"))).title()
+        #Delete the photo if it is not default
+        photo = acc.get("photo")
+        if acc.get("photo") != app.config["PHOTO_DEFAULT_USER"]:
+            try:
+                if os.path.exists("static/"+photo):
+                    os.remove("static/"+photo)
+            except Exception as e:
+                flash('Error Occur in Deleting account ! '+str(e), 'warning')
+                return redirect(url_for('manageaccount'))
+        
+        #Delete the account
+        msg = db.deleteAccById(acc_id)
+        flash(fullname+'\'s account has been deleted! '+str(msg), 'success')
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(url_for('manageaccount'))
 
 #================================================== Run APP 
 if __name__ == '__main__':

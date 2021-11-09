@@ -12,6 +12,11 @@ class Config(object):
     DB_PWD = ''
     DB_NAME = 'bleepyserverprototype'
 
+    #ROLES
+    ROLE_ADMIN = 'admin'
+    ROLE_EDITOR = 'editor'
+    ROLE_USER= 'user'
+
     #PATHS
     VIDEO_UPLOADS_TEMP = ''
     VIDEO_UPLOADS = 'media/Storage/Videos/Uploads'
@@ -23,6 +28,9 @@ class Config(object):
 
     MAX_VIDEO_FILESIZE = (1024*1024*1024)*1 #In Bytes : (1024*1024*1024) = 1GB
     MAX_PHOTO_FILESIZE = (1024*1024*5) #In bytes: (1024*1024) = 1MB
+
+    #Defaults
+    DEFAULT_ACC_PWD = 'Password1234'
 
 
 

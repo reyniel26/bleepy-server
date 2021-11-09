@@ -36,7 +36,7 @@
                     <!-- Add the bg color to the header using any of the bg-* classes -->
                     <div class="widget-user-header bg-theme-secondary text-theme-secondary">
                     <h3 class="widget-user-username">{{viewdata.get("uw_fullname")}}</h3>
-                    <h5 class="widget-user-desc">YouTube Streamer</h5>
+                    <h5 class="widget-user-desc">{{viewdata.get("uw_role").title()}}</h5>
                     </div>
                     <div class="widget-user-image">
                     <img class="img-circle elevation-2" src="{{url_for('static', filename=viewdata.get('uw_photo'))}}" alt="User Avatar">
