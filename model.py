@@ -126,7 +126,22 @@ class Model:
                 result = cur.rowcount
 
                 self.conn.close()
-                return str(result) + " record(s) inserted"
+                return str(result) + " record(s) updated"
+            except Exception as e:
+                return str(e)
+        return "Error: There is no connection"
+
+    def queryDelete(self,sql,*args):
+        if(self.initConn()):
+            try:
+                cur = self.cur
+                cur.execute(sql,args)
+
+                self.conn.commit()
+                result = cur.rowcount
+
+                self.conn.close()
+                return str(result) + " record(s) deleted"
             except Exception as e:
                 return str(e)
         return "Error: There is no connection"
@@ -401,6 +416,9 @@ class Model:
     def insertUser(self,email:str,fname:str,lname:str,pwd):
         return self.queryInsert("call sp_add_user(%s, %s, %s, %s)",email,fname,lname,pwd)
     
+    def insertAccount(self,email,fname,lname,pwd,role_id):
+        return self.queryInsert("call sp_add_account(%s,%s,%s,%s,%s)",email,fname,lname,pwd,role_id)
+    
     #================================================== Update
     def updateAccFname(self,email,fname):
         return self.queryUpdate("call sp_update_account_fname(%s,%s)",email,fname)
@@ -416,8 +434,20 @@ class Model:
     
     def updateAccPhoto(self,email,photo):
         return self.queryUpdate("call sp_update_account_photo(%s,%s)",email,photo)
-            
-        
+    
+    def updateAccFnameById(self,id,fname):
+        return self.queryUpdate("call sp_update_account_fname_by_id(%s,%s)",id,fname)
+
+    def updateAccLnameById(self,id,lname):
+        return self.queryUpdate("call sp_update_account_lname_by_id(%s,%s)",id,lname)  
+
+    def updateAccRoleIdById(self,id,role_id):
+        return self.queryUpdate("call sp_update_account_role_id_by_id(%s,%s)",id,role_id)       
+    
+    #================================================== Delete
+    def deleteAccById(self,id):
+        return self.queryDelete("call sp_delete_account_by_id(%s)",id)
+
     
     
     

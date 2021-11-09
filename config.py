@@ -29,6 +29,9 @@ class Config(object):
     MAX_VIDEO_FILESIZE = (1024*1024*1024)*1 #In Bytes : (1024*1024*1024) = 1GB
     MAX_PHOTO_FILESIZE = (1024*1024*5) #In bytes: (1024*1024) = 1MB
 
+    #Defaults
+    DEFAULT_ACC_PWD = 'Password1234'
+
 
 
 class ProductionConfig(Config):

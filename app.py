@@ -1006,7 +1006,8 @@ def updatephoto():
 @isAdmin
 def manageaccount():
     accounts = db.selectAccountsAll()
-    return render_template('admin/manageaccount.html', viewdata = viewData(accounts=accounts))
+    roles = db.selectRoles()
+    return render_template('admin/manageaccount.html', viewdata = viewData(accounts=accounts,roles=roles))
 
 #View Account
 @app.route('/viewaccount',methods=["POST",'GET'])
@@ -1025,8 +1026,142 @@ def viewaccount():
         'photo':url_for('static',filename = data.get('photo')),
         'email':data.get('email'),
         'role':str(data.get('role')).title(),
+        'role_id':data.get('role_id')
     }
     return jsonify(account)
+
+# Add Account 
+@app.route('/addaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def addaccount():
+    if request.method == "POST":
+        fname = request.form.get("addfname").strip()
+        lname = request.form.get("addlname").strip()
+        email = bsctrl.sanitizeEmail(request.form.get("addemail"))
+        pwd = app.config["DEFAULT_ACC_PWD"]
+        role_id = request.form.get("addrole")
+
+        #Validations
+        if fname == "" or lname == "" or email == "" or pwd == "" or role_id == "":
+            flash('Please fill up all fields', 'danger')
+            return redirect(url_for('manageaccount'))
+        
+        if not (fname.replace(" ", "").isalpha() and lname.replace(" ", "").isalpha()):
+            flash('Invalid First Name of Last Name', 'danger')
+            return redirect(url_for('manageaccount'))
+        
+        checkemail = db.selectAccountViaEmail(email)
+        if checkemail:
+            if checkemail.get("email"):
+                flash('Email is already taken or used by other user', 'danger')
+                return redirect(url_for('manageaccount'))
+            else:
+                flash('Error: '+checkemail.get("error"), 'danger')
+                return redirect(url_for('manageaccount'))
+        
+        #hash password
+        hash_pwd = sha256_crypt.encrypt(str(pwd))
+        
+        #Save to db if valid
+        msg = db.insertAccount(email,fname,lname,hash_pwd,role_id)
+        print(msg)
+
+        #validate to db if the account save
+        account = db.selectAccountViaEmail(email)
+
+        if not account:
+            flash('Sign up failed due to internal error. Account not save. Error:'+str(msg), 'danger')
+            return redirect(url_for('manageaccount'))
+        
+        fullname = (fname+" "+lname).title()
+        flash('Success! '+fullname+" has been added. "+str(msg) , 'success')
+    else:
+        flash('Invalid request!', 'warning')
+    return redirect(url_for('manageaccount'))
+
+# Edit Account 
+@app.route('/editaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def editaccount():
+    if request.method == "POST":
+        acc_id = request.form.get("editaccid")
+        fname = request.form.get("editfname").strip()
+        lname = request.form.get("editlname").strip()
+        email = bsctrl.sanitizeEmail(request.form.get("editemail"))
+        role_id = request.form.get("editrole")
+
+        acc = db.selectAccountViaId(acc_id)
+
+        if not acc:
+            flash('Account doenst exist!', 'danger')
+            return redirect(url_for('manageaccount'))
+        
+        acc_fname = acc.get("fname")
+        acc_lname = acc.get("lname")
+        acc_email = acc.get("email")
+        acc_role_id = acc.get("role_id")
+
+        #Email
+        if email != acc_email:
+            if db.selectAccountViaEmail(email):
+                flash('Email is already use by other users', 'warning')
+                return redirect(url_for('manageaccount'))
+            msg = db.updateAccEmail(acc_email,email)
+            flash('Account Email Updated! ' +str(msg), 'success')
+        #Fname
+        if fname != acc_fname:
+            msg = db.updateAccFnameById(acc_id,fname)
+            flash('Account First Name Updated! ' +str(msg), 'success')
+        #Lname
+        if lname != acc_lname:
+            msg = db.updateAccLnameById(acc_id,lname)
+            flash('Account Last Name Updated! ' +str(msg), 'success')
+        #Role id
+        if str(role_id) != str(acc_role_id):
+            msg = db.updateAccRoleIdById(acc_id,role_id)
+            flash('Account Role Updated! ' +str(msg), 'success')
+
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(url_for('manageaccount'))
+
+# Delete Account 
+@app.route('/deleteaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def deleteaccount():
+    if request.method == "POST":
+        acc_id = request.form.get("deleteaccid")
+
+        acc = db.selectAccountViaId(acc_id)
+
+        if not acc:
+            flash('Account doenst exist!', 'danger')
+            return redirect(url_for('manageaccount'))
+
+        fullname = (str(acc.get("fname"))+" "+str(acc.get("lname"))).title()
+        #Delete the photo if it is not default
+        photo = acc.get("photo")
+        if acc.get("photo") != app.config["PHOTO_DEFAULT_USER"]:
+            try:
+                if os.path.exists("static/"+photo):
+                    os.remove("static/"+photo)
+            except Exception as e:
+                flash('Error Occur in Deleting account ! '+str(e), 'warning')
+                return redirect(url_for('manageaccount'))
+        
+        #Delete the account
+        msg = db.deleteAccById(acc_id)
+        flash(fullname+'\'s account has been deleted! '+str(msg), 'success')
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(url_for('manageaccount'))
+
 #================================================== Run APP 
 if __name__ == '__main__':
     app.run()
