@@ -1007,7 +1007,8 @@ def updatephoto():
 def manageaccount():
     accounts = db.selectAccountsAll()
     roles = db.selectRoles()
-    return render_template('admin/manageaccount.html', viewdata = viewData(accounts=accounts,roles=roles))
+    defaultpwd = app.config["DEFAULT_ACC_PWD"]
+    return render_template('admin/manageaccount.html', viewdata = viewData(accounts=accounts,roles=roles, defaultpwd=defaultpwd))
 
 #View Account
 @app.route('/viewaccount',methods=["POST",'GET'])
@@ -1040,7 +1041,7 @@ def addaccount():
         fname = request.form.get("addfname").strip()
         lname = request.form.get("addlname").strip()
         email = bsctrl.sanitizeEmail(request.form.get("addemail"))
-        pwd = app.config["DEFAULT_ACC_PWD"]
+        pwd = request.form.get("addpwd")
         role_id = request.form.get("addrole")
 
         #Validations

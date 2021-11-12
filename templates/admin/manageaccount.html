@@ -94,6 +94,10 @@
                             <input type="text" class="form-control" placeholder="Enter email" id="addemail" name="addemail" value="" >
                         </div>
                         <div class="form-group">
+                            <label for="addpwd">Password: <span class="invalid text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter Password (the default password is '{{viewdata.get('defaultpwd')}}')" id="addpwd" name="addpwd" value="{{viewdata.get('defaultpwd')}}" >
+                        </div>
+                        <div class="form-group">
                             <label for="addrole">Role: <span class="invalid text-danger">*</span></label>
                             <select class="form-control" id="addrole" name="addrole">
                             {% for role in viewdata.get('roles') %}
@@ -348,6 +352,9 @@
                 addemail:{
                     required: true,
                     email:true
+                },
+                addpwd:{
+                    required: true,
                 }
             }
         });
