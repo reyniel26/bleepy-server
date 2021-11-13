@@ -20,6 +20,9 @@
                             <th class="text-center">Unique Profanities Identified </th>
                             <th class="text-center">Most Frequent Word</th>
                             <th class="text-center">Bleep Date </th>
+                            {% if viewdata.get('has_uploadedby')%}
+                            <th class="text-center">Uploaded by</th>
+                            {% endif%}
                         </tr>
                     </thead>
 
@@ -31,6 +34,9 @@
                             <th class="text-center">{{viewdata.get('bleepinfo_data').get('uniqueprofanitycount')}}</th>
                             <th class="text-center">{{viewdata.get('bleepinfo_data').get('mostfrequentword')}}</th>
                             <th class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('process_time')}}</th>
+                            {% if viewdata.get('bleepinfo_data').get('uploadedby')%}
+                                        <th class="text-center">{{viewdata.get('bleepinfo_data').get('uploadedby')}}</th>
+                            {% endif%}
                         </tr>
                     </tbody>
                 </table>
