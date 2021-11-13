@@ -1,3 +1,4 @@
+from typing import Dict
 import mysql.connector
 
 class Model:
@@ -180,18 +181,22 @@ class Model:
         
         return feeds
     
-
     def selectLatestBleepSound(self):
         return self.querySelect("call sp_select_latest_bleep_sound()")
 
     def selectLatestBleep(self,id:str):
         return self.querySelect("call sp_select_latest_censored_videos_by_account(%s)",id)
     
+    def selectLatestBleepAll(self):
+        return self.querySelect("call sp_select_latest_censored_videos_all()")
+    
     def selectLatestUploadedVideo(self,id:str):
         return self.querySelect("call sp_select_latest_video_by_account(%s)",id)
     
-    def selectLatestBleepSummaryData(self,id:str):
-        latestbleep = self.selectLatestBleep(id)
+    def selectLatestUploadedVideoAll(self):
+        return self.querySelect("call sp_select_latest_video_all()")
+    
+    def selectLatestBleepDataBuilder(self,latestbleep:dict):
         latestbleep_data = {}
         if latestbleep:
             latestbleep_data ={
@@ -201,9 +206,17 @@ class Model:
                 "mostfrequentword":self.selectMostFrequentProfanityWordByVideo(latestbleep.get("pvideo_id")).get("word")
             }
         return latestbleep_data
+
+    def selectLatestBleepSummaryData(self,id:str):
+        latestbleep = self.selectLatestBleep(id)
+        return self.selectLatestBleepDataBuilder(latestbleep)
     
-    def selectBleepedVideoFullInfo(self,id:str,pvid:str):
-        bleepinfo = self.selectBleepedVideosByAccountAndPvid(id,pvid)
+    def selectLatestBleepSummaryDataAll(self):
+        latestbleep = self.selectLatestBleepAll()
+        return self.selectLatestBleepDataBuilder(latestbleep)
+    
+    def selectBleepInfoDataBuilder(self,bleepinfo:Dict):
+        #bleepinfo should be a query
         bleepinfo_data = {}
         if bleepinfo:
             bleepinfo_data ={
@@ -214,9 +227,18 @@ class Model:
                 "uniqueprofanitycount":self.countUniqueProfanityWordsByBleepedVideo(bleepinfo.get("pvideo_id")).get("count"),
                 "profanitycount":self.countProfanityWordsByBleepedVideo(bleepinfo.get("pvideo_id")).get("count"),
                 "mostfrequentword":self.selectMostFrequentProfanityWordByVideo(bleepinfo.get("pvideo_id")).get("word"),
-                "top10profanities":self.selectTop10ProfanitiesByVideo(bleepinfo.get("pvideo_id"))
+                "top10profanities":self.selectTop10ProfanitiesByVideo(bleepinfo.get("pvideo_id")),
+                "uploadedby":bleepinfo.get("uploadedby")
             }
         return bleepinfo_data
+
+    def selectBleepedVideoFullInfoById(self,id:str,pvid:str):
+        bleepinfo = self.selectBleepedVideosByAccountAndPvid(id,pvid)
+        return self.selectBleepInfoDataBuilder(bleepinfo)
+
+    def selectBleepedVideoFullInfo(self,pvid:str):
+        bleepinfo = self.selectBleepedVideoByPvid(pvid)
+        return self.selectBleepInfoDataBuilder(bleepinfo)
 
     def selectUniqueProfanityWordsByVideo(self,pvid:str):
         return self.querySelectAll("call sp_select_unique_profanitywords_of_video(%s)",pvid)
@@ -242,6 +264,12 @@ class Model:
     def selectBleepedVideosByAccountAndPvid(self,id:str,pvid:str):
         return self.querySelect("call sp_select_censored_videos_by_acc_pvid(%s,%s)",id,pvid)
     
+    def selectBleepedVideosAll(self):
+        return self.querySelectAll("call sp_select_censored_videos_all()")
+
+    def selectBleepedVideoByPvid(self,pvid):
+        return self.querySelect("call sp_select_censored_videos_by_pvid(%s)",pvid)
+
     def selectVideosUploadedByAccount(self,id:str):
         return self.querySelectAll("call sp_select_videos_uploadedby_account(%s)",id)
 
@@ -250,6 +278,12 @@ class Model:
     
     def selectVideoByUniqueFilename(self,uniquefilename):
         return self.querySelect("call sp_select_video_by_uniquefilename(%s)",uniquefilename)
+    
+    def selectVideoByVidId(self,vid_id):
+        return self.querySelect("call sp_select_video_by_id(%s)",vid_id)
+
+    def selectVideosAll(self):
+        return self.querySelectAll("call sp_select_videos_all()")
     
     def selectBleepSounds(self):
         return self.querySelectAll("call sp_select_bleep_sounds_all()")
@@ -447,6 +481,18 @@ class Model:
     #================================================== Delete
     def deleteAccById(self,id):
         return self.queryDelete("call sp_delete_account_by_id(%s)",id)
+    
+    def deleteUploadedById(self,id):
+        return self.queryDelete("call sp_delete_uploadedby_id(%s)",id)
+    
+    def deleteVideoByVidId(self,vid_id):
+        return self.queryDelete("call sp_delete_video_by_vid_id(%s)",vid_id)
+    
+    def deleteBleepVideoByVidId(self,pvid_id):
+        return self.queryDelete("call sp_delete_pvideo_by_pvid_id(%s)",pvid_id)
+    
+    def deleteProfanityWordsByVidId(self,pvid_id):
+        return self.queryDelete("call sp_delete_pword_by_pvid_id(%s)",pvid_id)
 
     
     

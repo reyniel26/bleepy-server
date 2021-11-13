@@ -379,5 +379,13 @@
                 }
             }
         });
+
+        $("button[type='submit']").on( "click", function(){
+            result= confirm("Are you sure?");
+            if ( !(result === true) ) {
+                event.preventDefault();
+            } 
+        });
+        
     </script>
 {% endblock %}

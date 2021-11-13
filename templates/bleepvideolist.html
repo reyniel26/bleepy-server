@@ -37,6 +37,9 @@
                                                 <th class="text-center">Unique Profanities Identified </th>
                                                 <th class="text-center">Most Frequent Word</th>
                                                 <th class="text-center">Bleep Date </th>
+                                                {% if viewdata.get('has_uploadedby')%}
+                                                <th class="text-center">Uploaded by</th>
+                                                {% endif%} 
                                             </tr>
                                         </thead>
                         
@@ -47,6 +50,9 @@
                                                 <th class="text-center">{{viewdata.get('latestbleep_data').get('uniqueprofanitycount')}}</th>
                                                 <th class="text-center">{{viewdata.get('latestbleep_data').get('mostfrequentword')}}</th>
                                                 <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('process_time')}}</th>
+                                                {% if viewdata.get('has_uploadedby')%}
+                                                <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('uploadedby')}}</th>
+                                                {% endif%} 
                                             </tr>
                                         </tbody>
                                     </table>
@@ -137,6 +143,9 @@
                                     <th>Title</th>
                                     <th>Bleep sound</th>
                                     <th>Processed on</th>
+                                    {% if viewdata.get('has_uploadedby')%}
+                                    <th>Uploaded by</th>
+                                    {% endif%}
                                 </tr>
                             </thead>
                             <tbody>
@@ -145,16 +154,26 @@
                                     <td>{{videoinfo.get("filename")}}</td>
                                     <td>{{videoinfo.get("bfilename")}}</td>
                                     <td>{{videoinfo.get("process_time")}}</td>
+                                    {% if videoinfo.get('uploadedby')%}
+                                        <td>{{videoinfo.get('uploadedby')}}</td>
+                                    {% endif%}
                                 </tr>
                                 <tr class="expandable-body">
+                                    {% if videoinfo.get('uploadedby')%}
+                                    <td colspan="4">
+                                    {% else %}
                                     <td colspan="3">
+                                    {% endif%}
                                         <div>
                                             <div class="row justify-content-center">
-                                                <div class="col-md-6 col-12">
-                                                    <button class="btn btn-theme-secondary my-1" value="{{videoinfo.get('pvideo_id')}}"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i> Play </button> 
-                                                    <a href="/bleepvideoinfo/{{videoinfo.get('pvideo_id')}}" > <button class=" btn btn-theme-secondary my-1"> <i class="fa fa-eye" aria-hidden="true"></i> View </button> </a> 
-                                                    <a href="/downloadbleeped/{{videoinfo.get('pvideo_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1"> <i class="fa fa-download" aria-hidden="true"></i> Download </button> </a>  
-                                                    <button class="btn btn-danger my-1"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                                                <div class="col-md-10 col-12">
+                                                    <form action="/deletebleepvideo" method="post">
+                                                        <button class="btn btn-theme-secondary my-1" value="{{videoinfo.get('pvideo_id')}}" type="button"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i> Play </button> 
+                                                        <a href="/bleepvideoinfo/{{videoinfo.get('pvideo_id')}}" > <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-eye" aria-hidden="true"></i> View Full Report</button> </a> 
+                                                        <a href="/downloadbleeped/{{videoinfo.get('pvideo_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-download" aria-hidden="true"></i> Download Bleep Video </button> </a>  
+                                                        <input type="hidden" name="path" id="path" value="{{videoinfo.get('pvideo_id')}}">
+                                                        <button class="btn btn-danger my-1" type="submit"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                                                    </form>
                                                 </div>
                                             </div>
                                             
@@ -195,5 +214,12 @@
 {% endblock %}
 
 {% block script %}
-
+<script>
+    $("button[type='submit']").on( "click", function(){
+            result= confirm("Are you sure?");
+            if ( !(result === true) ) {
+                event.preventDefault();
+            } 
+    });
+</script>
 {% endblock %}

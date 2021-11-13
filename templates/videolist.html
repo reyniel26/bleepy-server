@@ -25,7 +25,11 @@
                         <p>
                             <b>Title:</b> <span id="video_filename">{{viewdata.get('latest_video').get('filename')}}</span> 
                             <br>
-                            <b>Uploaded on: </b> <span id="video_upload_time">{{viewdata.get('latest_video').get('upload_time')}}</span> 
+                            <b>Uploaded on: </b> <span id="video_upload_time">{{viewdata.get('latest_video').get('upload_time')}}</span>
+                            {% if viewdata.get('has_uploadedby')%}
+                            <br>
+                            <b>Uploaded by: </b> <span id="video_uploaded_by">{{viewdata.get('latest_video').get('uploadedby')}}</span>
+                            {% endif%} 
                         </p>
                         <div class="embed-responsive embed-responsive-16by9">
                             <video class="embed-responsive-item " id="videopreview" controls>
@@ -63,6 +67,9 @@
                                 <tr>
                                     <th>Title</th>
                                     <th>Uploaded on</th>
+                                    {% if viewdata.get('has_uploadedby')%}
+                                    <th>Uploaded by</th>
+                                    {% endif%}
                                 </tr>
                             </thead>
                             <tbody>
@@ -70,15 +77,25 @@
                                 <tr data-widget="expandable-table" aria-expanded="false">
                                     <td>{{video.get('filename')}}</td>
                                     <td>{{video.get('upload_time')}}</td>
+                                    {% if video.get('uploadedby')%}
+                                        <td>{{video.get('uploadedby')}}</td>
+                                    {% endif%}
                                 </tr>
                                 <tr class="expandable-body">
+                                    {% if video.get('uploadedby')%}
+                                    <td colspan="3">
+                                    {% else %}
                                     <td colspan="2">
+                                    {% endif%}
                                         <div>
                                             <div class="row justify-content-center">
                                                 <div class="col-md-6 col-12">
-                                                    <button class="btn btn-theme-secondary btnvideoplayer my-1" value="{{video.get('video_id')}}"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>  
-                                                    <a href="" target="_blank"> <button class=" btn btn-theme-secondary my-1"> <i class="fa fa-download" aria-hidden="true"></i> Download </button> </a>
-                                                    <button class="btn btn-danger my-1"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                                                    <form action="/deletevideo" method="post">
+                                                        <button class="btn btn-theme-secondary btnvideoplayer my-1" value="{{video.get('video_id')}}" type="button"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>  
+                                                        <a href="/downloadvideo/{{video.get('video_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-download" aria-hidden="true"></i> Download </button> </a>
+                                                        <input type="hidden" name="path" id="path" value="{{video.get('video_id')}}">
+                                                        <button class="btn btn-danger my-1" type="submit"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                                                    </form>
                                                 </div>
                                             </div>
                                             
@@ -133,7 +150,11 @@
                     $('#videopreview source').attr('src',data.filelocation);
                     $('#video_filename').html(data.filename);
                     $('#video_upload_time').html(data.upload_time);
-                    
+
+                    if(data.uploadedby){
+                        $('#video_uploaded_by').html(data.uploadedby);
+                    }
+
                     $("#videopreview ")[0].load();
                     $('html, body').animate({
                                 scrollTop: $("#videopreviewcard").offset().top
@@ -153,6 +174,13 @@
             $('#videopreview source').attr('src', '');
             $("#videopreview ")[0].load();
         }
+    });
+
+    $("button[type='submit']").on( "click", function(){
+            result= confirm("Are you sure?");
+            if ( !(result === true) ) {
+                event.preventDefault();
+            } 
     });
 </script>
 {% endblock %}

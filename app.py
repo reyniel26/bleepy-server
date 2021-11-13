@@ -116,6 +116,9 @@ def allowedVideoFileSize(filesize) ->bool:
 def allowedPhotoFileSize(filesize) ->bool:
     return float(filesize) <= bsctrl.bytesToMb(app.config['MAX_PHOTO_FILESIZE'])
 
+def flashPrintsforAdmin(msg,msgname=""):
+    flash(msgname+" Message: "+str(msg), 'info')
+
 def saveVideo(file,filename,uniquefilename,acc_id):
     fileinfo = {
         "filename":"NaN",
@@ -140,10 +143,10 @@ def saveVideo(file,filename,uniquefilename,acc_id):
     filelocation = savefolder+"/"+uniquefilename
     savedirectory = "static/"+filelocation
     msg = db.insertVideo(filename,uniquefilename,filelocation,savedirectory)
-    print(msg)
+    flashPrintsforAdmin(msg,"Insert Video")
     vid_id = db.selectVideoByUniqueFilename(uniquefilename).get("video_id")
     msg = db.insertUploadedBy(vid_id,acc_id)
-    print(msg)
+    flashPrintsforAdmin(msg,"Insert Uploaded by")
 
     fileinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
 
@@ -157,7 +160,7 @@ def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory
 
     try:
         msg = db.insertBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
-        print(msg)
+        flashPrintsforAdmin(msg,"Insert Bleeped Video")
         
         bleepedvideoinfo = db.selectBleepVideoByFileName(pfilename)
         pvid_id = bleepedvideoinfo.get("pvideo_id")
@@ -168,7 +171,7 @@ def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory
             vals.append(item)
         
         msg = db.insertProfanities(vals)
-
+        flashPrintsforAdmin(msg,"Insert Profanities")
 
         bleepedvideoinfo["profanitycount"] = db.countProfanityWordsByBleepedVideo(pvid_id).get("count")
         bleepedvideoinfo["uniqueprofanitycount"] = db.countUniqueProfanityWordsByBleepedVideo(pvid_id).get("count")
@@ -555,11 +558,21 @@ def profile():
 @authentication
 def videolist():
     acc_id = getIdViaAuth()
+    acc_role = db.selectAccRole(acc_id).get("name")
+    videos = {}
+    latest_video = {}
+    has_uploadedby = False
 
-    videos = db.selectVideosUploadedByAccount(acc_id)
-    latest_video = db.selectLatestUploadedVideo(acc_id)
+    if acc_role == app.config["ROLE_ADMIN"]:
+        has_uploadedby = True
+        videos = db.selectVideosAll()
+        latest_video = db.selectLatestUploadedVideoAll()
+    else:
+        videos = db.selectVideosUploadedByAccount(acc_id)
+        latest_video = db.selectLatestUploadedVideo(acc_id)
+
     
-    return render_template('videolist.html', viewdata = viewData(videolist=True,videos=videos,latest_video=latest_video))
+    return render_template('videolist.html', viewdata = viewData(videolist=True,videos=videos,latest_video=latest_video,has_uploadedby=has_uploadedby))
 
 #Bleep Video List route
 @app.route('/bleepvideolist')
@@ -567,11 +580,20 @@ def videolist():
 @authentication
 def bleepvideolist():
     acc_id = getIdViaAuth()
+    acc_role = db.selectAccRole(acc_id).get("name")
+    bleepedvideos = {}
+    latestbleep_data = {}
+    has_uploadedby = False
 
-    bleepedvideos = db.selectBleepedVideosByAccount(acc_id)
-    latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+    if acc_role == app.config["ROLE_ADMIN"]:
+        has_uploadedby = True
+        bleepedvideos = db.selectBleepedVideosAll()
+        latestbleep_data = db.selectLatestBleepSummaryDataAll()
+    else:
+        bleepedvideos = db.selectBleepedVideosByAccount(acc_id)
+        latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
     
-    return render_template('bleepvideolist.html', viewdata = viewData(bleepvideolist=True,bleepedvideos=bleepedvideos,latestbleep_data=latestbleep_data))
+    return render_template('bleepvideolist.html', viewdata = viewData(bleepvideolist=True,bleepedvideos=bleepedvideos,latestbleep_data=latestbleep_data,has_uploadedby=has_uploadedby))
 
 #Bleep Video Info route
 @app.route('/bleepvideoinfo/<path>',methods=["POST",'GET'])
@@ -579,12 +601,18 @@ def bleepvideolist():
 @authentication
 def bleepvideoinfo(path):
     acc_id = getIdViaAuth()
+    acc_role = db.selectAccRole(acc_id).get("name")
     bleepinfo_data = {}
+    has_uploadedby = False
     if path:
         bleepvideo_id = path
-        bleepinfo_data = db.selectBleepedVideoFullInfo(acc_id,bleepvideo_id)
+        if acc_role == app.config["ROLE_ADMIN"]:
+            has_uploadedby = True
+            bleepinfo_data = db.selectBleepedVideoFullInfo(bleepvideo_id)
+        else:
+            bleepinfo_data = db.selectBleepedVideoFullInfoById(acc_id,bleepvideo_id)
 
-    return render_template('bleepvideoinfo.html', viewdata = viewData(bleepvideolist=True,bleepinfo_data=bleepinfo_data))
+    return render_template('bleepvideoinfo.html', viewdata = viewData(bleepvideolist=True,bleepinfo_data=bleepinfo_data,has_uploadedby=has_uploadedby))
 
 #Bleep Video Page
 @app.route('/bleepvideo')
@@ -597,6 +625,79 @@ def bleepvideo():
     
     return render_template('bleepvideo.html', viewdata = viewData(videos=videos))
 
+#Delete Files
+#Delete Video
+@app.route('/deletevideo', methods=["POST",'GET'])
+@testConn
+@authentication
+def deletevideo():
+    acc_id = getIdViaAuth()
+    acc_role = db.selectAccRole(acc_id).get("name")
+    video_id = request.form.get("path")
+    videoinfo ={}
+    if request.method == 'POST':
+        if acc_role == app.config["ROLE_ADMIN"]:
+            videoinfo = db.selectVideoByVidId(video_id)
+        else:
+            videoinfo = db.selectVideoByAccountAndVidId(acc_id,video_id)
+
+        if not videoinfo:
+            flash("The video is not exist",'danger')
+            return redirect(url_for('videolist'))
+        
+        #Delete Video
+        try:
+            if os.path.exists("static/"+videoinfo.get('filelocation')):
+                os.remove("static/"+videoinfo.get('filelocation'))
+        except Exception as e:
+            flash("Problem occur while deleting the video. "+str(e),'danger')
+            return redirect(url_for('videolist'))
+
+        #Delete Record
+        msg = db.deleteVideoByVidId(video_id)
+        flash(videoinfo.get('filename')+" is now deleted. "+str(msg),'success')
+        return redirect(url_for('videolist'))
+    else:
+        flash("Invalid Request",'danger')
+        return redirect(url_for('videolist'))
+
+#Delete Bleep Video
+@app.route('/deletebleepvideo', methods=["POST",'GET'])
+@testConn
+@authentication
+def deletebleepvideo():
+    acc_id = getIdViaAuth()
+    acc_role = db.selectAccRole(acc_id).get("name")
+    bleepvideo_id = request.form.get("path")
+    bleepvideoinfo ={}
+    if request.method == 'POST':
+        if acc_role == app.config["ROLE_ADMIN"]:
+            bleepvideoinfo = db.selectBleepedVideoByPvid(bleepvideo_id)
+        else:
+            bleepvideoinfo = db.selectBleepedVideosByAccountAndPvid(acc_id,bleepvideo_id)
+
+        if not bleepvideoinfo:
+            flash("The video is not exist",'danger')
+            return redirect(url_for('bleepvideolist'))
+        
+        #Delete Video
+        try:
+            if os.path.exists("static/"+bleepvideoinfo.get('pfilelocation')):
+                os.remove("static/"+bleepvideoinfo.get('pfilelocation'))
+        except Exception as e:
+            flash("Problem occur while deleting the video. "+str(e),'danger')
+            return redirect(url_for('bleepvideolist'))
+        
+        #Delete Pword records
+        msg = db.deleteProfanityWordsByVidId(bleepvideo_id)
+        flash(" Profanity records of the video is also deleted. "+str(msg),'success')
+        #Delete Record of Video
+        msg = db.deleteBleepVideoByVidId(bleepvideo_id)
+        flash(bleepvideoinfo.get('filename')+" Bleep Version is now deleted. "+str(msg),'success')
+        return redirect(url_for('bleepvideolist'))
+    else:
+        flash("Invalid Request",'danger')
+        return redirect(url_for('bleepvideolist'))
 
 #Routes that returns JSONs
 #@authentication
@@ -629,41 +730,74 @@ def getbleepsoundinfo():
 def getvideoinfo():
     if request.method == "POST":
         acc_id = getIdViaAuth() 
-
-
+        acc_role = db.selectAccRole(acc_id).get("name")
         vid_id = request.form.get("vid_id")
+        videoinfo = {}
 
-        videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
         #videoinfo contains = filelocation, filename, see db
+        if acc_role == app.config["ROLE_ADMIN"]:
+            videoinfo = db.selectVideoByVidId(vid_id)
+        else:
+            videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+        
         
         filelocation = "/static/"+videoinfo.get("filelocation") if videoinfo  else ""
         filename = videoinfo.get("filename")
         upload_time= videoinfo.get("upload_time")
+        uploadedby=videoinfo.get("uploadedby")
 
         return jsonify({
             "filelocation":filelocation,
             "filename":filename,
-            "upload_time":upload_time
+            "upload_time":upload_time,
+            "uploadedby":uploadedby
         })
 
     return jsonify('')
 
+#================Download Files
 #Download bleep video
 @app.route('/downloadbleeped/<path>', methods=["POST",'GET'])
 @testConn
 @authentication
 def downloadbleeped(path):
+    acc_id = getIdViaAuth()
+    acc_role = db.selectAccRole(acc_id).get("name")
+    bleepvideo_id = path
     try:
-        acc_id = getIdViaAuth()
-        bleepvideo_id = path
-        bleepedvideoinfo = db.selectBleepedVideosByAccountAndPvid(acc_id,bleepvideo_id)
+        if acc_role == app.config["ROLE_ADMIN"]:
+            bleepedvideoinfo = db.selectBleepedVideoByPvid(bleepvideo_id)
+        else:
+            bleepedvideoinfo = db.selectBleepedVideosByAccountAndPvid(acc_id,bleepvideo_id)
         file_path = "static/"+bleepedvideoinfo.get("pfilelocation")
         filename = "bleepedversion"+bleepedvideoinfo.get("filename")
         return send_file(file_path,as_attachment=True,attachment_filename=filename)
     except Exception as e:
-        errormsg = "Request has been denied"
+        errormsg = "Request has been denied"+str(e)
         return render_template('includes/_messages.html', error=errormsg)
-        
+ 
+#Download Video
+@app.route('/downloadvideo/<path>', methods=["POST",'GET'])
+@testConn
+@authentication
+def downloadvideo(path):
+    acc_id = getIdViaAuth()
+    acc_role = db.selectAccRole(acc_id).get("name")
+    video_id = path
+    videoinfo = {}
+    try:
+        if acc_role == app.config["ROLE_ADMIN"]:
+            videoinfo = db.selectVideoByVidId(video_id)
+        else:
+            videoinfo = db.selectVideoByAccountAndVidId(acc_id,video_id)
+        file_path = "static/"+videoinfo.get("filelocation")
+        filename = videoinfo.get("filename")
+        return send_file(file_path,as_attachment=True,attachment_filename=filename)
+    except Exception as e:
+        errormsg = "Request has been denied "+str(e)
+        return render_template('includes/_messages.html', error=errormsg)
+
+
 #Routes for Bleep Steps
 #@authentication
 
@@ -1156,8 +1290,12 @@ def deleteaccount():
                 flash('Error Occur in Deleting account ! '+str(e), 'warning')
                 return redirect(url_for('manageaccount'))
         
+        #Delete uploaded by record
+        msg = db.deleteUploadedById(acc_id)
+        flash("Uploaded Records are also deleted: "+str(msg), 'success')
         #Delete the account
         msg = db.deleteAccById(acc_id)
+        
         flash(fullname+'\'s account has been deleted! '+str(msg), 'success')
     else:
         flash('Invalid Request!', 'warning')
