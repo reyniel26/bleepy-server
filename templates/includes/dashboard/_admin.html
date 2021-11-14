@@ -48,9 +48,6 @@
                     <div class="card-header bg-theme-secondary text-theme-secondary">
                     <h3 class="card-title">Latest Registered Users</h3>        
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="card-refresh" data-source="widgets.html" data-source-selector="#card-refresh-content" data-load-on-init="false">
-                            <i class="fa fa-refresh text-theme-secondary"></i>
-                        </button>
                         <button type="button" class="btn btn-tool" data-card-widget="maximize">
                             <i class="fa fa-expand text-theme-secondary"></i>
                         </button>
@@ -82,7 +79,7 @@
                                 <td>{{users.get("fullname").title()}}</td>
                                 <td>{{users.get("reg_date")}}</td>
                                 <td> 
-                                    <a href="" > <button class=" btn btn-theme-secondary"> <i class="fa fa-eye" aria-hidden="true"></i> View </button> </a>
+                                    <button class=" btn btn-theme-secondary btnviewaccount" value="{{users.get('account_id')}}"> <i class="fa fa-eye" aria-hidden="true"></i> View </button> 
                                 </td>
                             </tr>
                         {% endfor %}
@@ -93,6 +90,48 @@
                     <!-- /.card-body -->
                 </div>
             </section>
+            <!-- The Modal  View account-->
+            <div class="modal fade" id="viewaccountmodal">
+                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                
+                    <!-- Modal Header -->
+                    <div class="modal-header bg-info">
+                    <h4 class="modal-title">View Account</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                        <form action="/" method="post" id="viewform" enctype="multipart/form-data">
+                            <img src="" alt="account photo" id="viewphoto" class=" img-thumbnail mx-auto d-block" style="max-height: 250px;">
+                            <div class="form-group">
+                                <label for="viewfname">First Name: <span class="invalid text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Enter first name" id="viewfname" name="viewfname" value="" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="viewlname">Last Name: <span class="invalid text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Enter last name" id="viewlname" name="viewlname" value="" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="viewemail">Email: <span class="invalid text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Enter email" id="viewemail" name="viewemail" value="" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="viewrole">Role: <span class="invalid text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Enter role" id="viewrole" name="viewrole" value="" disabled>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    </div>
+                    
+                </div>
+                </div>
+            </div>
             {% endif %}
 
         </div>

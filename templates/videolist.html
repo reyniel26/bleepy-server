@@ -78,7 +78,7 @@
                                     <td>{{video.get('filename')}}</td>
                                     <td>{{video.get('upload_time')}}</td>
                                     {% if video.get('uploadedby')%}
-                                        <td>{{video.get('uploadedby')}}</td>
+                                        <td>{{video.get('uploadedby').title()}}</td>
                                     {% endif%}
                                 </tr>
                                 <tr class="expandable-body">

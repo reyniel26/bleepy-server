@@ -155,7 +155,7 @@
                                     <td>{{videoinfo.get("bfilename")}}</td>
                                     <td>{{videoinfo.get("process_time")}}</td>
                                     {% if videoinfo.get('uploadedby')%}
-                                        <td>{{videoinfo.get('uploadedby')}}</td>
+                                        <td>{{videoinfo.get('uploadedby').title()}}</td>
                                     {% endif%}
                                 </tr>
                                 <tr class="expandable-body">
