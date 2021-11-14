@@ -56,6 +56,11 @@
                                         <th class="text-center">Unique Profanities Identified </th>
                                         <th class="text-center">Most Frequent Word</th>
                                         <th class="text-center">Bleep Date </th>
+                                        {% if viewdata.get('widgets_data')%}
+                                            {% if viewdata.get('widgets_data').get('has_uploadedby')%}
+                                            <th class="text-center">Uploaded by</th>
+                                            {% endif%}
+                                        {% endif%}
                                     </tr>
                                 </thead>
                 
@@ -66,6 +71,11 @@
                                         <th class="text-center">{{viewdata.get('latestbleep_data').get('uniqueprofanitycount')}}</th>
                                         <th class="text-center">{{viewdata.get('latestbleep_data').get('mostfrequentword')}}</th>
                                         <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('process_time')}}</th>
+                                        {% if viewdata.get('widgets_data')%}
+                                            {% if viewdata.get('widgets_data').get('has_uploadedby')%}
+                                            <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('uploadedby')}}</th>
+                                            {% endif%}
+                                        {% endif%}
                                     </tr>
                                 </tbody>
                             </table>
@@ -267,7 +277,7 @@
     </script>
     {% endif %}
 
-    {% if viewdata.get('user_data').get('mostfrequentprofanities') %}
+    {% if viewdata.get('widgets_data').get('mostfrequentprofanities') %}
     <script>
         $(function () {
             //========================================================

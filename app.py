@@ -501,7 +501,7 @@ def dashboard():
     now = datetime.datetime.now()
     acc_role = db.selectAccRole(acc_id).get("name")
 
-    user_data = {
+    widgets_data = {
         "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
         "bleepedvideos":db.selectBleepedVideosByAccount(acc_id),
         "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A")
@@ -527,11 +527,16 @@ def dashboard():
             "latestusers":db.selectLatestUsers(),
             "trendfeeds":db.selectTrendFeed()
         }
-        
+        #Update widgets here
+        widgets_data["has_uploadedby"] = True
+        widgets_data["mostfrequentprofanities"]=db.selectTop10ProfanitiesAll()
+        widgets_data["bleepedvideos"]=db.selectBleepedVideosAll()
+        #Update latest bleep
+        latestbleep_data = db.selectLatestBleepSummaryDataAll()
     
     
     return render_template('dashboard.html', viewdata = viewData( dashboard=True, 
-                            user_data=user_data, admin_data=admin_data, editor_data=editor_data,
+                            widgets_data=widgets_data, admin_data=admin_data, editor_data=editor_data,
                             feeds=feeds, latestbleep_data=latestbleep_data ))
 
 #Profile route

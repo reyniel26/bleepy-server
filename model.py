@@ -296,6 +296,9 @@ class Model:
     
     def selectTop10ProfanitiesByVideo(self,pvid):
         return self.querySelectAll("call sp_select_top_10_profanities_by_video(%s)",pvid)
+    
+    def selectTop10ProfanitiesAll(self):
+        return self.querySelectAll("call sp_select_top_10_profanities_all()")
 
     def selectNavOfRole(self,role_id):
         return self.querySelectAll("call sp_select_navs_of_role(%s)",role_id)
