@@ -541,7 +541,7 @@ def dashboard():
         #Update widgets here
         widgets_data["has_uploadedby"] = True
         widgets_data["mostfrequentprofanities"]=db.selectTop10ProfanitiesAll()
-        widgets_data["bleepedvideos"]=db.selectBleepedVideosAll()
+        widgets_data["bleepedvideos"]=db.selectBleepedVideosAllSearchLimitOffset("",app.config['DEFAULT_ATLEAST_LIMIT'],0)
         #Update latest bleep
         latestbleep_data = db.selectLatestBleepSummaryDataAll()
     
@@ -573,6 +573,14 @@ def profile():
 @testConn
 @authentication
 def videolist():
+    page = request.args.get("page")
+    search = request.args.get("search") if request.args.get("search") else ""
+
+    #Default
+    count = 0    
+    limit = app.config['DEFAULT_MAX_LIMIT']
+    offset = 0 
+
     acc_id = getIdViaAuth()
     acc_role = db.selectAccRole(acc_id).get("name")
     videos = {}
@@ -581,20 +589,53 @@ def videolist():
 
     if acc_role == app.config["ROLE_ADMIN"]:
         has_uploadedby = True
-        videos = db.selectVideosAll()
-        latest_video = db.selectLatestUploadedVideoAll()
+
+        #Count first the search
+        count = db.countVideosSearch(search).get('count') if db.countVideosSearch(search) else 0
+        
+        #Arrange the offset and limit
+        offset = pagingControl.generateOffset(page,count,limit)
+
+        #Query
+        videos = db.selectVideosAllSearchLimitOffset(search,limit,offset)
+        latest_video = db.selectLatestUploadedVideoAllSearch(search)
     else:
-        videos = db.selectVideosUploadedByAccount(acc_id)
-        latest_video = db.selectLatestUploadedVideo(acc_id)
+        #Count first the search
+        count = db.countVideosUploadedByAccSearch(acc_id,search).get('count') if db.countVideosUploadedByAccSearch(acc_id,search) else 0
+        #Arrange the offset and limit
+        offset = pagingControl.generateOffset(page,count,limit)
+        
+        #Query
+        videos = db.selectVideosUploadedByAccountSearchLimitOffset(acc_id,search,limit,offset)
+        latest_video = db.selectLatestUploadedVideoSearch(acc_id,search)
+    
+    resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
+    pagination = pagingControl.generatePagination(count,limit)
 
     
-    return render_template('videolist.html', viewdata = viewData(videolist=True,videos=videos,latest_video=latest_video,has_uploadedby=has_uploadedby))
+    return render_template('videolist.html', 
+    viewdata = viewData(videolist=True,
+                        videos=videos,
+                        latest_video=latest_video,
+                        has_uploadedby=has_uploadedby,
+                        resultbadge=resultbadge,
+                        pagination=pagination
+                        )
+    )
 
 #Bleep Video List route
 @app.route('/bleepvideolist')
 @testConn
 @authentication
 def bleepvideolist():
+    page = request.args.get("page")
+    search = request.args.get("search") if request.args.get("search") else ""
+
+    #Default
+    count = 0    
+    limit = app.config['DEFAULT_MAX_LIMIT']
+    offset = 0 
+    
     acc_id = getIdViaAuth()
     acc_role = db.selectAccRole(acc_id).get("name")
     bleepedvideos = {}
@@ -603,13 +644,40 @@ def bleepvideolist():
 
     if acc_role == app.config["ROLE_ADMIN"]:
         has_uploadedby = True
-        bleepedvideos = db.selectBleepedVideosAll()
-        latestbleep_data = db.selectLatestBleepSummaryDataAll()
+
+        #Count first the search
+        count = db.countBleepVideosSearch(search).get('count') if db.countBleepVideosSearch(search) else 0
+
+        #Arrange the offset and limit
+        offset = pagingControl.generateOffset(page,count,limit)
+
+        #Query
+        bleepedvideos = db.selectBleepedVideosAllSearchLimitOffset(search,limit,offset)
+        latestbleep_data = db.selectLatestBleepSummaryDataAllSearch(search)
+
     else:
-        bleepedvideos = db.selectBleepedVideosByAccount(acc_id)
+        #Count first the search
+        count = db.countBleepVideosUploadedByAccSearch(acc_id,search).get('count') if db.countBleepVideosUploadedByAccSearch(acc_id,search) else 0
+
+        #Arrange the offset and limit
+        offset = pagingControl.generateOffset(page,count,limit)
+        
+        #Query
+        bleepedvideos = db.selectBleepedVideosByAccountSearchLimitOffset(acc_id,search,limit,offset)
         latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
     
-    return render_template('bleepvideolist.html', viewdata = viewData(bleepvideolist=True,bleepedvideos=bleepedvideos,latestbleep_data=latestbleep_data,has_uploadedby=has_uploadedby))
+    resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
+    pagination = pagingControl.generatePagination(count,limit)
+    
+    return render_template('bleepvideolist.html', 
+    viewdata = viewData(bleepvideolist=True,
+                        bleepedvideos=bleepedvideos,
+                        latestbleep_data=latestbleep_data,
+                        has_uploadedby=has_uploadedby,
+                        resultbadge = resultbadge,
+                        pagination = pagination
+                        )
+    )
 
 #Bleep Video Info route
 @app.route('/bleepvideoinfo/<path>',methods=["POST",'GET'])
@@ -1218,36 +1286,21 @@ def updatephoto():
 @isAdmin
 def manageaccount():
     page = request.args.get("page")
-    search = request.args.get("search")
+    search = request.args.get("search") if request.args.get("search") else ""
 
     #Default
     count = 0    
     limit = app.config['DEFAULT_MAX_LIMIT']
     offset = 0 
 
-    #If search has data
-    if search:
-        #Count first the search
-        count = db.countAccountsSearch(search).get('count') if db.countAccountsSearch(search) else 0
+    #Count first the search
+    count = db.countAccountsSearch(search).get('count') if db.countAccountsSearch(search) else 0
 
-        #Arrange the offset and limit
-        offset = pagingControl.generateOffset(page,count,limit)
+    #Arrange the offset and limit
+    offset = pagingControl.generateOffset(page,count,limit)
 
-        #Query the data
-        accounts = db.selectAccountAllSearchLimitOffset(search,limit,offset)
-
-        
-    else:
-        #Else
-
-        #Count first the search
-        count = db.countAccounts().get('count') if db.countAccounts() else 0
-
-        #Arrange the offset and limit
-        offset = pagingControl.generateOffset(page,count,limit)
-
-        #Query the data
-        accounts = db.selectAccountsAllLimitOffset(limit,offset)
+    #Query the data
+    accounts = db.selectAccountAllSearchLimitOffset(search,limit,offset)
 
     roles = db.selectRoles()
 

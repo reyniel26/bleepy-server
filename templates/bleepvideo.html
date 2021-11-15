@@ -134,12 +134,8 @@
                                     </div>
                                 </form>
                                 {% else %}
-                                <div class="jumbotron bg-white text-theme text-center shadow">
-                                    <h3> You have no uploaded videos </h3>
-                                    <a href="/bleepvideo?step1=step1-upload-video">
-                                        <button type="button" class="btn btn-theme"> Upload Videos </button>
-                                    </a>
-                                </div>
+                                    <!--No Result -->
+                                    {% include 'includes/_noresult.html' %}
                                 {% endif %}
                             </div>
                         </div>

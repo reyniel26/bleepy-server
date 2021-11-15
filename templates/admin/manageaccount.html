@@ -19,7 +19,7 @@
                     </div>
                 </div>
                 <!-- ./card-header -->
-                <div class="card-body">
+                <div class="card-body table-responsive-md">
                     <!--Result Badge-->
                     {% include 'includes/_resultbadge.html' %}
 
@@ -38,10 +38,10 @@
                                     <td>{{account.get('role').title()}}</td>
                                     <td>{{account.get('reg_date')}}</td>
                                 </tr>
-                                <tr class="expandable-body">
+                                <tr class="expandable-body bg-white">
                                     <td colspan="3">
                                         <div>
-                                            <div class="row justify-content-center">
+                                            <div class="row ">
                                                 <div class="col-md-10 col-12">
                                                     <button class="btn btn-info btnviewaccount" value="{{account.get('account_id')}}"><i class="fa fa-eye fa-lg" aria-hidden="true"></i> View</button>
                                                     <button class="btn btn-warning btneditaccount" value="{{account.get('account_id')}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i> Edit</button>
@@ -385,7 +385,7 @@
             }
         });
 
-        $("button[type='submit']:not.(.searchbtn)").on( "click", function(){
+        $("button[type='submit']:not(.searchbtn)").on( "click", function(){
             result= confirm("Are you sure?");
             if ( !(result === true) ) {
                 event.preventDefault();

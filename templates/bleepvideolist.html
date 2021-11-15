@@ -6,8 +6,7 @@
         <div class=" jumbotron bg-white shadow">
             <h1 class=" font-weight-light"> Bleeped Videos </h1>
             <hr>
-            {% if viewdata.get('bleepedvideos') %}
-                {% if viewdata.get("latestbleep_data") %}
+            {% if viewdata.get("latestbleep_data") %}
                 <div class="row">
                     <div class="col-12">
                         <div class="card collapsed-card" id="videopreviewcard">
@@ -115,8 +114,12 @@
                         </div>
                     </div>
                 </div>
-                {% endif %}
-
+            {% else %}
+                <!--No Result -->
+                {% include 'includes/_noresult.html' %}
+            
+            {% endif %}
+        
                 <div class=" container ">
 
                     <div class="card">
@@ -129,7 +132,7 @@
                             </div>
                         </div>
                         <!-- ./card-header -->
-                        <div class="card-body">
+                        <div class="card-body table-responsive-md">
                             <!--Result Badge-->
                             {% include 'includes/_resultbadge.html' %}
                             <table class="table table-bordered table-hover">
@@ -153,14 +156,14 @@
                                             <td>{{videoinfo.get('uploadedby').title()}}</td>
                                         {% endif%}
                                     </tr>
-                                    <tr class="expandable-body">
+                                    <tr class="expandable-body ">
                                         {% if videoinfo.get('uploadedby')%}
                                         <td colspan="4">
                                         {% else %}
                                         <td colspan="3">
                                         {% endif%}
                                             <div>
-                                                <div class="row justify-content-center">
+                                                <div class="row ">
                                                     <div class="col-md-10 col-12">
                                                         <form action="/deletebleepvideo" method="post">
                                                             <button class="btn btn-theme-secondary my-1 btnvideoplayer" value="{{videoinfo.get('pvideo_id')}}" type="button"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i> Play </button> 
@@ -188,14 +191,7 @@
                     </div>
                     <!-- /.card -->
                 </div>
-            {% else %}
-            <div class="jumbotron bg-white text-theme text-center shadow">
-                <h3> You have no bleeped videos </h3>
-                <a href="/bleepvideo">
-                    <button type="button" class="btn btn-theme"> Get Started >> </button>
-                </a>
-            </div>
-            {% endif %}
+            
             
 
         </div>
@@ -257,7 +253,7 @@
         }
     });
 
-    $("button[type='submit']:not.(.searchbtn)").on( "click", function(){
+    $("button[type='submit']:not(.searchbtn)").on( "click", function(){
             result= confirm("Are you sure?");
             if ( !(result === true) ) {
                 event.preventDefault();
