@@ -56,6 +56,11 @@
                                         <th class="text-center">Unique Profanities Identified </th>
                                         <th class="text-center">Most Frequent Word</th>
                                         <th class="text-center">Bleep Date </th>
+                                        {% if viewdata.get('widgets_data')%}
+                                            {% if viewdata.get('widgets_data').get('has_uploadedby')%}
+                                            <th class="text-center">Uploaded by</th>
+                                            {% endif%}
+                                        {% endif%}
                                     </tr>
                                 </thead>
                 
@@ -66,6 +71,11 @@
                                         <th class="text-center">{{viewdata.get('latestbleep_data').get('uniqueprofanitycount')}}</th>
                                         <th class="text-center">{{viewdata.get('latestbleep_data').get('mostfrequentword')}}</th>
                                         <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('process_time')}}</th>
+                                        {% if viewdata.get('widgets_data')%}
+                                            {% if viewdata.get('widgets_data').get('has_uploadedby')%}
+                                            <th class="text-center">{{viewdata.get('latestbleep_data').get('latestbleep').get('uploadedby')}}</th>
+                                            {% endif%}
+                                        {% endif%}
                                     </tr>
                                 </tbody>
                             </table>
@@ -207,12 +217,8 @@
         </div>
         {% endif %}
     {% else %}
-    <div class="jumbotron bg-white text-theme text-center shadow">
-        <h3> You have no bleeped videos </h3>
-        <a href="/bleepvideo">
-            <button type="button" class="btn btn-theme"> Get Started >> </button>
-        </a>
-    </div>
+        <!--No Result -->
+        {% include 'includes/_noresult.html' %}
     {% endif %}
 
 
@@ -267,7 +273,7 @@
     </script>
     {% endif %}
 
-    {% if viewdata.get('user_data').get('mostfrequentprofanities') %}
+    {% if viewdata.get('widgets_data').get('mostfrequentprofanities') %}
     <script>
         $(function () {
             //========================================================

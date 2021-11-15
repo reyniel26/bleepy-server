@@ -59,3 +59,28 @@ class BasicControls(Controls):
         directory = self.removeStaticDirectory(directory)
         return directory.split("/")[-1]
     
+
+class PagingControl(Controls):
+    def generatePagination(self,count,limit):
+        return [str(x+1 )for x in range((count//limit)+(1 if count%limit != 0 else 0))]
+    
+    def generateResultBadge(self,count,limit,offset,search):
+        return {
+            "start": offset + 1,
+            "end":offset+limit if offset+limit < count else count,
+            "count":count if count > 0 else None,
+            "search":search
+        }
+    
+    def generateOffset(self,page,count,limit):
+        offset = 0
+        if page:
+            try:
+                offset = limit*(int(page)-1)
+            except:
+                if page == "end":
+                    offset = limit*(int(count//limit))
+        return offset
+    
+    
+    

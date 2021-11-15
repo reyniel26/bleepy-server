@@ -233,9 +233,12 @@
             </div>
             {% endif %}
 
-            <div>
-                <a href="/downloadbleeped/{{viewdata.get('bleepinfo_data').get('bleepinfo').get('pvideo_id')}}" target="_blank"> <button class=" btn btn-theme-secondary"> <i class="fa fa-download" aria-hidden="true"></i> Download Bleeped Video </button> </a>
-            </div>
+            
+            <form action="/deletebleepvideo" method="post">
+                <a href="/downloadbleeped/{{viewdata.get('bleepinfo_data').get('bleepinfo').get('pvideo_id')}}" target="_blank"> <button class=" btn btn-theme-secondary" type="button"> <i class="fa fa-download" aria-hidden="true"></i> Download Bleeped Video </button> </a>
+                <input type="hidden" name="path" id="path" value="{{viewdata.get('bleepinfo_data').get('bleepinfo').get('pvideo_id')}}">
+                <button class="btn btn-danger my-1" type="submit"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+            </form>
         {% else %}
             <div class="jumbotron bg-white text-theme text-center shadow">
                 <h3> This video not exist </h3>
@@ -252,6 +255,12 @@
 {% block script %}
     {% if viewdata.get('bleepinfo_data') %}
     <script>
+        $("button[type='submit']").on( "click", function(){
+            result= confirm("Are you sure?");
+            if ( !(result === true) ) {
+                event.preventDefault();
+            } 
+        });
         $(function () {
             let words = []
             $("input[name=word]").each(function(){

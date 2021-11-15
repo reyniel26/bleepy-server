@@ -1,15 +1,12 @@
 <div class="row">
     <div class="col-lg-7">
         <!-- My Bleep Videos -->
-        {% if viewdata.get('user_data').get('bleepedvideos') %}
+        {% if viewdata.get('widgets_data').get('bleepedvideos') %}
         <section>
             <div class="card shadow">
                 <div class="card-header bg-theme-secondary text-theme-secondary">
                 <h3 class="card-title">Bleep Videos</h3>        
                 <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="card-refresh" data-source="widgets.html" data-source-selector="#card-refresh-content" data-load-on-init="false">
-                        <i class="fa fa-refresh text-theme-secondary"></i>
-                    </button>
                     <button type="button" class="btn btn-tool" data-card-widget="maximize">
                         <i class="fa fa-expand text-theme-secondary"></i>
                     </button>
@@ -24,26 +21,45 @@
                 <!-- /.card-header -->
                 <div class="card-body table-responsive p-0" style="height: 300px;">
                 <table class="table table-head-fixed text-nowrap table-hover">
+                    
                     <thead>
-                    <tr>
-                        <th>Video Title</th>
-                        <th>Bleep Sound</th>
-                        <th>Date</th>
-                        <th> <a class="btn btn-theme" href="/bleepvideolist">View All</a></th>
-                    </tr>
+                        <tr>
+                            <th>Title</th>
+                            <th>Bleep sound</th>
+                            <th>Processed on</th>
+                            {% if viewdata.get('widgets_data').get('has_uploadedby')%}
+                            <th>Uploaded by</th>
+                            {% endif%}
+                        </tr>
                     </thead>
                     <tbody>
-                    {% for videoinfo in viewdata.get('user_data').get('bleepedvideos') %}    
-                        <tr>
+                        {% for videoinfo in viewdata.get('widgets_data').get('bleepedvideos')%} 
+                        <tr data-widget="expandable-table" aria-expanded="false">
                             <td>{{videoinfo.get("filename")}}</td>
                             <td>{{videoinfo.get("bfilename")}}</td>
                             <td>{{videoinfo.get("process_time")}}</td>
-                            <td> 
-                                <a href="/bleepvideoinfo/{{videoinfo.get('pvideo_id')}}" > <button class=" btn btn-theme-secondary"> <i class="fa fa-eye" aria-hidden="true"></i> View </button> </a>
+                            {% if videoinfo.get('uploadedby')%}
+                                <td>{{videoinfo.get('uploadedby').title()}}</td>
+                            {% endif%}
+                        </tr>
+                        <tr class="expandable-body">
+                            {% if videoinfo.get('uploadedby')%}
+                            <td colspan="4">
+                            {% else %}
+                            <td colspan="3">
+                            {% endif%}
+                                <div>
+                                    <div class="row justify-content-center">
+                                        <div class="col-md-10 col-12">
+                                                <a href="/bleepvideoinfo/{{videoinfo.get('pvideo_id')}}" > <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-eye" aria-hidden="true"></i> View Full Report</button> </a> 
+                                                <br><a href="/downloadbleeped/{{videoinfo.get('pvideo_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-download" aria-hidden="true"></i> Download Bleep Video </button> </a>  
+                                        </div>
+                                    </div>
+                                    
+                                </div>
                             </td>
                         </tr>
-                    {% endfor %}
-                    
+                        {% endfor %}
                     </tbody>
                 </table>
                 </div>
@@ -53,7 +69,7 @@
         {% endif %}
     </div>
     <div class="col-lg-5">
-        {% if viewdata.get('user_data').get('mostfrequentprofanities') %}
+        {% if viewdata.get('widgets_data').get('mostfrequentprofanities') %}
         <section>
             <!-- PIE CHART -->
             <div class="card shadow">
@@ -61,17 +77,17 @@
                 <h3 class="card-title">Top 10 Most Frequent Profanities</h3>
 
                 <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <button type="button" class="btn btn-tool text-theme-secondary" data-card-widget="collapse">
                     <i class="fa fa-minus"></i>
                     </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove">
+                    <button type="button" class="btn btn-tool text-theme-secondary" data-card-widget="remove">
                     <i class="fa fa-times"></i>
                     </button>
                 </div>
                 </div>
                 <div class="card-body">
                     <canvas id="mostFrequentProfanityChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                    {% for profanities in viewdata.get('user_data').get('mostfrequentprofanities') %}
+                    {% for profanities in viewdata.get('widgets_data').get('mostfrequentprofanities') %}
                         {% if profanities.get("occurrence") != "0" %}
                         <input type="hidden" name="mostfrequentprofanitiesword" value="{{profanities.get('word')}}" >
                         <input type="hidden" name="mostfrequentprofanitiesoccurrence" value="{{profanities.get('occurrence')}}" >

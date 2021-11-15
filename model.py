@@ -1,3 +1,4 @@
+from re import search
 from typing import Dict
 import mysql.connector
 
@@ -80,8 +81,7 @@ class Model:
                 self.conn.close()
                 return result
             except Exception as e:
-                error["error"] = e
-                temp = []
+                temp = [{"error":str(e)}]
                 temp.append(error)
                 return tuple(temp)
 
@@ -190,12 +190,21 @@ class Model:
     def selectLatestBleepAll(self):
         return self.querySelect("call sp_select_latest_censored_videos_all()")
     
+    def selectLatestBleepAllSearch(self,search):
+        return self.querySelect("call sp_select_latest_censored_videos_all_search(%s)",search)
+    
     def selectLatestUploadedVideo(self,id:str):
         return self.querySelect("call sp_select_latest_video_by_account(%s)",id)
+    
+    def selectLatestUploadedVideoSearch(self,id:str,search):
+        return self.querySelect("call sp_select_latest_video_by_account_search(%s,%s)",id,search)
     
     def selectLatestUploadedVideoAll(self):
         return self.querySelect("call sp_select_latest_video_all()")
     
+    def selectLatestUploadedVideoAllSearch(self,search):
+        return self.querySelect("call sp_select_latest_video_all_search(%s)",search)
+
     def selectLatestBleepDataBuilder(self,latestbleep:dict):
         latestbleep_data = {}
         if latestbleep:
@@ -213,6 +222,10 @@ class Model:
     
     def selectLatestBleepSummaryDataAll(self):
         latestbleep = self.selectLatestBleepAll()
+        return self.selectLatestBleepDataBuilder(latestbleep)
+    
+    def selectLatestBleepSummaryDataAllSearch(self,search):
+        latestbleep = self.selectLatestBleepAllSearch(search)
         return self.selectLatestBleepDataBuilder(latestbleep)
     
     def selectBleepInfoDataBuilder(self,bleepinfo:Dict):
@@ -260,18 +273,30 @@ class Model:
     
     def selectBleepedVideosByAccount(self,id:str):
         return self.querySelectAll("call sp_select_censored_videos_by_account(%s)",id)
+    
+    def selectBleepedVideosByAccountSearchLimitOffset(self,id:str,search,limit,offset):
+        return self.querySelectAll("call sp_select_censored_videos_by_account_search_limit_offset(%s,%s,%s,%s)",id,search,limit,offset)
 
     def selectBleepedVideosByAccountAndPvid(self,id:str,pvid:str):
         return self.querySelect("call sp_select_censored_videos_by_acc_pvid(%s,%s)",id,pvid)
     
     def selectBleepedVideosAll(self):
         return self.querySelectAll("call sp_select_censored_videos_all()")
+    
+    def selectBleepedVideosAllSearchLimitOffset(self,search,limit,offset):
+        return self.querySelectAll("call sp_select_censored_videos_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
 
     def selectBleepedVideoByPvid(self,pvid):
         return self.querySelect("call sp_select_censored_videos_by_pvid(%s)",pvid)
 
     def selectVideosUploadedByAccount(self,id:str):
         return self.querySelectAll("call sp_select_videos_uploadedby_account(%s)",id)
+    
+    def selectVideosUploadedByAccountSearch(self,id:str,search):
+        return self.querySelectAll("call sp_select_videos_uploadedby_account_search(%s,%s)",id,search)
+    
+    def selectVideosUploadedByAccountSearchLimitOffset(self,id:str,search,limit,offset):
+        return self.querySelectAll("call sp_select_videos_uploadedby_account_search_limit_offset(%s,%s,%s,%s)",id,search,limit,offset)
 
     def selectVideoByAccountAndVidId(self,id:str,vidid:str):
         return self.querySelect("call sp_select_videos_by_account_vid_id(%s,%s)",id,vidid)
@@ -285,6 +310,9 @@ class Model:
     def selectVideosAll(self):
         return self.querySelectAll("call sp_select_videos_all()")
     
+    def selectVideosAllSearchLimitOffset(self,search,limit,offset):
+        return self.querySelectAll("call sp_select_videos_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
+    
     def selectBleepSounds(self):
         return self.querySelectAll("call sp_select_bleep_sounds_all()")
     
@@ -296,6 +324,9 @@ class Model:
     
     def selectTop10ProfanitiesByVideo(self,pvid):
         return self.querySelectAll("call sp_select_top_10_profanities_by_video(%s)",pvid)
+    
+    def selectTop10ProfanitiesAll(self):
+        return self.querySelectAll("call sp_select_top_10_profanities_all()")
 
     def selectNavOfRole(self,role_id):
         return self.querySelectAll("call sp_select_navs_of_role(%s)",role_id)
@@ -394,12 +425,24 @@ class Model:
 
     def selectAccountsAll(self):
         return self.querySelectAll("call sp_select_accounts_all()")
+    
+    def selectAccountsAllLimitOffset(self,limit,offset):
+        return self.querySelectAll("call sp_select_accounts_all_limit_offset(%s,%s)",limit,offset)
+    
+    def selectAccountAllSearchLimitOffset(self,search,limit,offset):
+        return self.querySelectAll("call sp_select_accounts_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
     #================================================== Counts
     def countVideosUploadedByAcc(self,id:str):
         return self.querySelect("call sp_count_videos_uploadedby_account(%s)",id)
     
+    def countVideosUploadedByAccSearch(self,id:str,search):
+        return self.querySelect("call sp_count_videos_uploadedby_account_search(%s,%s)",id,search)
+    
     def countBleepVideosUploadedByAcc(self,id:str):
         return self.querySelect("call sp_count_censored_videos_by_accounts(%s)",id)
+    
+    def countBleepVideosUploadedByAccSearch(self,id:str,search):
+        return self.querySelect("call sp_count_censored_videos_by_accounts_search(%s,%s)",id,search)
     
     def countProfanityWordsByAcc(self,id:str):
         return self.querySelect("call sp_count_profanitywords_collected_by_account(%s)",id)
@@ -416,9 +459,15 @@ class Model:
     def countVideos(self):
         return self.querySelect("call sp_count_videos()")
     
+    def countVideosSearch(self,search):
+        return self.querySelect("call sp_count_videos_search(%s)",search)
+    
     def countBleepVideos(self):
         return self.querySelect("call sp_count_censored_videos()")
     
+    def countBleepVideosSearch(self,search):
+        return self.querySelect("call sp_count_censored_videos_search(%s)",search)
+        
     def countProfanityWords(self):
         return self.querySelect("call sp_count_profanitywords_collected()")
     
@@ -430,6 +479,9 @@ class Model:
 
     def countAccounts(self):
         return self.querySelect("call sp_count_accounts()")
+    
+    def countAccountsSearch(self,search):
+        return self.querySelect("call sp_count_accounts_search(%s)",search)
     
     #================================================== Inserts
     def insertRole(self,rolename):

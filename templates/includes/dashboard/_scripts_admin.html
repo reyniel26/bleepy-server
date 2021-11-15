@@ -1,6 +1,28 @@
 
 {% if viewdata.get("admin_data").get("trendfeeds") %}
     <script>
+        $(".btnviewaccount").click(function(){
+            $.ajax ({
+                type:"POST",
+                url:"/viewaccount",
+                data: {
+                    acc_id:$(this).val()
+                },
+                cache: false,
+                success:function(data){
+                    $("#viewphoto").attr("src",data.photo);
+                    $('#viewfname').val(data.fname)
+                    $('#viewlname').val(data.lname)
+                    $('#viewemail').val(data.email)
+                    $('#viewrole').val(data.role)
+                    $("#viewaccountmodal").modal();
+                },error:function(e){
+                    alert("error: "+e)
+                }
+            });
+        });
+
+
         let dates = []
         $("input[name=trenddates]").each(function(){
             dates.push($(this).val())

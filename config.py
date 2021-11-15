@@ -31,6 +31,8 @@ class Config(object):
 
     #Defaults
     DEFAULT_ACC_PWD = 'Password1234'
+    DEFAULT_MAX_LIMIT = 10
+    DEFAULT_ATLEAST_LIMIT = 10
 
 
 

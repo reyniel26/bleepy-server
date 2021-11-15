@@ -1,5 +1,6 @@
 #================================================== Imports
 #Flask
+from re import search
 from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify, send_file,abort
 #For decorator
 from functools import wraps 
@@ -15,7 +16,7 @@ import uuid
 #Model for DB
 from model import Model
 #Controls
-from control import TokenControls, BasicControls
+from control import TokenControls, BasicControls, PagingControl
 #Configs
 from config import ProductionConfig, DevelopmentConfig
 #Bleepy module
@@ -32,8 +33,9 @@ db = Model(
     app.config["DB_PWD"],
     app.config["DB_NAME"]
     )
-tknctrl = TokenControls(app.secret_key)
-bsctrl = BasicControls()
+tokenControl = TokenControls(app.secret_key)
+basicControl = BasicControls()
+pagingControl = PagingControl()
 
 
 #================================================== App Control Methods
@@ -41,7 +43,7 @@ def getIdViaAuth():
     try:
         cookies = request.cookies
         token = cookies.get(app.config["AUTH_TOKEN_NAME"])
-        tokenvalues = tknctrl.getTokenValues(token)
+        tokenvalues = tokenControl.getTokenValues(token)
         return str(tokenvalues["authid"])
     except:
         return None
@@ -63,7 +65,7 @@ def setAuth(response,**kwargs):
     #set cookie token
     if kwargs.get("acc_id") and kwargs.get("max_age"):
         res.set_cookie(app.config["AUTH_TOKEN_NAME"], 
-            value = tknctrl.generateToken(authid=kwargs.get("acc_id"),validuntil=kwargs.get("max_age")),
+            value = tokenControl.generateToken(authid=kwargs.get("acc_id"),validuntil=kwargs.get("max_age")),
             max_age = kwargs.get("max_age")
             )
     else:
@@ -86,6 +88,15 @@ def viewData(**kwargs:str):
     viewdata = {
         "auth_token":app.config["AUTH_TOKEN_NAME"]
     }
+    #Paging
+    page = request.args.get("page")
+    if not page:
+        page = '1'
+    viewdata["active_page"] = {
+            page:True
+    }
+        
+
     #If the user is logged in
     if getIdViaAuth():
         acc_id = getIdViaAuth()
@@ -114,7 +125,7 @@ def allowedVideoFileSize(filesize) ->bool:
     return float(filesize) <= app.config['MAX_VIDEO_FILESIZE']
 
 def allowedPhotoFileSize(filesize) ->bool:
-    return float(filesize) <= bsctrl.bytesToMb(app.config['MAX_PHOTO_FILESIZE'])
+    return float(filesize) <= basicControl.bytesToMb(app.config['MAX_PHOTO_FILESIZE'])
 
 def flashPrintsforAdmin(msg,msgname=""):
     flash(msgname+" Message: "+str(msg), 'info')
@@ -231,7 +242,7 @@ def authentication(f):
             flash("Invalid Authentication. Please try to login","warning")
             return reserror
         
-        tokenvalues = tknctrl.getTokenValues(token)
+        tokenvalues = tokenControl.getTokenValues(token)
 
         if not tokenvalues:
             #The token values is None
@@ -360,7 +371,7 @@ def signup():
 
         fname = request.form.get("fname").strip()
         lname = request.form.get("lname").strip()
-        email = bsctrl.sanitizeEmail(request.form.get("email"))
+        email = basicControl.sanitizeEmail(request.form.get("email"))
         pwd = request.form.get("pwd")
         confirmpwd = request.form.get("confirmpwd")
         isagree = request.form.getlist("agreetandc")
@@ -425,7 +436,7 @@ def signup():
 @isAlreadyLoggedin
 def signin():
     if request.method == "POST":
-        email = bsctrl.sanitizeEmail(request.form.get("email"))
+        email = basicControl.sanitizeEmail(request.form.get("email"))
         pwd = request.form.get("pwd")
         remember = request.form.getlist("remember")
         #remember 30days or else remember for 5mins
@@ -501,7 +512,7 @@ def dashboard():
     now = datetime.datetime.now()
     acc_role = db.selectAccRole(acc_id).get("name")
 
-    user_data = {
+    widgets_data = {
         "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
         "bleepedvideos":db.selectBleepedVideosByAccount(acc_id),
         "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A")
@@ -527,11 +538,16 @@ def dashboard():
             "latestusers":db.selectLatestUsers(),
             "trendfeeds":db.selectTrendFeed()
         }
-        
+        #Update widgets here
+        widgets_data["has_uploadedby"] = True
+        widgets_data["mostfrequentprofanities"]=db.selectTop10ProfanitiesAll()
+        widgets_data["bleepedvideos"]=db.selectBleepedVideosAllSearchLimitOffset("",app.config['DEFAULT_ATLEAST_LIMIT'],0)
+        #Update latest bleep
+        latestbleep_data = db.selectLatestBleepSummaryDataAll()
     
     
     return render_template('dashboard.html', viewdata = viewData( dashboard=True, 
-                            user_data=user_data, admin_data=admin_data, editor_data=editor_data,
+                            widgets_data=widgets_data, admin_data=admin_data, editor_data=editor_data,
                             feeds=feeds, latestbleep_data=latestbleep_data ))
 
 #Profile route
@@ -548,7 +564,7 @@ def profile():
         "email":data.get("email"),
         "photo":data.get("photo"),
     }
-    max_photo_filesize = bsctrl.bytesToMb(app.config["MAX_PHOTO_FILESIZE"])
+    max_photo_filesize = basicControl.bytesToMb(app.config["MAX_PHOTO_FILESIZE"])
     
     return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data,max_photo_filesize=max_photo_filesize))
 
@@ -557,6 +573,14 @@ def profile():
 @testConn
 @authentication
 def videolist():
+    page = request.args.get("page")
+    search = request.args.get("search") if request.args.get("search") else ""
+
+    #Default
+    count = 0    
+    limit = app.config['DEFAULT_MAX_LIMIT']
+    offset = 0 
+
     acc_id = getIdViaAuth()
     acc_role = db.selectAccRole(acc_id).get("name")
     videos = {}
@@ -565,20 +589,53 @@ def videolist():
 
     if acc_role == app.config["ROLE_ADMIN"]:
         has_uploadedby = True
-        videos = db.selectVideosAll()
-        latest_video = db.selectLatestUploadedVideoAll()
+
+        #Count first the search
+        count = db.countVideosSearch(search).get('count') if db.countVideosSearch(search) else 0
+        
+        #Arrange the offset and limit
+        offset = pagingControl.generateOffset(page,count,limit)
+
+        #Query
+        videos = db.selectVideosAllSearchLimitOffset(search,limit,offset)
+        latest_video = db.selectLatestUploadedVideoAllSearch(search)
     else:
-        videos = db.selectVideosUploadedByAccount(acc_id)
-        latest_video = db.selectLatestUploadedVideo(acc_id)
+        #Count first the search
+        count = db.countVideosUploadedByAccSearch(acc_id,search).get('count') if db.countVideosUploadedByAccSearch(acc_id,search) else 0
+        #Arrange the offset and limit
+        offset = pagingControl.generateOffset(page,count,limit)
+        
+        #Query
+        videos = db.selectVideosUploadedByAccountSearchLimitOffset(acc_id,search,limit,offset)
+        latest_video = db.selectLatestUploadedVideoSearch(acc_id,search)
+    
+    resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
+    pagination = pagingControl.generatePagination(count,limit)
 
     
-    return render_template('videolist.html', viewdata = viewData(videolist=True,videos=videos,latest_video=latest_video,has_uploadedby=has_uploadedby))
+    return render_template('videolist.html', 
+    viewdata = viewData(videolist=True,
+                        videos=videos,
+                        latest_video=latest_video,
+                        has_uploadedby=has_uploadedby,
+                        resultbadge=resultbadge,
+                        pagination=pagination
+                        )
+    )
 
 #Bleep Video List route
 @app.route('/bleepvideolist')
 @testConn
 @authentication
 def bleepvideolist():
+    page = request.args.get("page")
+    search = request.args.get("search") if request.args.get("search") else ""
+
+    #Default
+    count = 0    
+    limit = app.config['DEFAULT_MAX_LIMIT']
+    offset = 0 
+    
     acc_id = getIdViaAuth()
     acc_role = db.selectAccRole(acc_id).get("name")
     bleepedvideos = {}
@@ -587,13 +644,40 @@ def bleepvideolist():
 
     if acc_role == app.config["ROLE_ADMIN"]:
         has_uploadedby = True
-        bleepedvideos = db.selectBleepedVideosAll()
-        latestbleep_data = db.selectLatestBleepSummaryDataAll()
+
+        #Count first the search
+        count = db.countBleepVideosSearch(search).get('count') if db.countBleepVideosSearch(search) else 0
+
+        #Arrange the offset and limit
+        offset = pagingControl.generateOffset(page,count,limit)
+
+        #Query
+        bleepedvideos = db.selectBleepedVideosAllSearchLimitOffset(search,limit,offset)
+        latestbleep_data = db.selectLatestBleepSummaryDataAllSearch(search)
+
     else:
-        bleepedvideos = db.selectBleepedVideosByAccount(acc_id)
+        #Count first the search
+        count = db.countBleepVideosUploadedByAccSearch(acc_id,search).get('count') if db.countBleepVideosUploadedByAccSearch(acc_id,search) else 0
+
+        #Arrange the offset and limit
+        offset = pagingControl.generateOffset(page,count,limit)
+        
+        #Query
+        bleepedvideos = db.selectBleepedVideosByAccountSearchLimitOffset(acc_id,search,limit,offset)
         latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
     
-    return render_template('bleepvideolist.html', viewdata = viewData(bleepvideolist=True,bleepedvideos=bleepedvideos,latestbleep_data=latestbleep_data,has_uploadedby=has_uploadedby))
+    resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
+    pagination = pagingControl.generatePagination(count,limit)
+    
+    return render_template('bleepvideolist.html', 
+    viewdata = viewData(bleepvideolist=True,
+                        bleepedvideos=bleepedvideos,
+                        latestbleep_data=latestbleep_data,
+                        has_uploadedby=has_uploadedby,
+                        resultbadge = resultbadge,
+                        pagination = pagination
+                        )
+    )
 
 #Bleep Video Info route
 @app.route('/bleepvideoinfo/<path>',methods=["POST",'GET'])
@@ -699,6 +783,7 @@ def deletebleepvideo():
         flash("Invalid Request",'danger')
         return redirect(url_for('bleepvideolist'))
 
+#================Get files JSON
 #Routes that returns JSONs
 #@authentication
 
@@ -722,7 +807,6 @@ def getbleepsoundinfo():
 
     return jsonify('')
 
-
 #Get Video Link
 @app.route('/getvideoinfo', methods=["POST",'GET'])
 @testConn
@@ -741,7 +825,7 @@ def getvideoinfo():
             videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
         
         
-        filelocation = "/static/"+videoinfo.get("filelocation") if videoinfo  else ""
+        filelocation = url_for('static', filename=videoinfo.get("filelocation") ) if videoinfo  else ""
         filename = videoinfo.get("filename")
         upload_time= videoinfo.get("upload_time")
         uploadedby=videoinfo.get("uploadedby")
@@ -751,6 +835,50 @@ def getvideoinfo():
             "filename":filename,
             "upload_time":upload_time,
             "uploadedby":uploadedby
+        })
+
+    return jsonify('')
+
+#Get bleep video info json
+@app.route('/getbleepvideoinfo', methods=["POST",'GET'])
+@testConn
+@authentication
+def getbleepvideoinfo():
+    if request.method == "POST":
+        acc_id = getIdViaAuth() 
+        acc_role = db.selectAccRole(acc_id).get("name")
+        bleepinfo_data = {}
+        bleepvideo_id = request.form.get("vid_id")
+
+        #videoinfo contains = filelocation, filename, see db
+        if acc_role == app.config["ROLE_ADMIN"]:
+            bleepinfo_data = db.selectBleepedVideoFullInfo(bleepvideo_id)
+        else:
+            bleepinfo_data = db.selectBleepedVideoFullInfoById(acc_id,bleepvideo_id)
+        
+        pvideo_id ="/bleepvideoinfo/"+str(bleepinfo_data.get("bleepinfo").get("pvideo_id")) 
+        filelocation = url_for('static', filename=bleepinfo_data.get("bleepinfo").get("filelocation") ) if bleepinfo_data else ""
+        filename = bleepinfo_data.get("bleepinfo").get("filename")
+        upload_time= bleepinfo_data.get("bleepinfo").get("upload_time")
+        bfilename=bleepinfo_data.get("bleepinfo").get("bfilename")
+        process_time=bleepinfo_data.get("bleepinfo").get("process_time")
+        pfilelocation = url_for('static', filename=bleepinfo_data.get("bleepinfo").get("pfilelocation") )if bleepinfo_data else ""
+
+        uploadedby=bleepinfo_data.get("uploadedby")
+        uniqueprofanitycount =bleepinfo_data.get("uniqueprofanitycount")
+        mostfrequentword=bleepinfo_data.get("mostfrequentword")
+
+        return jsonify({
+            "pvideo_id":pvideo_id,
+            "filelocation":filelocation,
+            "filename":filename,
+            "upload_time":upload_time,
+            "uploadedby":uploadedby,
+            "bfilename":bfilename,
+            "uniqueprofanitycount":uniqueprofanitycount,
+            "mostfrequentword":mostfrequentword,
+            "process_time":process_time,
+            "pfilelocation":pfilelocation
         })
 
     return jsonify('')
@@ -797,7 +925,25 @@ def downloadvideo(path):
         errormsg = "Request has been denied "+str(e)
         return render_template('includes/_messages.html', error=errormsg)
 
+#Download Bleep Sounds
+#Doenst need auth
+@app.route('/downloadbleepsound/<path>', methods=["POST",'GET'])
+@testConn
+@authentication
+def downloadbleepsound(path):
+    bleepsound_id = path
+    bleepsound = {}
+    try:
+        bleepsound = db.selectBleepSoundById(bleepsound_id)
+        file_path = "static/"+bleepsound.get("filelocation")
+        filename = bleepsound.get("filename")
+        return send_file(file_path,as_attachment=True,attachment_filename=filename)
+    except Exception as e:
+        errormsg = "Request has been denied "+str(e)
+        return render_template('includes/_messages.html', error=errormsg)
 
+
+#================Bleep Steps
 #Routes for Bleep Steps
 #@authentication
 
@@ -833,7 +979,7 @@ def bleepstep1():
 
             # if not allowedVideoFileSize(request.cookies.get('filesize')):
             if not allowedVideoFileSize(request.form.get('uploadfilesize')):
-                errormsg = "File too large. Maximum File size allowed is "+str(bsctrl.bytesToGb(app.config["MAX_VIDEO_FILESIZE"]))+" gb"
+                errormsg = "File too large. Maximum File size allowed is "+str(basicControl.bytesToGb(app.config["MAX_VIDEO_FILESIZE"]))+" gb"
                 return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
 
             video = VideoFile()
@@ -910,8 +1056,8 @@ def bleepstep2():
             if len(profanities) > 0:
                 blocker.run(video,audio,profanities)
                 block_directory = blocker.getFileLocation()
-                block_filelocation = bsctrl.removeStaticDirectory(block_directory)
-                block_filename = bsctrl.getFileNameFromDirectory(block_filelocation)
+                block_filelocation = basicControl.removeStaticDirectory(block_directory)
+                block_filename = basicControl.getFileNameFromDirectory(block_filelocation)
                 bleepedvideoinfo = saveBleepedVideo(vid_id,bleepsound_id,block_filename,block_filelocation,block_directory,profanities)
                 #Save to db
             else:
@@ -1004,7 +1150,7 @@ def updatelname():
 def updateemail():
     if request.method == "POST":
 
-        newemail = bsctrl.sanitizeEmail(request.form.get("email"))
+        newemail = basicControl.sanitizeEmail(request.form.get("email"))
         pwd = request.form.get("pwd")
 
         acc_id = getIdViaAuth()
@@ -1100,7 +1246,7 @@ def updatephoto():
 
 
             if not allowedPhotoFileSize(filesize):
-                flash("File too large. Maximum File size allowed is "+str(bsctrl.bytesToMb(app.config["MAX_PHOTO_FILESIZE"]))+" mb", 'warning')
+                flash("File too large. Maximum File size allowed is "+str(basicControl.bytesToMb(app.config["MAX_PHOTO_FILESIZE"]))+" mb", 'warning')
             elif not media.isAllowedExt(media.getExtension(file.filename)):
                 flash('File type is not allowed. Allowed file extension are: '+str(media.getAllowedExts()),'danger')
             else:
@@ -1134,15 +1280,42 @@ def updatephoto():
 
 #==============Admin Pages
 # Manage Account 
-@app.route('/manageaccount')
+@app.route('/manageaccount',methods=["POST",'GET'])
 @testConn
 @authentication
 @isAdmin
 def manageaccount():
-    accounts = db.selectAccountsAll()
+    page = request.args.get("page")
+    search = request.args.get("search") if request.args.get("search") else ""
+
+    #Default
+    count = 0    
+    limit = app.config['DEFAULT_MAX_LIMIT']
+    offset = 0 
+
+    #Count first the search
+    count = db.countAccountsSearch(search).get('count') if db.countAccountsSearch(search) else 0
+
+    #Arrange the offset and limit
+    offset = pagingControl.generateOffset(page,count,limit)
+
+    #Query the data
+    accounts = db.selectAccountAllSearchLimitOffset(search,limit,offset)
+
     roles = db.selectRoles()
+
+    resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
+    pagination = pagingControl.generatePagination(count,limit)
+
     defaultpwd = app.config["DEFAULT_ACC_PWD"]
-    return render_template('admin/manageaccount.html', viewdata = viewData(accounts=accounts,roles=roles, defaultpwd=defaultpwd))
+    return render_template('admin/manageaccount.html', 
+    viewdata = viewData(accounts=accounts,
+                        roles=roles, 
+                        defaultpwd=defaultpwd, 
+                        pagination=pagination,
+                        resultbadge = resultbadge
+                        )
+    )
 
 #View Account
 @app.route('/viewaccount',methods=["POST",'GET'])
@@ -1174,7 +1347,7 @@ def addaccount():
     if request.method == "POST":
         fname = request.form.get("addfname").strip()
         lname = request.form.get("addlname").strip()
-        email = bsctrl.sanitizeEmail(request.form.get("addemail"))
+        email = basicControl.sanitizeEmail(request.form.get("addemail"))
         pwd = request.form.get("addpwd")
         role_id = request.form.get("addrole")
 
@@ -1226,7 +1399,7 @@ def editaccount():
         acc_id = request.form.get("editaccid")
         fname = request.form.get("editfname").strip()
         lname = request.form.get("editlname").strip()
-        email = bsctrl.sanitizeEmail(request.form.get("editemail"))
+        email = basicControl.sanitizeEmail(request.form.get("editemail"))
         role_id = request.form.get("editrole")
 
         acc = db.selectAccountViaId(acc_id)

@@ -7,7 +7,7 @@
             <h1 class=" font-weight-light"> Videos </h1>
             <hr>
 
-            {% if viewdata.get('videos') %}
+            {% if viewdata.get('latest_video') %}
                 <div class="card collapsed-card " id="videopreviewcard">
                     <div class="card-header bg-theme-secondary text-theme-secondary">
                     <h3 class="card-title">Video Player</h3>
@@ -40,29 +40,27 @@
                     </div>
                     <!-- /.card-body -->
                 </div>
+            {% else %}
+                <!--No Result -->
+                {% include 'includes/_noresult.html' %}
+            {% endif %}
                     
 
-                <div class=" container ">
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Videos</h3>
-            
-                            <div class="card-tools">
-                                <div class="input-group input-group-sm" style="width: 150px;">
-                                <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
-            
-                                <div class="input-group-append">
-                                    <button type="submit" class="btn btn-default">
-                                    <i class="fa fa-search"></i>
-                                    </button>
-                                </div>
-                                </div>
-                            </div>
+            <div class=" container ">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Videos</h3>
+        
+                        <div class="card-tools">
+                            <!--Card tool search-->
+                            {% include 'includes/card_tool/_search.html' %}
                         </div>
-                        <!-- ./card-header -->
-                        <div class="card-body">
-                          <table class="table table-bordered table-hover">
+                    </div>
+                    <!-- ./card-header -->
+                    <div class="card-body table-responsive-md">
+                        <!--Result Badge-->
+                        {% include 'includes/_resultbadge.html' %}
+                        <table class="table table-bordered table-hover">
                             <thead>
                                 <tr>
                                     <th>Title</th>
@@ -78,17 +76,17 @@
                                     <td>{{video.get('filename')}}</td>
                                     <td>{{video.get('upload_time')}}</td>
                                     {% if video.get('uploadedby')%}
-                                        <td>{{video.get('uploadedby')}}</td>
+                                        <td>{{video.get('uploadedby').title()}}</td>
                                     {% endif%}
                                 </tr>
-                                <tr class="expandable-body">
+                                <tr class="expandable-body ">
                                     {% if video.get('uploadedby')%}
                                     <td colspan="3">
                                     {% else %}
                                     <td colspan="2">
                                     {% endif%}
                                         <div>
-                                            <div class="row justify-content-center">
+                                            <div class="row ">
                                                 <div class="col-md-6 col-12">
                                                     <form action="/deletevideo" method="post">
                                                         <button class="btn btn-theme-secondary btnvideoplayer my-1" value="{{video.get('video_id')}}" type="button"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>  
@@ -104,30 +102,18 @@
                                 </tr>
                                 {% endfor %}
                             </tbody>
-                          </table>
-                        </div>
-                        <!-- /.card-body -->
-                        <div class="card-footer clearfix">
-                            <ul class="pagination pagination-sm m-0 float-right">
-                              <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
-                              <li class="page-item"><a class="page-link" href="#">1</a></li>
-                              <li class="page-item"><a class="page-link" href="#">2</a></li>
-                              <li class="page-item"><a class="page-link" href="#">3</a></li>
-                              <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
-                            </ul>
-                        </div>
-                        <!-- /.card-footer -->
+                        </table>
                     </div>
-                    <!-- /.card -->
+                    <!-- /.card-body -->
+                    <div class="card-footer clearfix">
+                        <!--Pagination -->
+                        {% include 'includes/_pagination.html' %}
+                    </div>
+                    <!-- /.card-footer -->
                 </div>
-            {% else %}
-            <div class="jumbotron bg-white text-theme text-center shadow">
-                <h3> You have no videos </h3>
-                <a href="/bleepvideo">
-                    <button type="button" class="btn btn-theme"> Get Started >> </button>
-                </a>
+                <!-- /.card -->
             </div>
-            {% endif %}
+            
             
 
         </div>
@@ -176,7 +162,7 @@
         }
     });
 
-    $("button[type='submit']").on( "click", function(){
+    $("button[type='submit']:not(.searchbtn)").on( "click", function(){
             result= confirm("Are you sure?");
             if ( !(result === true) ) {
                 event.preventDefault();
