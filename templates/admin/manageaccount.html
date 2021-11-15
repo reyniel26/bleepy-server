@@ -9,67 +9,59 @@
         <button class="btn btn-success mb-3" data-toggle="modal" data-target="#addaccountmodal">Add Account</button>
         <div class=" container ">
 
-            
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Accounts</h3>
     
                     <div class="card-tools">
-                        <div class="input-group input-group-sm" style="width: 150px;">
-                        <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
-    
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-default">
-                            <i class="fa fa-search"></i>
-                            </button>
-                        </div>
-                        </div>
+                        <!--Card tool search-->
+                        {% include 'includes/card_tool/_search.html' %}
                     </div>
                 </div>
                 <!-- ./card-header -->
                 <div class="card-body">
-                  <table class="table table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Role</th>
-                            <th>Registration Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for account in viewdata.get('accounts') %}
-                            <tr data-widget="expandable-table" aria-expanded="false">
-                                <td>{{account.get('fname').title()}} {{account.get('lname').title()}}</td>
-                                <td>{{account.get('role').title()}}</td>
-                                <td>{{account.get('reg_date')}}</td>
+                    <!--Result Badge-->
+                    {% include 'includes/_resultbadge.html' %}
+
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Registration Date</th>
                             </tr>
-                            <tr class="expandable-body">
-                                <td colspan="3">
-                                    <div>
-                                        <div class="row justify-content-center">
-                                            <div class="col-md-10 col-12">
-                                                <button class="btn btn-info btnviewaccount" value="{{account.get('account_id')}}"><i class="fa fa-eye fa-lg" aria-hidden="true"></i> View</button>
-                                                <button class="btn btn-warning btneditaccount" value="{{account.get('account_id')}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i> Edit</button>
-                                                <button class="btn btn-danger btndeleteaccount" value="{{account.get('account_id')}}"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> Delete</button>
+                        </thead>
+                        <tbody>
+                            {% for account in viewdata.get('accounts') %}
+                                <tr data-widget="expandable-table" aria-expanded="false">
+                                    <td>{{account.get('fname').title()}} {{account.get('lname').title()}}</td>
+                                    <td>{{account.get('role').title()}}</td>
+                                    <td>{{account.get('reg_date')}}</td>
+                                </tr>
+                                <tr class="expandable-body">
+                                    <td colspan="3">
+                                        <div>
+                                            <div class="row justify-content-center">
+                                                <div class="col-md-10 col-12">
+                                                    <button class="btn btn-info btnviewaccount" value="{{account.get('account_id')}}"><i class="fa fa-eye fa-lg" aria-hidden="true"></i> View</button>
+                                                    <button class="btn btn-warning btneditaccount" value="{{account.get('account_id')}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i> Edit</button>
+                                                    <button class="btn btn-danger btndeleteaccount" value="{{account.get('account_id')}}"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> Delete</button>
+                                                </div>
                                             </div>
+                                            
                                         </div>
-                                        
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                  </table>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
                 <!-- /.card-body -->
                 <div class="card-footer clearfix">
-                    <ul class="pagination pagination-sm m-0 float-right">
-                      <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
-                      <li class="page-item"><a class="page-link" href="#">1</a></li>
-                      <li class="page-item"><a class="page-link" href="#">2</a></li>
-                      <li class="page-item"><a class="page-link" href="#">3</a></li>
-                      <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
-                    </ul>
+
+                    <!--Pagination -->
+                    {% include 'includes/_pagination.html' %}
+
                 </div>
                 <!-- /.card-footer -->
             </div>
@@ -393,7 +385,7 @@
             }
         });
 
-        $("button[type='submit']").on( "click", function(){
+        $("button[type='submit']:not.(.searchbtn)").on( "click", function(){
             result= confirm("Are you sure?");
             if ( !(result === true) ) {
                 event.preventDefault();

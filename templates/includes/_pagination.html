@@ -1,0 +1,10 @@
+<!--Pagination sometimes partnered by resultbadge -->
+{% if viewdata.get('pagination')%}
+<ul class="pagination pagination-sm m-0 float-right">
+    <li class="page-item {% if viewdata.get('active_page').get('start') %} active {% endif %}"><a class="page-link" href="?page=start{% if viewdata.get('resultbadge').get('search') %}&search={{viewdata.get('resultbadge').get('search')}}{% endif %}">Start</a></li>
+    {% for page in viewdata.get('pagination') %}
+        <li class="page-item {% if viewdata.get('active_page').get(page) %} active {% endif %}"><a class="page-link" href="?page={{page}}{% if viewdata.get('resultbadge').get('search') %}&search={{viewdata.get('resultbadge').get('search')}}{% endif %}">{{page}}</a></li>
+    {% endfor %}
+    <li class="page-item {% if viewdata.get('active_page').get('end') %} active {% endif %}"><a class="page-link" href="?page=end{% if viewdata.get('resultbadge').get('search') %}&search={{viewdata.get('resultbadge').get('search')}}{% endif %}">End</a></li>
+</ul>
+{% endif %}

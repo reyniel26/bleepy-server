@@ -397,6 +397,12 @@ class Model:
 
     def selectAccountsAll(self):
         return self.querySelectAll("call sp_select_accounts_all()")
+    
+    def selectAccountsAllLimitOffset(self,limit,offset):
+        return self.querySelectAll("call sp_select_accounts_all_limit_offset(%s,%s)",limit,offset)
+    
+    def selectAccountAllSearchLimitOffset(self,search,limit,offset):
+        return self.querySelectAll("call sp_select_accounts_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
     #================================================== Counts
     def countVideosUploadedByAcc(self,id:str):
         return self.querySelect("call sp_count_videos_uploadedby_account(%s)",id)
@@ -433,6 +439,9 @@ class Model:
 
     def countAccounts(self):
         return self.querySelect("call sp_count_accounts()")
+    
+    def countAccountsSearch(self,search):
+        return self.querySelect("call sp_count_accounts_search(%s)",search)
     
     #================================================== Inserts
     def insertRole(self,rolename):

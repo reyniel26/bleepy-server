@@ -1,0 +1,13 @@
+<p> 
+    {% if viewdata.get('resultbadge') %}
+        {% if viewdata.get('resultbadge').get('count') %}
+        <span class="badge badge-pill badge-primary">Total of {{viewdata.get('resultbadge').get('count') }}</span>
+        <span class="badge badge-pill badge-secondary">{{viewdata.get('resultbadge').get('start') }} - {{viewdata.get('resultbadge').get('end') }} of {{viewdata.get('resultbadge').get('count') }}</span>
+        {% else %}
+        <span class="badge badge-pill badge-danger">No result</span>
+        {% endif %}
+        {% if viewdata.get('resultbadge').get('search') %}
+            <span class="badge badge-pill badge-info">Search result of '<b>{{viewdata.get('resultbadge').get('search') }}</b>' </span>
+        {% endif %}
+    {% endif %}
+</p>

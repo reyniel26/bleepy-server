@@ -49,72 +49,62 @@
                             <h3 class="card-title">Videos</h3>
             
                             <div class="card-tools">
-                                <div class="input-group input-group-sm" style="width: 150px;">
-                                <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
-            
-                                <div class="input-group-append">
-                                    <button type="submit" class="btn btn-default">
-                                    <i class="fa fa-search"></i>
-                                    </button>
-                                </div>
-                                </div>
+                                <!--Card tool search-->
+                                {% include 'includes/card_tool/_search.html' %}
                             </div>
                         </div>
                         <!-- ./card-header -->
                         <div class="card-body">
-                          <table class="table table-bordered table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Uploaded on</th>
-                                    {% if viewdata.get('has_uploadedby')%}
-                                    <th>Uploaded by</th>
-                                    {% endif%}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for video in viewdata.get('videos') %}
-                                <tr data-widget="expandable-table" aria-expanded="false">
-                                    <td>{{video.get('filename')}}</td>
-                                    <td>{{video.get('upload_time')}}</td>
-                                    {% if video.get('uploadedby')%}
-                                        <td>{{video.get('uploadedby').title()}}</td>
-                                    {% endif%}
-                                </tr>
-                                <tr class="expandable-body">
-                                    {% if video.get('uploadedby')%}
-                                    <td colspan="3">
-                                    {% else %}
-                                    <td colspan="2">
-                                    {% endif%}
-                                        <div>
-                                            <div class="row justify-content-center">
-                                                <div class="col-md-6 col-12">
-                                                    <form action="/deletevideo" method="post">
-                                                        <button class="btn btn-theme-secondary btnvideoplayer my-1" value="{{video.get('video_id')}}" type="button"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>  
-                                                        <a href="/downloadvideo/{{video.get('video_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-download" aria-hidden="true"></i> Download </button> </a>
-                                                        <input type="hidden" name="path" id="path" value="{{video.get('video_id')}}">
-                                                        <button class="btn btn-danger my-1" type="submit"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
-                                                    </form>
+                            <!--Result Badge-->
+                            {% include 'includes/_resultbadge.html' %}
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Uploaded on</th>
+                                        {% if viewdata.get('has_uploadedby')%}
+                                        <th>Uploaded by</th>
+                                        {% endif%}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for video in viewdata.get('videos') %}
+                                    <tr data-widget="expandable-table" aria-expanded="false">
+                                        <td>{{video.get('filename')}}</td>
+                                        <td>{{video.get('upload_time')}}</td>
+                                        {% if video.get('uploadedby')%}
+                                            <td>{{video.get('uploadedby').title()}}</td>
+                                        {% endif%}
+                                    </tr>
+                                    <tr class="expandable-body">
+                                        {% if video.get('uploadedby')%}
+                                        <td colspan="3">
+                                        {% else %}
+                                        <td colspan="2">
+                                        {% endif%}
+                                            <div>
+                                                <div class="row justify-content-center">
+                                                    <div class="col-md-6 col-12">
+                                                        <form action="/deletevideo" method="post">
+                                                            <button class="btn btn-theme-secondary btnvideoplayer my-1" value="{{video.get('video_id')}}" type="button"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>  
+                                                            <a href="/downloadvideo/{{video.get('video_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-download" aria-hidden="true"></i> Download </button> </a>
+                                                            <input type="hidden" name="path" id="path" value="{{video.get('video_id')}}">
+                                                            <button class="btn btn-danger my-1" type="submit"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                                                        </form>
+                                                    </div>
                                                 </div>
+                                                
                                             </div>
-                                            
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                          </table>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                         <!-- /.card-body -->
                         <div class="card-footer clearfix">
-                            <ul class="pagination pagination-sm m-0 float-right">
-                              <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
-                              <li class="page-item"><a class="page-link" href="#">1</a></li>
-                              <li class="page-item"><a class="page-link" href="#">2</a></li>
-                              <li class="page-item"><a class="page-link" href="#">3</a></li>
-                              <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
-                            </ul>
+                            <!--Pagination -->
+                            {% include 'includes/_pagination.html' %}
                         </div>
                         <!-- /.card-footer -->
                     </div>
@@ -176,7 +166,7 @@
         }
     });
 
-    $("button[type='submit']").on( "click", function(){
+    $("button[type='submit']:not.(.searchbtn)").on( "click", function(){
             result= confirm("Are you sure?");
             if ( !(result === true) ) {
                 event.preventDefault();
