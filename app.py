@@ -355,11 +355,36 @@ def index():
 @app.route('/bleepsoundlist')
 @testConn
 def bleepsoundlist():
-    
-    bleepsounds = db.selectBleepSounds()
-    latest_bleepsound = db.selectLatestBleepSound()
+    page = request.args.get("page")
+    search = request.args.get("search") if request.args.get("search") else ""
 
-    return render_template('bleepsoundlist.html', viewdata = viewData(bleepsoundlist=True, bleepsounds=bleepsounds, latest_bleepsound =latest_bleepsound ) )
+    #Default
+    count = 0    
+    limit = app.config['DEFAULT_MAX_LIMIT']
+    offset = 0 
+
+    #Count first the search
+    count = db.countBleepSoundSearch(search).get('count') if db.countBleepSoundSearch(search) else 0
+    
+    #Arrange the offset and limit
+    offset = pagingControl.generateOffset(page,count,limit)
+    
+    #Query
+    bleepsounds = db.selectBleepSoundsSearchLimitOffset(search,limit,offset)
+    latest_bleepsound = db.selectLatestBleepSoundSearch(search)
+
+    resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
+    pagination = pagingControl.generatePagination(count,limit)
+    
+
+    return render_template('bleepsoundlist.html', 
+    viewdata = viewData(bleepsoundlist=True, 
+                        bleepsounds=bleepsounds, 
+                        latest_bleepsound = latest_bleepsound,
+                        resultbadge=resultbadge,
+                        pagination=pagination
+                        ) 
+    )
 
 
 #Signup Page
@@ -514,12 +539,12 @@ def dashboard():
 
     widgets_data = {
         "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
-        "bleepedvideos":db.selectBleepedVideosByAccount(acc_id),
+        "bleepedvideos":db.selectBleepedVideosByAccountSearchLimitOffset(acc_id,"",app.config['DEFAULT_ATLEAST_LIMIT'],0),
         "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A")
     }
 
     feeds = db.selectFeeds(acc_id) if acc_role != app.config["ROLE_ADMIN"] else db.selectAdminFeeds()
-    latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+    latestbleep_data = db.selectLatestBleepSummaryDataSearch(acc_id,"")
 
     admin_data = {}
     editor_data = {}
@@ -543,7 +568,7 @@ def dashboard():
         widgets_data["mostfrequentprofanities"]=db.selectTop10ProfanitiesAll()
         widgets_data["bleepedvideos"]=db.selectBleepedVideosAllSearchLimitOffset("",app.config['DEFAULT_ATLEAST_LIMIT'],0)
         #Update latest bleep
-        latestbleep_data = db.selectLatestBleepSummaryDataAll()
+        latestbleep_data = db.selectLatestBleepSummaryDataAllSearch("")
     
     
     return render_template('dashboard.html', viewdata = viewData( dashboard=True, 
@@ -664,7 +689,7 @@ def bleepvideolist():
         
         #Query
         bleepedvideos = db.selectBleepedVideosByAccountSearchLimitOffset(acc_id,search,limit,offset)
-        latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+        latestbleep_data = db.selectLatestBleepSummaryDataSearch(acc_id,search)
     
     resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
     pagination = pagingControl.generatePagination(count,limit)

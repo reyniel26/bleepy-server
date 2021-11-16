@@ -2,8 +2,8 @@
 <nav class="navbar navbar-expand-md navbar-dark bg-theme navbar-theme sticky-top">
     <div class=" container-md">
         <!-- Brand -->
-        <a class="navbar-brand" href="/"> <img src="{{url_for('static', filename='Bleepy_UI/src/logo-white.png')}}" alt="" class="" width="140px"></a>
-    
+        {% include 'includes/navbar_items/_brand.html' %}
+        
         <!-- Toggler/collapsibe Button -->
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
         <span class="navbar-toggler-icon"></span>
@@ -42,116 +42,19 @@
               </li>
             {% endif %}
             <!-- Navbar Search -->
-            <li class="nav-item">
-                <a class="nav-link" data-widget="navbar-search" data-target="#navbar-search1" href="#" role="button">
-                  <i class="fa fa-search"></i>
-                  <span class=" d-md-none"> Search</span>
-                </a>
-                <div class="navbar-search-block" id="navbar-search1">
-                  <form class="form-inline" action="">
-                    <div class="input-group input-group-sm">
-                      <input class="form-control form-control-navbar bg-light" type="search" placeholder="Search" aria-label="Search" name="search" id="search">
-                      <div class="input-group-append">
-                        <button class="btn btn-theme-secondary searchbtn" type="submit">
-                          <i class="fa fa-search"></i>
-                        </button>
-                        <button class="btn btn-theme-secondary" type="button" data-widget="navbar-search">
-                          <i class="fa fa-times"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-            </li>
+            {% include 'includes/navbar_items/_search_bar.html' %}
+
             {% if request.cookies.get(viewdata.get("auth_token")) %}
-              <!-- Notifications Dropdown Menu -->
-                <section>
-                    <li class="nav-item dropdown d-none d-md-block ">
-                        <a class="nav-link" data-toggle="dropdown" href="#">
-                          <i class="fa fa-bell"></i>
-                          <span class="badge badge-warning navbar-badge">15</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right ">
-                            <span class="dropdown-item dropdown-header">15 Notifications</span>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item">
-                                <i class="fa fa-envelope mr-2"></i> 4 new messages
-                                <span class="float-right text-muted text-sm">3 mins</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item">
-                                <i class="fa fa-users mr-2"></i> 8 friend requests
-                                <span class="float-right text-muted text-sm">12 hours</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item">
-                                <i class="fa fa-file mr-2"></i> 3 new reports
-                                <span class="float-right text-muted text-sm">2 days</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
-                        </div>
-                    </li>
-                    <li class="nav-item dropdown d-md-none">
-                        <a class="nav-link" data-toggle="dropdown" href="#">
-                          <i class="fa fa-bell"></i>
-                          <span class="badge badge-warning navbar-badge">15</span>
-                          <span class=" d-md-none"> Notifications</span>
-                        </a>
-                        <div class="dropdown-menu">
-                            <span class="dropdown-item dropdown-header">15 Notifications</span>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item">
-                                <i class="fa fa-envelope mr-2"></i> 4 new messages
-                                <span class="float-right text-muted text-sm">3 mins</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item">
-                                <i class="fa fa-users mr-2"></i> 8 friend requests
-                                <span class="float-right text-muted text-sm">12 hours</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item">
-                                <i class="fa fa-file mr-2"></i> 3 new reports
-                                <span class="float-right text-muted text-sm">2 days</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
-                        </div>
-                    </li>
-                </section>
-                <li class="nav-item">
-                    <a class="nav-link" data-widget="fullscreen" href="#" role="button">
-                      <i class="fa fa-expand"></i>
-                      <span class=" d-md-none"> Expand</span>
-                    </a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link " href="#" id="" data-toggle="dropdown">
-                        <i class="fa fa-cog fa-lg" aria-hidden="true"></i>
-                        <span class=" d-md-none"> Settings</span>
-                    </a>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">Help</a>
-                        <a class="dropdown-item" href="/settings">Settings</a>
-                    </div>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link " href="#" id="" data-toggle="dropdown">
-                        <i class="fa fa-chevron-circle-down fa-lg" aria-hidden="true"></i>
-                        <span class=" d-md-none"> Menu</span>
-                    </a>
-                    <div class="dropdown-menu">
-                        {% for nav in viewdata.get('navigations') %}
-                            {% if nav.get('location') != '/bleepsoundlist' %}
-                                <a class="dropdown-item" href="{{nav.get('location')}}">{{nav.get('name').title()}}</a>
-                            {% endif %}
-                        {% endfor %}
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="/logout">Log out</a>
-                        
-                    </div>
-                </li>
+                <!-- Notifications Dropdown Menu -->
+                
+                <!--Expand | Full screen-->
+                {% include 'includes/navbar_items/_expand.html' %}
+                
+                <!-- Settings | Help -->
+                {% include 'includes/navbar_items/_settings.html' %}
+
+                <!-- Menu Items -->
+                {% include 'includes/navbar_items/_menu.html' %}
             {% endif %}
         </ul>
         </div>

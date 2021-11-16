@@ -183,9 +183,15 @@ class Model:
     
     def selectLatestBleepSound(self):
         return self.querySelect("call sp_select_latest_bleep_sound()")
+    
+    def selectLatestBleepSoundSearch(self,search):
+        return self.querySelect("call sp_select_latest_bleep_sound_search(%s)",search)
 
     def selectLatestBleep(self,id:str):
         return self.querySelect("call sp_select_latest_censored_videos_by_account(%s)",id)
+    
+    def selectLatestBleepSearch(self,id:str,search):
+        return self.querySelect("call sp_select_latest_censored_videos_by_account_search(%s,%s)",id,search)
     
     def selectLatestBleepAll(self):
         return self.querySelect("call sp_select_latest_censored_videos_all()")
@@ -218,6 +224,10 @@ class Model:
 
     def selectLatestBleepSummaryData(self,id:str):
         latestbleep = self.selectLatestBleep(id)
+        return self.selectLatestBleepDataBuilder(latestbleep)
+    
+    def selectLatestBleepSummaryDataSearch(self,id:str,search):
+        latestbleep = self.selectLatestBleepSearch(id,search)
         return self.selectLatestBleepDataBuilder(latestbleep)
     
     def selectLatestBleepSummaryDataAll(self):
@@ -315,6 +325,9 @@ class Model:
     
     def selectBleepSounds(self):
         return self.querySelectAll("call sp_select_bleep_sounds_all()")
+    
+    def selectBleepSoundsSearchLimitOffset(self,search,limit,offset):
+        return self.querySelectAll("call sp_select_bleep_sounds_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
     
     def selectBleepSoundById(self, bleepsoundid):
         return self.querySelect("call sp_select_bleep_sound_by_bleepid(%s)",bleepsoundid)
@@ -482,6 +495,9 @@ class Model:
     
     def countAccountsSearch(self,search):
         return self.querySelect("call sp_count_accounts_search(%s)",search)
+    
+    def countBleepSoundSearch(self,search):
+        return self.querySelect("call sp_count_bleep_sound_search(%s)",search)
     
     #================================================== Inserts
     def insertRole(self,rolename):

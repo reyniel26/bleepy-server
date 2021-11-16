@@ -1,0 +1,16 @@
+<li class="nav-item dropdown">
+    <a class="nav-link " href="#" id="" data-toggle="dropdown">
+        <i class="fa fa-chevron-circle-down fa-lg" aria-hidden="true"></i>
+        <span class=" d-md-none"> Menu</span>
+    </a>
+    <div class="dropdown-menu">
+        {% for nav in viewdata.get('navigations') %}
+            {% if nav.get('location') != '/bleepsoundlist' %}
+                <a class="dropdown-item" href="{{nav.get('location')}}">{{nav.get('name').title()}}</a>
+            {% endif %}
+        {% endfor %}
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="/logout">Log out</a>
+        
+    </div>
+</li>
