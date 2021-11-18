@@ -165,7 +165,7 @@ class Model:
         feeds = []
         stmts = [
             (str(self.countVideosUploadedByAcc(id).get("count")),"Uploaded Videos","info","video-camera","/videolist"),
-            (str(self.countBleepVideosUploadedByAcc(id).get("count")),"Bleeped Videos","olive","soundcloud","/bleepvideolist"),
+            (str(self.countBleepVideosUploadedByAcc(id).get("count")),"Bleeped Videos","olive","film","/bleepvideolist"),
             (str(self.countProfanityWordsByAcc(id).get("count")),"Profanities Collected","maroon","comments-o","/profanities"),
             (str(self.countUniqueProfanityWordsByAcc(id).get("count")),"Unique Profanities","purple","commenting-o","/uniqueprofanities")
         ]
@@ -351,7 +351,7 @@ class Model:
         feeds = []
         stmts = [
             (str(self.countVideos().get("count")),"Overall Uploaded Videos","info","video-camera","/videos"),
-            (str(self.countBleepVideos().get("count")),"Overall Bleeped Videos","olive","soundcloud","/bleepedvideos"),
+            (str(self.countBleepVideos().get("count")),"Overall Bleeped Videos","olive","film","/bleepedvideos"),
             (str(self.countProfanityWords().get("count")),"Overall Profanities Collected","maroon","comments-o","/profanities"),
             (str(self.countUniqueProfanityWords().get("count")),"Overall Unique Profanities","purple","commenting-o","/uniqueprofanities")
         ]
@@ -369,6 +369,9 @@ class Model:
 
     def selectRoles(self):
         return self.querySelectAll("call sp_select_roles()")
+    
+    def selectNavByLocation(self,location):
+        return self.querySelect("call sp_select_nav_by_location(%s)",location)
     
     def selectAccountCountsByRole(self):
         feeds = []

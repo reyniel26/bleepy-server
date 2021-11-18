@@ -1,0 +1,33 @@
+{% extends 'layout2.html' %}
+<!--This layout use for sections -->
+{% block body %}
+    <section>
+        <!-- Input code here -->
+        <div class=" jumbotron bg-white shadow">
+            <h1 class=" font-weight-light">{{viewdata.get('page_name').title()}}</h1>
+            <hr>
+
+            {% block section %} {% endblock %}
+            
+        </div>
+    </section>
+{% endblock %}
+
+{% block script %}
+<script>
+    $("button[type='submit']:not(.searchbtn)").on( "click", function(){
+            result= confirm("Are you sure?");
+            if ( !(result === true) ) {
+                event.preventDefault();
+            } 
+    });
+
+    $('[data-widget="expandable-table"]').on( "click", function(){
+            if (($(this).attr("aria-expanded")) === 'false'){ 
+                $('[data-widget="expandable-table"][aria-expanded="true"]').ExpandableTable('toggleRow')
+            }
+    });
+    
+</script>
+    {% block sectionscript %} {% endblock %}
+{% endblock %}

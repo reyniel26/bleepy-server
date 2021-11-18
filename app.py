@@ -115,6 +115,8 @@ def viewData(**kwargs:str):
 
             #Navigation
             viewdata["navigations"] = db.selectNavOfRole(role_id)
+
+            viewdata["page_name"] = db.selectNavByLocation(request.path).get('name') if db.selectNavByLocation(request.path) else ""
         
         
 
@@ -378,14 +380,12 @@ def bleepsoundlist():
     
 
     return render_template('bleepsoundlist.html', 
-    viewdata = viewData(bleepsoundlist=True, 
-                        bleepsounds=bleepsounds, 
+    viewdata = viewData(bleepsounds=bleepsounds, 
                         latest_bleepsound = latest_bleepsound,
                         resultbadge=resultbadge,
                         pagination=pagination
                         ) 
     )
-
 
 #Signup Page
 @app.route('/signup', methods=["POST",'GET'])
@@ -571,9 +571,15 @@ def dashboard():
         latestbleep_data = db.selectLatestBleepSummaryDataAllSearch("")
     
     
-    return render_template('dashboard.html', viewdata = viewData( dashboard=True, 
-                            widgets_data=widgets_data, admin_data=admin_data, editor_data=editor_data,
-                            feeds=feeds, latestbleep_data=latestbleep_data ))
+    return render_template('dashboard.html', 
+                        viewdata = viewData( 
+                            widgets_data=widgets_data, 
+                            admin_data=admin_data, 
+                            editor_data=editor_data,
+                            feeds=feeds, 
+                            latestbleep_data=latestbleep_data 
+                            )
+    )
 
 #Profile route
 @app.route('/profile')
@@ -591,7 +597,11 @@ def profile():
     }
     max_photo_filesize = basicControl.bytesToMb(app.config["MAX_PHOTO_FILESIZE"])
     
-    return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data,max_photo_filesize=max_photo_filesize))
+    return render_template('profile.html', 
+            viewdata = viewData( user_data = user_data,
+            max_photo_filesize=max_photo_filesize
+            )
+    )
 
 #Video List route
 @app.route('/videolist')
@@ -822,7 +832,7 @@ def getbleepsoundinfo():
         bleepsoundid= request.form.get("bleepsound_id")
         bleepsoundinfo = db.selectBleepSoundById(bleepsoundid)
     
-        filelocation = "/static/"+bleepsoundinfo.get("filelocation") if bleepsoundinfo else ""
+        filelocation = url_for('static', filename=bleepsoundinfo.get("filelocation") )  if bleepsoundinfo else ""
         filename = bleepsoundinfo.get("filename")
         
         return jsonify({
@@ -1305,7 +1315,7 @@ def updatephoto():
 
 #==============Admin Pages
 # Manage Account 
-@app.route('/manageaccount',methods=["POST",'GET'])
+@app.route('/manageaccount')
 @testConn
 @authentication
 @isAdmin
@@ -1499,6 +1509,87 @@ def deleteaccount():
         flash('Invalid Request!', 'warning')
     return redirect(url_for('manageaccount'))
 
+#==============Editor Pages
+# Manage Bleep Sounds
+@app.route('/managebleepsounds')
+@testConn
+@authentication
+@isEditor
+def managebleepsounds():
+    page = request.args.get("page")
+    search = request.args.get("search") if request.args.get("search") else ""
+
+    #Default
+    count = 0    
+    limit = app.config['DEFAULT_MAX_LIMIT']
+    offset = 0 
+
+    #Count first the search
+    count = db.countBleepSoundSearch(search).get('count') if db.countBleepSoundSearch(search) else 0
+    
+    #Arrange the offset and limit
+    offset = pagingControl.generateOffset(page,count,limit)
+    
+    #Query
+    bleepsounds = db.selectBleepSoundsSearchLimitOffset(search,limit,offset)
+    latest_bleepsound = db.selectLatestBleepSoundSearch(search)
+
+    resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
+    pagination = pagingControl.generatePagination(count,limit)
+
+
+    return render_template('editor/managebleepsounds.html', 
+    viewdata = viewData(bleepsounds=bleepsounds, 
+                        latest_bleepsound = latest_bleepsound,
+                        resultbadge=resultbadge,
+                        pagination=pagination
+                        )
+    )
+
+# View Bleep sound
+@app.route('/viewbleepsound',methods=["POST",'GET'])
+@testConn
+@authentication
+@isEditor
+def viewbleepsound():
+    data = {}
+    if request.method == "POST":
+        if request.form.get("bleepsound_id"):
+            data = db.selectBleepSoundById(request.form.get("bleepsound_id"))
+
+    bleepsound = {
+        "bleep_sound_id":data.get('bleep_sound_id'),
+        "filename":data.get('filename'),
+        "filelocation":url_for('static', filename=data.get("filelocation") )  if data else "",
+        "longversion":data.get('longversion'),
+        "upload_time":data.get('upload_time')
+    }
+    return jsonify(bleepsound)
+
+
+# Add Bleep sound
+@app.route('/addbleepsound',methods=["POST",'GET'])
+@testConn
+@authentication
+@isEditor
+def addbleepsound():
+    return redirect(url_for('managebleepsounds'))
+
+# Edit Bleep sound
+@app.route('/editbleepsound',methods=["POST",'GET'])
+@testConn
+@authentication
+@isEditor
+def editbleepsound():
+    return redirect(url_for('managebleepsounds'))
+
+# Delete Bleep sound
+@app.route('/deletebleepsound',methods=["POST",'GET'])
+@testConn
+@authentication
+@isEditor
+def deletebleepsound():
+    return redirect(url_for('managebleepsounds'))
 #================================================== Run APP 
 if __name__ == '__main__':
     app.run()

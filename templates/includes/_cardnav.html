@@ -8,7 +8,7 @@
                 with font-awesome or any other icon font library -->
                 {% for nav in viewdata.get('navigations') %}
                 <li class="nav-item">
-                    <a href="{{nav.get('location')}}" class="nav-link {% if viewdata.get(nav.name) %} active {% endif %}">
+                    <a href="{{nav.get('location')}}" class="nav-link {% if nav.name == viewdata.get('page_name') %} active {% endif %}">
                         <i class="nav-icon fa fa-{{nav.get('icon')}}"></i>
                         <p>
                             {{nav.get('name').title()}}
