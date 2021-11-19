@@ -1,5 +1,7 @@
 #JWT
 import jwt
+#
+import subprocess
 
 class Controls:
     pass
@@ -58,7 +60,6 @@ class BasicControls(Controls):
     def getFileNameFromDirectory(self,directory):
         directory = self.removeStaticDirectory(directory)
         return directory.split("/")[-1]
-    
 
 class PagingControl(Controls):
     def generatePagination(self,count,limit):
@@ -82,5 +83,11 @@ class PagingControl(Controls):
                     offset = limit*(int(count//limit))
         return offset
     
-    
+class ProcessControl():
+    def runSubprocess(self,stmt):
+        process = subprocess.Popen(stmt, stdout=subprocess.PIPE)
+        while True:
+            data = process.stdout.read(4000)
+            if len(data) == 0:
+                break
     

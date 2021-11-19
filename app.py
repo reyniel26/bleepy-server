@@ -13,10 +13,11 @@ import os
 #Uuid = for unique random id
 import uuid
 
+
 #Model for DB
 from model import Model
 #Controls
-from control import TokenControls, BasicControls, PagingControl
+from control import *
 #Configs
 from config import ProductionConfig, DevelopmentConfig
 #Bleepy module
@@ -33,9 +34,11 @@ db = Model(
     app.config["DB_PWD"],
     app.config["DB_NAME"]
     )
+
 tokenControl = TokenControls(app.secret_key)
 basicControl = BasicControls()
 pagingControl = PagingControl()
+processControl = ProcessControl()
 
 
 #================================================== App Control Methods
@@ -126,11 +129,60 @@ def viewData(**kwargs:str):
 def allowedVideoFileSize(filesize) ->bool:
     return float(filesize) <= app.config['MAX_VIDEO_FILESIZE']
 
+def allowedAudioFileSize(filesize) ->bool:
+    return float(filesize) <= app.config['MAX_AUDIO_FILESIZE']
+
 def allowedPhotoFileSize(filesize) ->bool:
     return float(filesize) <= basicControl.bytesToMb(app.config['MAX_PHOTO_FILESIZE'])
 
 def flashPrintsforAdmin(msg,msgname=""):
-    flash(msgname+" Message: "+str(msg), 'info')
+    acc_id = getIdViaAuth() 
+    acc_role = db.selectAccRole(acc_id).get("name")
+    if acc_role.lower() == str(app.config["ROLE_ADMIN"]).lower():
+        flash(msgname+" Message: "+str(msg), 'info')
+
+def generateLongBleepSound(audio:AudioFile):
+    savedirectory = "static/"+app.config['AUDIO_UPLOADS_LONG']
+    #Trim the audio
+    trimname = "trim"+str(uuid.uuid4()) +"."+audio.getFileExtension()
+    trimaudio = "ffmpeg -i {} -af \"silenceremove=start_periods=1:start_duration=1:start_threshold=-60dB:detection=peak,aformat=dblp,areverse,silenceremove=start_periods=1:start_duration=1:start_threshold=-60dB:detection=peak,aformat=dblp,areverse\" {}"
+    trimaudio = trimaudio.format(audio.getFile(),savedirectory+"/"+trimname)
+    processControl.runSubprocess(trimaudio)
+    
+    #Save to text file
+    txtfilename = savedirectory+"/"+str(uuid.uuid4()) +".txt"
+    try:
+        f = open(txtfilename, "a")
+        for x in range(5):
+            f.write("file "+trimname+"\n")
+    finally:
+        f.close()
+
+    #Create long version
+    longname = "long"+str(uuid.uuid4()) +"."+audio.getFileExtension()
+    longaudio = "ffmpeg -safe 0 -f concat -i {} -c copy {}"
+    longaudio = longaudio.format(txtfilename,savedirectory+"/"+longname)
+    processControl.runSubprocess(longaudio)
+    
+
+    #Delete trim version
+    if os.path.exists(savedirectory+"/"+trimname):
+        os.remove(savedirectory+"/"+trimname)
+
+    #Delete the text file
+    if os.path.exists(txtfilename):
+        os.remove(txtfilename)
+    
+    #If the long version is created or not
+    if os.path.exists(savedirectory+"/"+longname):
+        flashPrintsforAdmin("Passed","Making long version of audio: ")
+        return longname
+    else:
+        flashPrintsforAdmin("Failed","Making long version of audio: ")
+        #Delete the audio file
+        if os.path.exists(audio.getFile()):
+            os.remove(audio.getFile())
+        return ''
 
 def saveVideo(file,filename,uniquefilename,acc_id):
     fileinfo = {
@@ -150,7 +202,10 @@ def saveVideo(file,filename,uniquefilename,acc_id):
         pass
 
     #SaveToDirectories
-    file.save(os.path.join("static/"+savefolder, uniquefilename))
+    try:
+        file.save(os.path.join("static/"+savefolder, uniquefilename))
+    except Exception as e:
+        flashPrintsforAdmin(e,"Error in saving file: ")
 
     #SaveToDB
     filelocation = savefolder+"/"+uniquefilename
@@ -165,6 +220,34 @@ def saveVideo(file,filename,uniquefilename,acc_id):
 
     return fileinfo
 
+def saveBleepSound(file,title,uniquefilename):
+    
+    # Save the file in directory
+    savefolder = app.config['AUDIO_UPLOADS_ORIG']
+    
+    try:
+        file.save(os.path.join("static/"+savefolder, uniquefilename))
+    except Exception as e:
+        flashPrintsforAdmin(e,"Error in saving file: ")
+    
+    audio = AudioFile()
+    audio.setFile("static/"+savefolder+"/"+uniquefilename)
+
+    # Make longer version of the file
+    longversion = generateLongBleepSound(audio)
+    if longversion:
+        # Save to db the data
+        filename = title
+        filelocation = app.config['AUDIO_UPLOADS_ORIG']+"/"+uniquefilename
+        longversion = app.config['AUDIO_UPLOADS_LONG']+"/"+longversion
+        msg = db.insertBleepSound(filename,uniquefilename,filelocation,longversion)
+        flashPrintsforAdmin(msg,"Insert Bleep sound")
+
+        return True
+    else:
+        flash('The audio file is not acceptable because the sound volume is too low, try to upload other audio file with higher sound volume', 'danger')
+        return False
+    
 def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory,profanities:list):
     bleepedvideoinfo = {
         "filename":"NaN",
@@ -1500,7 +1583,7 @@ def deleteaccount():
         
         #Delete uploaded by record
         msg = db.deleteUploadedById(acc_id)
-        flash("Uploaded Records are also deleted: "+str(msg), 'success')
+        flashPrintsforAdmin(msg,"Uploaded Records are also deleted:")
         #Delete the account
         msg = db.deleteAccById(acc_id)
         
@@ -1573,6 +1656,38 @@ def viewbleepsound():
 @authentication
 @isEditor
 def addbleepsound():
+    if request.method == "POST":
+        # Post request 
+        file = request.files.get("addfile")
+        title = request.form.get("addtitle")
+        filesize = request.form.get("addfilesize")
+
+        if not (file and filesize and title):
+            #If the fields are null
+            flash('Invalid! Empty Fields!', 'danger')
+            return redirect(url_for('managebleepsounds'))
+        
+        if not allowedAudioFileSize(filesize):
+            #If the filesize exceeds
+            errormsg = "File too large. Maximum File size allowed is "+str(basicControl.bytesToMb(app.config["MAX_AUDIO_FILESIZE"]))+" mb"
+            flash(errormsg, 'danger')
+            return redirect(url_for('managebleepsounds'))
+
+        # Validate the file
+        audio = AudioFile()
+
+        if not audio.isAllowedExt(audio.getExtension(file.filename)):
+            #If the file ext is not allowed
+            errormsg = "File type is not allowed. Allowed file extension are: "+str(audio.getAllowedExts())
+            flash(errormsg, 'danger')
+            return redirect(url_for('managebleepsounds'))
+        
+        #Save Bleep sound
+        uniquefilename = str(uuid.uuid4()) +"."+audio.getExtension(file.filename)
+        if saveBleepSound(file,title,uniquefilename):
+            flash('New bleep sound is added!', 'success')
+    else:
+        flash('Invalid Request!', 'warning')
     return redirect(url_for('managebleepsounds'))
 
 # Edit Bleep sound
@@ -1581,6 +1696,16 @@ def addbleepsound():
 @authentication
 @isEditor
 def editbleepsound():
+    if request.method == "POST":
+        # Post request 
+        # Validate the file
+        # Save the file in directory
+        # Make longer version of the file
+        # Save to db the data
+
+        flash('Edit bleep sound!', 'success')
+    else:
+        flash('Invalid Request!', 'warning')
     return redirect(url_for('managebleepsounds'))
 
 # Delete Bleep sound
@@ -1589,7 +1714,18 @@ def editbleepsound():
 @authentication
 @isEditor
 def deletebleepsound():
+    if request.method == "POST":
+        # Post request 
+        # Validate the file
+        # Save the file in directory
+        # Make longer version of the file
+        # Save to db the data
+
+        flash('Delete bleep sound!', 'success')
+    else:
+        flash('Invalid Request!', 'warning')
     return redirect(url_for('managebleepsounds'))
+
 #================================================== Run APP 
 if __name__ == '__main__':
     app.run()

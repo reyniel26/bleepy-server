@@ -22,12 +22,19 @@ class Config(object):
     VIDEO_UPLOADS = 'media/Storage/Videos/Uploads'
     VIDEO_PROCESSED = 'media/Storage/Videos/Uploads/Processed'
     VIDEO_TRASH = ''
+
+    AUDIO_UPLOADS_ORIG = 'media/Storage/Audios/orig'
+    AUDIO_UPLOADS_LONG = 'media/Storage/Audios/long'
+
     PHOTO_DEFAULT = 'media/Defaults/Images'
     PHOTO_DEFAULT_USER = PHOTO_DEFAULT+'/default.jpg'
     PHOTO_UPLOADS = 'media/Storage/Images'
 
-    MAX_VIDEO_FILESIZE = (1024*1024*1024)*1 #In Bytes : (1024*1024*1024) = 1GB
-    MAX_PHOTO_FILESIZE = (1024*1024*5) #In bytes: (1024*1024) = 1MB
+    SIZE_GB = (1024*1024*1024)
+    SIZE_MB = (1024*1024)
+    MAX_VIDEO_FILESIZE = SIZE_GB*1 #In Bytes : (1024*1024*1024) = 1GB
+    MAX_AUDIO_FILESIZE = SIZE_MB*25
+    MAX_PHOTO_FILESIZE = SIZE_MB*5 #In bytes: (1024*1024) = 1MB
 
     #Defaults
     DEFAULT_ACC_PWD = 'Password1234'

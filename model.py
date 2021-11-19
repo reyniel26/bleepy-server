@@ -524,6 +524,8 @@ class Model:
     def insertAccount(self,email,fname,lname,pwd,role_id):
         return self.queryInsert("call sp_add_account(%s,%s,%s,%s,%s)",email,fname,lname,pwd,role_id)
     
+    def insertBleepSound(self,filename,uniquefilename,filelocation,longversion):
+        return self.queryInsert("call sp_add_bleep_sound(%s,%s,%s,%s)",filename,uniquefilename,filelocation,longversion)
     #================================================== Update
     def updateAccFname(self,email,fname):
         return self.queryUpdate("call sp_update_account_fname(%s,%s)",email,fname)
