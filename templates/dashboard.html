@@ -232,6 +232,13 @@
 {% endblock %}
 
 {% block script %}
+    <script>
+        $('[data-widget="expandable-table"]').on( "click", function(){
+            if (($(this).attr("aria-expanded")) === 'false'){ 
+                $('[data-widget="expandable-table"][aria-expanded="true"]').ExpandableTable('toggleRow')
+            }
+        });
+    </script>
 
     {% if viewdata.get('latestbleep_data').get('uniqueprofanities') %}
     <script>

@@ -1,74 +1,67 @@
-{% extends 'layout2.html' %}
+{% extends 'layout3.html' %}
 
-{% block body %}
-<section>
-    <!-- Input code here -->
-    <div class=" jumbotron bg-white shadow">
-        <h1 class=" font-weight-light">Manage Accounts </h1>
-        <hr>
-        <button class="btn btn-success mb-3" data-toggle="modal" data-target="#addaccountmodal">Add Account</button>
-        <div class=" container ">
+{% block section %}
 
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Accounts</h3>
-    
-                    <div class="card-tools">
-                        <!--Card tool search-->
-                        {% include 'includes/card_tool/_search.html' %}
-                    </div>
+    <button class="btn btn-success mb-3" data-toggle="modal" data-target="#addaccountmodal">Add Account</button>
+    <div class=" container ">
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Accounts</h3>
+
+                <div class="card-tools">
+                    <!--Card tool search-->
+                    {% include 'includes/card_tool/_search.html' %}
                 </div>
-                <!-- ./card-header -->
-                <div class="card-body table-responsive-md">
-                    <!--Result Badge-->
-                    {% include 'includes/_resultbadge.html' %}
-
-                    <table class="table table-bordered table-hover">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Role</th>
-                                <th>Registration Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for account in viewdata.get('accounts') %}
-                                <tr data-widget="expandable-table" aria-expanded="false">
-                                    <td>{{account.get('fname').title()}} {{account.get('lname').title()}}</td>
-                                    <td>{{account.get('role').title()}}</td>
-                                    <td>{{account.get('reg_date')}}</td>
-                                </tr>
-                                <tr class="expandable-body bg-white">
-                                    <td colspan="3">
-                                        <div>
-                                            <div class="row ">
-                                                <div class="col-md-10 col-12">
-                                                    <button class="btn btn-info btnviewaccount" value="{{account.get('account_id')}}"><i class="fa fa-eye fa-lg" aria-hidden="true"></i> View</button>
-                                                    <button class="btn btn-warning btneditaccount" value="{{account.get('account_id')}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i> Edit</button>
-                                                    <button class="btn btn-danger btndeleteaccount" value="{{account.get('account_id')}}"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> Delete</button>
-                                                </div>
-                                            </div>
-                                            
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <!-- /.card-body -->
-                <div class="card-footer clearfix">
-
-                    <!--Pagination -->
-                    {% include 'includes/_pagination.html' %}
-
-                </div>
-                <!-- /.card-footer -->
             </div>
-        </div>
-        
-    </div>
+            <!-- ./card-header -->
+            <div class="card-body table-responsive-md">
+                <!--Result Badge-->
+                {% include 'includes/_resultbadge.html' %}
 
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Registration Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in viewdata.get('accounts') %}
+                            <tr data-widget="expandable-table" aria-expanded="false">
+                                <td>{{account.get('fname').title()}} {{account.get('lname').title()}}</td>
+                                <td>{{account.get('role').title()}}</td>
+                                <td>{{account.get('reg_date')}}</td>
+                            </tr>
+                            <tr class="expandable-body bg-white">
+                                <td colspan="3">
+                                    <div>
+                                        <div class="row ">
+                                            <div class="col-md-10 col-12">
+                                                <button class="btn btn-info btnviewaccount" value="{{account.get('account_id')}}"><i class="fa fa-eye fa-lg" aria-hidden="true"></i> View</button>
+                                                <button class="btn btn-warning btneditaccount" value="{{account.get('account_id')}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i> Edit</button>
+                                                <button class="btn btn-danger btndeleteaccount" value="{{account.get('account_id')}}"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> Delete</button>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+
+                <!--Pagination -->
+                {% include 'includes/_pagination.html' %}
+
+            </div>
+            <!-- /.card-footer -->
+        </div>
+    </div>
 
     <!-- Modals -->
     <div>
@@ -262,11 +255,11 @@
             </div>
         </div>
     </div>
-</section>
+
 {% endblock %}
 
 
-{% block script %}
+{% block sectionscript %}
 <script src="{{url_for('static', filename='Bleepy_UI/js/validation_validname.js')}}"></script>
     
     <script>
@@ -385,12 +378,6 @@
             }
         });
 
-        $("button[type='submit']:not(.searchbtn)").on( "click", function(){
-            result= confirm("Are you sure?");
-            if ( !(result === true) ) {
-                event.preventDefault();
-            } 
-        });
         
     </script>
 {% endblock %}

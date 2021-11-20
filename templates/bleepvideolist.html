@@ -1,205 +1,196 @@
-{% extends 'layout2.html' %}
+{% extends 'layout3.html' %}
 
-{% block body %}
-    <section>
-        <!-- Input code here -->
-        <div class=" jumbotron bg-white shadow">
-            <h1 class=" font-weight-light"> Bleeped Videos </h1>
-            <hr>
-            {% if viewdata.get("latestbleep_data") %}
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card collapsed-card" id="videopreviewcard">
-                            <div class="card-header bg-theme-secondary text-theme-secondary">
-                                <h3 class="card-title">Bleeped Video Player</h3>
-                
-                                <div class="card-tools">
-                                    <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                                        <i class="fa fa-expand text-theme-secondary"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                        <i class="fa fa-plus text-theme-secondary"></i>
-                                    </button>
-                                </div>
-                                <!-- /.card-tools -->
-                            </div>
-                            <!-- /.card-header -->
-                            <div class="card-body">
-                                <p class=" font-weight-bold">Summary <span class="float-md-right"> <a id="video_report_link" href="/bleepvideoinfo/{{viewdata.get('latestbleep_data').get('latestbleep').get('pvideo_id')}}">View Full Report</a></span></p>
-                                
-                                <div class=" table-responsive-xl  my-3">
-                                    <table class="table table-bordered table-hover">
-                                        <thead class="bg-theme-secondary text-theme-secondary">
-                                            <tr>
-                                                <th class="text-center">Video Title</th>
-                                                <th class="text-center">Bleep Sound</th>
-                                                <th class="text-center">Unique Profanities Identified </th>
-                                                <th class="text-center">Most Frequent Word</th>
-                                                <th class="text-center">Bleep Date </th>
-                                                {% if viewdata.get('has_uploadedby')%}
-                                                <th class="text-center">Uploaded by</th>
-                                                {% endif%} 
-                                            </tr>
-                                        </thead>
-                        
-                                        <tbody>
-                                            <tr>
-                                                <th class="text-center" id="video_filename">{{viewdata.get('latestbleep_data').get('latestbleep').get('filename')}}</th>
-                                                <th class="text-center" id="video_bfilename">{{viewdata.get('latestbleep_data').get('latestbleep').get('bfilename')}}</th>
-                                                <th class="text-center" id="video_uniqueprofanitycount">{{viewdata.get('latestbleep_data').get('uniqueprofanitycount')}}</th>
-                                                <th class="text-center" id="video_mostfrequentword">{{viewdata.get('latestbleep_data').get('mostfrequentword')}}</th>
-                                                <th class="text-center" id="video_process_time">{{viewdata.get('latestbleep_data').get('latestbleep').get('process_time')}}</th>
-                                                {% if viewdata.get('has_uploadedby')%}
-                                                <th class="text-center" id="video_uploaded_by">{{viewdata.get('latestbleep_data').get('latestbleep').get('uploadedby')}}</th>
-                                                {% endif%} 
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+{% block section %}
 
-                                <!-- Original Video vs Bleeped Video-->
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <!-- card -->
-                                        <div class="card  card-theme-secondary card-outline">
-                                            <div class="card-header ">
-                                            <h3 class="card-title">Original Video</h3>
-                            
-                                            <div class="card-tools">
-                                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                                <i class="fa fa-minus"></i>
-                                                </button>
-                                            </div>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="embed-responsive embed-responsive-16by9">
-                                                    <video class="embed-responsive-item" id="videopreview" controls>
-                                                        <source src="{{url_for('static', filename=viewdata.get('latestbleep_data').get('latestbleep').get('filelocation') )}}" type="video/mp4" />
-                                                        This video is not supported by your browser...
-                                                    </video>
-                                                </div>
-                                            </div>
-                                            <!-- /.card-body -->
-                                        </div>
-                                        <!-- /.card -->
-                                    </div>
-                                    <div class="col-md-6">
-                                        <!-- card -->
-                                        <div class="card  card-theme-secondary card-outline">
-                                            <div class="card-header ">
-                                            <h3 class="card-title">Bleeped Video</h3>
-                            
-                                            <div class="card-tools">
-                                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                                <i class="fa fa-minus"></i>
-                                                </button>
-                                            </div>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="embed-responsive embed-responsive-16by9">
-                                                    <video class="embed-responsive-item"  id="videobleeppreview" controls>
-                                                        <source src="{{url_for('static', filename=viewdata.get('latestbleep_data').get('latestbleep').get('pfilelocation') )}}" type="video/mp4" />
-                                                        This video is not supported by your browser...
-                                                    </video>
-                                                </div>
-                                            </div>
-                                            <!-- /.card-body -->
-                                        </div>
-                                        <!-- /.card -->
-                                    </div>
-                                </div>
-                                
-                            </div>
-                            <!-- /.card-body -->
-                        </div>
-                    </div>
-                </div>
-            {% else %}
-                <!--No Result -->
-                {% include 'includes/_noresult.html' %}
-            
-            {% endif %}
+    {% if viewdata.get("latestbleep_data") %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card collapsed-card" id="videopreviewcard">
+                    <div class="card-header bg-theme-secondary text-theme-secondary">
+                        <h3 class="card-title">Bleeped Video Player</h3>
         
-                <div class=" container ">
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Bleeped Videos</h3>
-            
-                            <div class="card-tools">
-                                <!--Card tool search-->
-                                {% include 'includes/card_tool/_search.html' %}
-                            </div>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                                <i class="fa fa-expand text-theme-secondary"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fa fa-plus text-theme-secondary"></i>
+                            </button>
                         </div>
-                        <!-- ./card-header -->
-                        <div class="card-body table-responsive-md">
-                            <!--Result Badge-->
-                            {% include 'includes/_resultbadge.html' %}
+                        <!-- /.card-tools -->
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <p class=" font-weight-bold">Summary <span class="float-md-right"> <a id="video_report_link" href="/bleepvideoinfo/{{viewdata.get('latestbleep_data').get('latestbleep').get('pvideo_id')}}">View Full Report</a></span></p>
+                        
+                        <div class=" table-responsive-xl  my-3">
                             <table class="table table-bordered table-hover">
-                                <thead>
+                                <thead class="bg-theme-secondary text-theme-secondary">
                                     <tr>
-                                        <th>Title</th>
-                                        <th>Bleep sound</th>
-                                        <th>Processed on</th>
+                                        <th class="text-center">Video Title</th>
+                                        <th class="text-center">Bleep Sound</th>
+                                        <th class="text-center">Unique Profanities Identified </th>
+                                        <th class="text-center">Most Frequent Word</th>
+                                        <th class="text-center">Bleep Date </th>
                                         {% if viewdata.get('has_uploadedby')%}
-                                        <th>Uploaded by</th>
-                                        {% endif%}
+                                        <th class="text-center">Uploaded by</th>
+                                        {% endif%} 
                                     </tr>
                                 </thead>
+                
                                 <tbody>
-                                    {% for videoinfo in viewdata.get('bleepedvideos') %} 
-                                    <tr data-widget="expandable-table" aria-expanded="false">
-                                        <td>{{videoinfo.get("filename")}}</td>
-                                        <td>{{videoinfo.get("bfilename")}}</td>
-                                        <td>{{videoinfo.get("process_time")}}</td>
-                                        {% if videoinfo.get('uploadedby')%}
-                                            <td>{{videoinfo.get('uploadedby').title()}}</td>
-                                        {% endif%}
+                                    <tr>
+                                        <th class="text-center" id="video_filename">{{viewdata.get('latestbleep_data').get('latestbleep').get('filename')}}</th>
+                                        <th class="text-center" id="video_bfilename">{{viewdata.get('latestbleep_data').get('latestbleep').get('bfilename')}}</th>
+                                        <th class="text-center" id="video_uniqueprofanitycount">{{viewdata.get('latestbleep_data').get('uniqueprofanitycount')}}</th>
+                                        <th class="text-center" id="video_mostfrequentword">{{viewdata.get('latestbleep_data').get('mostfrequentword')}}</th>
+                                        <th class="text-center" id="video_process_time">{{viewdata.get('latestbleep_data').get('latestbleep').get('process_time')}}</th>
+                                        {% if viewdata.get('has_uploadedby')%}
+                                        <th class="text-center" id="video_uploaded_by">{{viewdata.get('latestbleep_data').get('latestbleep').get('uploadedby')}}</th>
+                                        {% endif%} 
                                     </tr>
-                                    <tr class="expandable-body ">
-                                        {% if videoinfo.get('uploadedby')%}
-                                        <td colspan="4">
-                                        {% else %}
-                                        <td colspan="3">
-                                        {% endif%}
-                                            <div>
-                                                <div class="row ">
-                                                    <div class="col-md-10 col-12">
-                                                        <form action="/deletebleepvideo" method="post">
-                                                            <button class="btn btn-theme-secondary my-1 btnvideoplayer" value="{{videoinfo.get('pvideo_id')}}" type="button"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i> Play </button> 
-                                                            <a href="/bleepvideoinfo/{{videoinfo.get('pvideo_id')}}" > <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-eye" aria-hidden="true"></i> View Full Report</button> </a> 
-                                                            <a href="/downloadbleeped/{{videoinfo.get('pvideo_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-download" aria-hidden="true"></i> Download Bleep Video </button> </a>  
-                                                            <input type="hidden" name="path" id="path" value="{{videoinfo.get('pvideo_id')}}">
-                                                            <button class="btn btn-danger my-1" type="submit"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                                
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
-                        <!-- /.card-body -->
-                        <div class="card-footer clearfix">
-                            <!--Pagination -->
-                            {% include 'includes/_pagination.html' %}
+
+                        <!-- Original Video vs Bleeped Video-->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!-- card -->
+                                <div class="card  card-theme-secondary card-outline">
+                                    <div class="card-header ">
+                                    <h3 class="card-title">Original Video</h3>
+                    
+                                    <div class="card-tools">
+                                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                        <i class="fa fa-minus"></i>
+                                        </button>
+                                    </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="embed-responsive embed-responsive-16by9">
+                                            <video class="embed-responsive-item" id="videopreview" controls>
+                                                <source src="{{url_for('static', filename=viewdata.get('latestbleep_data').get('latestbleep').get('filelocation') )}}" type="video/mp4" />
+                                                This video is not supported by your browser...
+                                            </video>
+                                        </div>
+                                    </div>
+                                    <!-- /.card-body -->
+                                </div>
+                                <!-- /.card -->
+                            </div>
+                            <div class="col-md-6">
+                                <!-- card -->
+                                <div class="card  card-theme-secondary card-outline">
+                                    <div class="card-header ">
+                                    <h3 class="card-title">Bleeped Video</h3>
+                    
+                                    <div class="card-tools">
+                                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                        <i class="fa fa-minus"></i>
+                                        </button>
+                                    </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="embed-responsive embed-responsive-16by9">
+                                            <video class="embed-responsive-item"  id="videobleeppreview" controls>
+                                                <source src="{{url_for('static', filename=viewdata.get('latestbleep_data').get('latestbleep').get('pfilelocation') )}}" type="video/mp4" />
+                                                This video is not supported by your browser...
+                                            </video>
+                                        </div>
+                                    </div>
+                                    <!-- /.card-body -->
+                                </div>
+                                <!-- /.card -->
+                            </div>
                         </div>
-                        <!-- /.card-footer -->
+                        
                     </div>
-                    <!-- /.card -->
+                    <!-- /.card-body -->
                 </div>
-            
-            
-
+            </div>
         </div>
-    </section>
+    {% else %}
+        <!--No Result -->
+        {% include 'includes/_noresult.html' %}
+    
+    {% endif %}
 
+    <div class=" container ">
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Bleeped Videos</h3>
+
+                <div class="card-tools">
+                    <!--Card tool search-->
+                    {% include 'includes/card_tool/_search.html' %}
+                </div>
+            </div>
+            <!-- ./card-header -->
+            <div class="card-body table-responsive-md">
+                <!--Result Badge-->
+                {% include 'includes/_resultbadge.html' %}
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Bleep sound</th>
+                            <th>Processed on</th>
+                            {% if viewdata.get('has_uploadedby')%}
+                            <th>Uploaded by</th>
+                            {% endif%}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for videoinfo in viewdata.get('bleepedvideos') %} 
+                        <tr data-widget="expandable-table" aria-expanded="false">
+                            <td>{{videoinfo.get("filename")}}</td>
+                            <td>{{videoinfo.get("bfilename")}}</td>
+                            <td>{{videoinfo.get("process_time")}}</td>
+                            {% if videoinfo.get('uploadedby')%}
+                                <td>{{videoinfo.get('uploadedby').title()}}</td>
+                            {% endif%}
+                        </tr>
+                        <tr class="expandable-body ">
+                            {% if videoinfo.get('uploadedby')%}
+                            <td colspan="4">
+                            {% else %}
+                            <td colspan="3">
+                            {% endif%}
+                                <div>
+                                    <div class="row ">
+                                        <div class="col-md-10 col-12">
+                                            <form action="/deletebleepvideo" method="post">
+                                                <button class="btn btn-theme-secondary my-1 btnvideoplayer" value="{{videoinfo.get('pvideo_id')}}" type="button"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i> Play </button> 
+                                                <a href="/bleepvideoinfo/{{videoinfo.get('pvideo_id')}}" > <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-eye" aria-hidden="true"></i> View Full Report</button> </a> 
+                                                <a href="/downloadbleeped/{{videoinfo.get('pvideo_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-download" aria-hidden="true"></i> Download Bleep Video </button> </a>  
+                                                <input type="hidden" name="path" id="path" value="{{videoinfo.get('pvideo_id')}}">
+                                                <button class="btn btn-danger my-1" type="submit"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <!--Pagination -->
+                {% include 'includes/_pagination.html' %}
+            </div>
+            <!-- /.card-footer -->
+        </div>
+        <!-- /.card -->
+    </div>
+            
 {% endblock %}
 
-{% block script %}
+{% block sectionscript %}
 <script>
     $('.btnvideoplayer').on('click', function() {
         if($(this).val()){
@@ -253,11 +244,5 @@
         }
     });
 
-    $("button[type='submit']:not(.searchbtn)").on( "click", function(){
-            result= confirm("Are you sure?");
-            if ( !(result === true) ) {
-                event.preventDefault();
-            } 
-    });
 </script>
 {% endblock %}

@@ -13,10 +13,11 @@ import os
 #Uuid = for unique random id
 import uuid
 
+
 #Model for DB
 from model import Model
 #Controls
-from control import TokenControls, BasicControls, PagingControl
+from control import *
 #Configs
 from config import ProductionConfig, DevelopmentConfig
 #Bleepy module
@@ -33,9 +34,11 @@ db = Model(
     app.config["DB_PWD"],
     app.config["DB_NAME"]
     )
+
 tokenControl = TokenControls(app.secret_key)
 basicControl = BasicControls()
 pagingControl = PagingControl()
+processControl = ProcessControl()
 
 
 #================================================== App Control Methods
@@ -115,6 +118,8 @@ def viewData(**kwargs:str):
 
             #Navigation
             viewdata["navigations"] = db.selectNavOfRole(role_id)
+
+            viewdata["page_name"] = db.selectNavByLocation(request.path).get('name') if db.selectNavByLocation(request.path) else ""
         
         
 
@@ -124,11 +129,60 @@ def viewData(**kwargs:str):
 def allowedVideoFileSize(filesize) ->bool:
     return float(filesize) <= app.config['MAX_VIDEO_FILESIZE']
 
+def allowedAudioFileSize(filesize) ->bool:
+    return float(filesize) <= app.config['MAX_AUDIO_FILESIZE']
+
 def allowedPhotoFileSize(filesize) ->bool:
     return float(filesize) <= basicControl.bytesToMb(app.config['MAX_PHOTO_FILESIZE'])
 
 def flashPrintsforAdmin(msg,msgname=""):
-    flash(msgname+" Message: "+str(msg), 'info')
+    acc_id = getIdViaAuth() 
+    acc_role = db.selectAccRole(acc_id).get("name")
+    if acc_role.lower() == str(app.config["ROLE_ADMIN"]).lower():
+        flash(msgname+" Message: "+str(msg), 'info')
+
+def generateLongBleepSound(audio:AudioFile):
+    savedirectory = "static/"+app.config['AUDIO_UPLOADS_LONG']
+    #Trim the audio
+    trimname = "trim"+str(uuid.uuid4()) +"."+audio.getFileExtension()
+    trimaudio = "ffmpeg -i {} -af \"silenceremove=start_periods=1:start_duration=1:start_threshold=-60dB:detection=peak,aformat=dblp,areverse,silenceremove=start_periods=1:start_duration=1:start_threshold=-60dB:detection=peak,aformat=dblp,areverse\" {}"
+    trimaudio = trimaudio.format(audio.getFile(),savedirectory+"/"+trimname)
+    processControl.runSubprocess(trimaudio)
+    
+    #Save to text file
+    txtfilename = savedirectory+"/"+str(uuid.uuid4()) +".txt"
+    try:
+        f = open(txtfilename, "a")
+        for x in range(5):
+            f.write("file "+trimname+"\n")
+    finally:
+        f.close()
+
+    #Create long version
+    longname = "long"+str(uuid.uuid4()) +"."+audio.getFileExtension()
+    longaudio = "ffmpeg -safe 0 -f concat -i {} -c copy {}"
+    longaudio = longaudio.format(txtfilename,savedirectory+"/"+longname)
+    processControl.runSubprocess(longaudio)
+    
+
+    #Delete trim version
+    if os.path.exists(savedirectory+"/"+trimname):
+        os.remove(savedirectory+"/"+trimname)
+
+    #Delete the text file
+    if os.path.exists(txtfilename):
+        os.remove(txtfilename)
+    
+    #If the long version is created or not
+    if os.path.exists(savedirectory+"/"+longname):
+        flashPrintsforAdmin("Passed","Making long version of audio: ")
+        return longname
+    else:
+        flashPrintsforAdmin("Failed","Making long version of audio: ")
+        #Delete the audio file
+        if os.path.exists(audio.getFile()):
+            os.remove(audio.getFile())
+        return ''
 
 def saveVideo(file,filename,uniquefilename,acc_id):
     fileinfo = {
@@ -148,7 +202,10 @@ def saveVideo(file,filename,uniquefilename,acc_id):
         pass
 
     #SaveToDirectories
-    file.save(os.path.join("static/"+savefolder, uniquefilename))
+    try:
+        file.save(os.path.join("static/"+savefolder, uniquefilename))
+    except Exception as e:
+        flashPrintsforAdmin(e,"Error in saving file: ")
 
     #SaveToDB
     filelocation = savefolder+"/"+uniquefilename
@@ -163,6 +220,74 @@ def saveVideo(file,filename,uniquefilename,acc_id):
 
     return fileinfo
 
+def saveBleepSound(file,title,uniquefilename):
+    
+    # Save the file in directory
+    savefolder = app.config['AUDIO_UPLOADS_ORIG']
+    
+    try:
+        file.save(os.path.join("static/"+savefolder, uniquefilename))
+    except Exception as e:
+        flashPrintsforAdmin(e,"Error in saving file: ")
+    
+    audio = AudioFile()
+    audio.setFile("static/"+savefolder+"/"+uniquefilename)
+
+    # Make longer version of the file
+    longversion = generateLongBleepSound(audio)
+    if longversion:
+        # Save to db the data
+        filename = title
+        filelocation = app.config['AUDIO_UPLOADS_ORIG']+"/"+uniquefilename
+        longversion = app.config['AUDIO_UPLOADS_LONG']+"/"+longversion
+        msg = db.insertBleepSound(filename,uniquefilename,filelocation,longversion)
+        flashPrintsforAdmin(msg,"Insert Bleep sound")
+
+        return True
+    else:
+        flash('The audio file is not acceptable because the sound volume is too low, try to upload other audio file with higher sound volume', 'danger')
+        return False
+
+def updateBleepSound(bleepsound_id,file,title,uniquefilename):
+    
+    # Save the file in directory
+    savefolder = app.config['AUDIO_UPLOADS_ORIG']
+    
+    try:
+        file.save(os.path.join("static/"+savefolder, uniquefilename))
+    except Exception as e:
+        flashPrintsforAdmin(e,"Error in saving file: ")
+    
+    audio = AudioFile()
+    audio.setFile("static/"+savefolder+"/"+uniquefilename)
+
+    # Make longer version of the file
+    longversion = generateLongBleepSound(audio)
+    if longversion:
+        bleepsound_data = db.selectBleepSoundById(bleepsound_id)
+        #Delete the previous data
+        #Delete orig version
+        if os.path.exists("static/"+bleepsound_data.get("filelocation")):
+            os.remove("static/"+bleepsound_data.get("filelocation"))
+            flashPrintsforAdmin("Success","Deleted Previous original file: ")
+
+        #Delete long version
+        if os.path.exists("static/"+bleepsound_data.get("longversion")):
+            os.remove("static/"+bleepsound_data.get("longversion"))
+            flashPrintsforAdmin("Success","Deleted Previous longversion file: ")
+
+        # Save to db the data
+        filename = title
+        filelocation = app.config['AUDIO_UPLOADS_ORIG']+"/"+uniquefilename
+        longversion = app.config['AUDIO_UPLOADS_LONG']+"/"+longversion
+        msg = db.updateBleepSoundById(bleepsound_id,filename,uniquefilename,filelocation,longversion)
+        flashPrintsforAdmin(msg,"Update Bleep sound")
+
+        return True
+    else:
+        flash('The audio file is not acceptable because the sound volume is too low, try to upload other audio file with higher sound volume', 'danger')
+        return False
+    
 def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory,profanities:list):
     bleepedvideoinfo = {
         "filename":"NaN",
@@ -355,12 +480,35 @@ def index():
 @app.route('/bleepsoundlist')
 @testConn
 def bleepsoundlist():
+    page = request.args.get("page")
+    search = request.args.get("search") if request.args.get("search") else ""
+
+    #Default
+    count = 0    
+    limit = app.config['DEFAULT_MAX_LIMIT']
+    offset = 0 
+
+    #Count first the search
+    count = db.countBleepSoundSearch(search).get('count') if db.countBleepSoundSearch(search) else 0
     
-    bleepsounds = db.selectBleepSounds()
-    latest_bleepsound = db.selectLatestBleepSound()
+    #Arrange the offset and limit
+    offset = pagingControl.generateOffset(page,count,limit)
+    
+    #Query
+    bleepsounds = db.selectBleepSoundsSearchLimitOffset(search,limit,offset)
+    latest_bleepsound = db.selectLatestBleepSoundSearch(search)
 
-    return render_template('bleepsoundlist.html', viewdata = viewData(bleepsoundlist=True, bleepsounds=bleepsounds, latest_bleepsound =latest_bleepsound ) )
+    resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
+    pagination = pagingControl.generatePagination(count,limit)
+    
 
+    return render_template('bleepsoundlist.html', 
+    viewdata = viewData(bleepsounds=bleepsounds, 
+                        latest_bleepsound = latest_bleepsound,
+                        resultbadge=resultbadge,
+                        pagination=pagination
+                        ) 
+    )
 
 #Signup Page
 @app.route('/signup', methods=["POST",'GET'])
@@ -514,12 +662,12 @@ def dashboard():
 
     widgets_data = {
         "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
-        "bleepedvideos":db.selectBleepedVideosByAccount(acc_id),
+        "bleepedvideos":db.selectBleepedVideosByAccountSearchLimitOffset(acc_id,"",app.config['DEFAULT_ATLEAST_LIMIT'],0),
         "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A")
     }
 
     feeds = db.selectFeeds(acc_id) if acc_role != app.config["ROLE_ADMIN"] else db.selectAdminFeeds()
-    latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+    latestbleep_data = db.selectLatestBleepSummaryDataSearch(acc_id,"")
 
     admin_data = {}
     editor_data = {}
@@ -543,12 +691,18 @@ def dashboard():
         widgets_data["mostfrequentprofanities"]=db.selectTop10ProfanitiesAll()
         widgets_data["bleepedvideos"]=db.selectBleepedVideosAllSearchLimitOffset("",app.config['DEFAULT_ATLEAST_LIMIT'],0)
         #Update latest bleep
-        latestbleep_data = db.selectLatestBleepSummaryDataAll()
+        latestbleep_data = db.selectLatestBleepSummaryDataAllSearch("")
     
     
-    return render_template('dashboard.html', viewdata = viewData( dashboard=True, 
-                            widgets_data=widgets_data, admin_data=admin_data, editor_data=editor_data,
-                            feeds=feeds, latestbleep_data=latestbleep_data ))
+    return render_template('dashboard.html', 
+                        viewdata = viewData( 
+                            widgets_data=widgets_data, 
+                            admin_data=admin_data, 
+                            editor_data=editor_data,
+                            feeds=feeds, 
+                            latestbleep_data=latestbleep_data 
+                            )
+    )
 
 #Profile route
 @app.route('/profile')
@@ -566,7 +720,11 @@ def profile():
     }
     max_photo_filesize = basicControl.bytesToMb(app.config["MAX_PHOTO_FILESIZE"])
     
-    return render_template('profile.html', viewdata = viewData(profile=True, user_data = user_data,max_photo_filesize=max_photo_filesize))
+    return render_template('profile.html', 
+            viewdata = viewData( user_data = user_data,
+            max_photo_filesize=max_photo_filesize
+            )
+    )
 
 #Video List route
 @app.route('/videolist')
@@ -664,7 +822,7 @@ def bleepvideolist():
         
         #Query
         bleepedvideos = db.selectBleepedVideosByAccountSearchLimitOffset(acc_id,search,limit,offset)
-        latestbleep_data = db.selectLatestBleepSummaryData(acc_id)
+        latestbleep_data = db.selectLatestBleepSummaryDataSearch(acc_id,search)
     
     resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
     pagination = pagingControl.generatePagination(count,limit)
@@ -739,7 +897,8 @@ def deletevideo():
 
         #Delete Record
         msg = db.deleteVideoByVidId(video_id)
-        flash(videoinfo.get('filename')+" is now deleted. "+str(msg),'success')
+        flashPrintsforAdmin(msg,"Delete Video: ")
+        flash(videoinfo.get('filename')+" is now deleted. ",'success')
         return redirect(url_for('videolist'))
     else:
         flash("Invalid Request",'danger')
@@ -774,10 +933,12 @@ def deletebleepvideo():
         
         #Delete Pword records
         msg = db.deleteProfanityWordsByVidId(bleepvideo_id)
-        flash(" Profanity records of the video is also deleted. "+str(msg),'success')
+        flashPrintsforAdmin(msg,"Delete Profanities from bleep video: ")
+        flash(" Profanity records of the video is also deleted. ",'success')
         #Delete Record of Video
         msg = db.deleteBleepVideoByVidId(bleepvideo_id)
-        flash(bleepvideoinfo.get('filename')+" Bleep Version is now deleted. "+str(msg),'success')
+        flashPrintsforAdmin(msg,"Delete Bleep Video: ")
+        flash(bleepvideoinfo.get('filename')+" Bleep Version is now deleted. ",'success')
         return redirect(url_for('bleepvideolist'))
     else:
         flash("Invalid Request",'danger')
@@ -797,7 +958,7 @@ def getbleepsoundinfo():
         bleepsoundid= request.form.get("bleepsound_id")
         bleepsoundinfo = db.selectBleepSoundById(bleepsoundid)
     
-        filelocation = "/static/"+bleepsoundinfo.get("filelocation") if bleepsoundinfo else ""
+        filelocation = url_for('static', filename=bleepsoundinfo.get("filelocation") )  if bleepsoundinfo else ""
         filename = bleepsoundinfo.get("filename")
         
         return jsonify({
@@ -1280,7 +1441,7 @@ def updatephoto():
 
 #==============Admin Pages
 # Manage Account 
-@app.route('/manageaccount',methods=["POST",'GET'])
+@app.route('/manageaccount')
 @testConn
 @authentication
 @isAdmin
@@ -1465,7 +1626,7 @@ def deleteaccount():
         
         #Delete uploaded by record
         msg = db.deleteUploadedById(acc_id)
-        flash("Uploaded Records are also deleted: "+str(msg), 'success')
+        flashPrintsforAdmin(msg,"Uploaded Records are also deleted:")
         #Delete the account
         msg = db.deleteAccById(acc_id)
         
@@ -1473,6 +1634,199 @@ def deleteaccount():
     else:
         flash('Invalid Request!', 'warning')
     return redirect(url_for('manageaccount'))
+
+#==============Editor Pages
+# Manage Bleep Sounds
+@app.route('/managebleepsounds')
+@testConn
+@authentication
+@isEditor
+def managebleepsounds():
+    page = request.args.get("page")
+    search = request.args.get("search") if request.args.get("search") else ""
+
+    #Default
+    count = 0    
+    limit = app.config['DEFAULT_MAX_LIMIT']
+    offset = 0 
+
+    #Count first the search
+    count = db.countBleepSoundSearch(search).get('count') if db.countBleepSoundSearch(search) else 0
+    
+    #Arrange the offset and limit
+    offset = pagingControl.generateOffset(page,count,limit)
+    
+    #Query
+    bleepsounds = db.selectBleepSoundsSearchLimitOffset(search,limit,offset)
+    latest_bleepsound = db.selectLatestBleepSoundSearch(search)
+
+    resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
+    pagination = pagingControl.generatePagination(count,limit)
+
+
+    return render_template('editor/managebleepsounds.html', 
+    viewdata = viewData(bleepsounds=bleepsounds, 
+                        latest_bleepsound = latest_bleepsound,
+                        resultbadge=resultbadge,
+                        pagination=pagination
+                        )
+    )
+
+# View Bleep sound
+@app.route('/viewbleepsound',methods=["POST",'GET'])
+@testConn
+@authentication
+@isEditor
+def viewbleepsound():
+    data = {}
+    if request.method == "POST":
+        if request.form.get("bleepsound_id"):
+            data = db.selectBleepSoundById(request.form.get("bleepsound_id"))
+
+    bleepsound = {
+        "bleep_sound_id":data.get('bleep_sound_id'),
+        "filename":data.get('filename'),
+        "filelocation":url_for('static', filename=data.get("filelocation") )  if data else "",
+        "longversion":data.get('longversion'),
+        "upload_time":data.get('upload_time')
+    }
+    return jsonify(bleepsound)
+
+# Add Bleep sound
+@app.route('/addbleepsound',methods=["POST",'GET'])
+@testConn
+@authentication
+@isEditor
+def addbleepsound():
+    if request.method == "POST":
+        # Post request 
+        file = request.files.get("addfile")
+        title = request.form.get("addtitle")
+        filesize = request.form.get("addfilesize")
+
+        if not (file and filesize and title):
+            #If the fields are null
+            flash('Invalid! Empty Fields!', 'danger')
+            return redirect(url_for('managebleepsounds'))
+        
+        if not allowedAudioFileSize(filesize):
+            #If the filesize exceeds
+            errormsg = "File too large. Maximum File size allowed is "+str(basicControl.bytesToMb(app.config["MAX_AUDIO_FILESIZE"]))+" mb"
+            flash(errormsg, 'danger')
+            return redirect(url_for('managebleepsounds'))
+
+        # Validate the file
+        audio = AudioFile()
+
+        if not audio.isAllowedExt(audio.getExtension(file.filename)):
+            #If the file ext is not allowed
+            errormsg = "File type is not allowed. Allowed file extension are: "+str(audio.getAllowedExts())
+            flash(errormsg, 'danger')
+            return redirect(url_for('managebleepsounds'))
+        
+        #Save Bleep sound
+        uniquefilename = str(uuid.uuid4()) +"."+audio.getExtension(file.filename)
+        if saveBleepSound(file,title,uniquefilename):
+            flash('New bleep sound is added!', 'success')
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(url_for('managebleepsounds'))
+
+# Edit Bleep sound
+@app.route('/editbleepsound',methods=["POST",'GET'])
+@testConn
+@authentication
+@isEditor
+def editbleepsound():
+    if request.method == "POST":
+        bleepsound_id =  request.form.get("editbleepsoundid")
+        title = request.form.get("edittitle")
+        if not (bleepsound_id and title):
+            flash('Empty fields', 'danger')
+            return redirect(url_for('managebleepsounds'))
+        
+        file = request.files.get("editfile")
+
+        if file:
+            filesize = request.form.get("editfilesize")
+
+            if not filesize:
+                flash('Empty fields', 'danger')
+                return redirect(url_for('managebleepsounds'))
+            
+            if not allowedAudioFileSize(filesize):
+                #If the filesize exceeds
+                errormsg = "File too large. Maximum File size allowed is "+str(basicControl.bytesToMb(app.config["MAX_AUDIO_FILESIZE"]))+" mb"
+                flash(errormsg, 'danger')
+                return redirect(url_for('managebleepsounds'))
+
+            # Validate the file
+            audio = AudioFile()
+
+            if not audio.isAllowedExt(audio.getExtension(file.filename)):
+                #If the file ext is not allowed
+                errormsg = "File type is not allowed. Allowed file extension are: "+str(audio.getAllowedExts())
+                flash(errormsg, 'danger')
+                return redirect(url_for('managebleepsounds'))
+            
+            # Update file
+            uniquefilename = str(uuid.uuid4()) +"."+audio.getExtension(file.filename)
+            if updateBleepSound(bleepsound_id,file,title,uniquefilename):
+                flash('Bleep sound has been updated!', 'success')
+        else:
+            msg = db.updateBleepSoundFilenameById(bleepsound_id,title)
+            flashPrintsforAdmin(msg,"Update Bleep sound")
+            flash('Bleep sound title has been updated!', 'success')
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(url_for('managebleepsounds'))
+
+# Delete Bleep sound
+@app.route('/deletebleepsound',methods=["POST",'GET'])
+@testConn
+@authentication
+@isEditor
+def deletebleepsound():
+    if request.method == "POST":
+        # Post request 
+        bleepsound_id =  request.form.get("deletebleepsoundid")
+        if not bleepsound_id:
+            flash('Empty fields', 'danger')
+            return redirect(url_for('managebleepsounds'))
+
+        bleepsound_data = db.selectBleepSoundById(bleepsound_id)
+
+        if not bleepsound_data:
+            flash('Bleep sound not exist', 'danger')
+            return redirect(url_for('managebleepsounds'))
+
+        # Delete original sound
+        try:
+            if os.path.exists("static/"+bleepsound_data.get('filelocation')):
+                os.remove("static/"+bleepsound_data.get('filelocation'))
+                msg = bleepsound_data.get('filename')+" original version bleep sound  deleted with a file name "+bleepsound_data.get('filelocation')
+                flashPrintsforAdmin(msg,"Delete Bleep sound:")
+        except Exception as e:
+            flash("Problem occur while deleting the bleepsound. "+str(e),'danger')
+        
+
+        # Delete long version
+        try:
+            if os.path.exists("static/"+bleepsound_data.get('longversion')):
+                os.remove("static/"+bleepsound_data.get('longversion'))
+                msg = bleepsound_data.get('filename')+" original version bleep sound  deleted with a file name "+bleepsound_data.get('longversion')
+                flashPrintsforAdmin(msg,"Delete Bleep sound:")
+        except Exception as e:
+            flash("Problem occur while deleting the bleepsound. "+str(e),'danger')
+
+        # Delete data
+        msg = db.deleteBleepSoundById(bleepsound_id)
+        flashPrintsforAdmin(msg,"Delete Bleep sound:")
+
+        flash('Bleep sound succesfully deleted', 'success')
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(url_for('managebleepsounds'))
 
 #================================================== Run APP 
 if __name__ == '__main__':

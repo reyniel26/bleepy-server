@@ -26,6 +26,7 @@
 
 <section class=" bg-theme my-5 py-3" >
     <div class="container my-5">
+        {% if viewdata.get('latest_bleepsound') %}
         <div class="" id="bleepsoundpreview">
             <div class="text-center text-theme-secondary">
                 <h3 class=" font-weight-light" id="bleepsoundpreviewtitle">{{viewdata.get('latest_bleepsound').get('filename')}}</h3>
@@ -36,8 +37,12 @@
                 Your browser does not support the audio tag.
             </audio>
         </div>
+        {% else %}
+        <p class="text-center text-white">No result</p>
+        {% endif %}
     </div>
 </section>
+
 
 <div class=" container my-5">
     
@@ -51,33 +56,39 @@
             </div>
         </div>
         <!-- /.card-header -->
-        <div class="card-body table-responsive p-0">
-          <table class="table table-hover text-nowrap">
-            <thead>
-              <tr>
-                <th>Track Name</th>
-                <th>Added on</th>
-                <th></th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-                {% for bleepsound in viewdata.get('bleepsounds')%}
+        <div class="card-body table-responsive-md">
+            <!--Result Badge-->
+            {% include 'includes/_resultbadge.html' %}
+            <table class="table table-hover ">
+                <thead>
                 <tr>
-                    <td>{{bleepsound.get('filename')}}</td>
-                    <td>{{bleepsound.get('upload_time')}}</td>
-                    <td>
-                        <button class="btn btn-theme-secondary btnbleepsoundplayer" value="{{bleepsound.get('bleep_sound_id')}}"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>
-                    </td>
-                    <td> 
-                        <a href="/downloadbleepsound/{{bleepsound.get('bleep_sound_id')}}" target="_blank"> <button class=" btn btn-theme-secondary"> <i class="fa fa-download" aria-hidden="true"></i> Download </button> </a>
-                    </td>
+                    <th>Track Name</th>
+                    <th>Added on</th>
+                    <th></th>
+                    <th></th>
                 </tr>
-                {% endfor %}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                    {% for bleepsound in viewdata.get('bleepsounds')%}
+                    <tr>
+                        <td>{{bleepsound.get('filename')}}</td>
+                        <td>{{bleepsound.get('upload_time')}}</td>
+                        <td>
+                            <button class="btn btn-theme-secondary btnbleepsoundplayer" value="{{bleepsound.get('bleep_sound_id')}}"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>
+                        </td>
+                        <td> 
+                            <a href="/downloadbleepsound/{{bleepsound.get('bleep_sound_id')}}" target="_blank"> <button class=" btn btn-theme-secondary"> <i class="fa fa-download" aria-hidden="true"></i></button> </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         <!-- /.card-body -->
+        <div class="card-footer clearfix">
+            <!--Pagination -->
+            {% include 'includes/_pagination.html' %}
+        </div>
       </div>
       <!-- /.card -->
 </div>
@@ -85,6 +96,14 @@
 
 {% block script %}
 <script>
+    $(function () {
+        if ($(".badge-info").is(":visible")){
+            $('html, body').animate({
+                                    scrollTop: $("#targetdivscroll").offset().top
+            }, 1000);
+        }
+    })
+
     $('.btnbleepsoundplayer').on('click', function() {
         requestAudioSrc($(this).val())
     });

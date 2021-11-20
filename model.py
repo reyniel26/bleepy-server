@@ -165,7 +165,7 @@ class Model:
         feeds = []
         stmts = [
             (str(self.countVideosUploadedByAcc(id).get("count")),"Uploaded Videos","info","video-camera","/videolist"),
-            (str(self.countBleepVideosUploadedByAcc(id).get("count")),"Bleeped Videos","olive","soundcloud","/bleepvideolist"),
+            (str(self.countBleepVideosUploadedByAcc(id).get("count")),"Bleeped Videos","olive","film","/bleepvideolist"),
             (str(self.countProfanityWordsByAcc(id).get("count")),"Profanities Collected","maroon","comments-o","/profanities"),
             (str(self.countUniqueProfanityWordsByAcc(id).get("count")),"Unique Profanities","purple","commenting-o","/uniqueprofanities")
         ]
@@ -183,9 +183,15 @@ class Model:
     
     def selectLatestBleepSound(self):
         return self.querySelect("call sp_select_latest_bleep_sound()")
+    
+    def selectLatestBleepSoundSearch(self,search):
+        return self.querySelect("call sp_select_latest_bleep_sound_search(%s)",search)
 
     def selectLatestBleep(self,id:str):
         return self.querySelect("call sp_select_latest_censored_videos_by_account(%s)",id)
+    
+    def selectLatestBleepSearch(self,id:str,search):
+        return self.querySelect("call sp_select_latest_censored_videos_by_account_search(%s,%s)",id,search)
     
     def selectLatestBleepAll(self):
         return self.querySelect("call sp_select_latest_censored_videos_all()")
@@ -218,6 +224,10 @@ class Model:
 
     def selectLatestBleepSummaryData(self,id:str):
         latestbleep = self.selectLatestBleep(id)
+        return self.selectLatestBleepDataBuilder(latestbleep)
+    
+    def selectLatestBleepSummaryDataSearch(self,id:str,search):
+        latestbleep = self.selectLatestBleepSearch(id,search)
         return self.selectLatestBleepDataBuilder(latestbleep)
     
     def selectLatestBleepSummaryDataAll(self):
@@ -316,6 +326,9 @@ class Model:
     def selectBleepSounds(self):
         return self.querySelectAll("call sp_select_bleep_sounds_all()")
     
+    def selectBleepSoundsSearchLimitOffset(self,search,limit,offset):
+        return self.querySelectAll("call sp_select_bleep_sounds_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
+    
     def selectBleepSoundById(self, bleepsoundid):
         return self.querySelect("call sp_select_bleep_sound_by_bleepid(%s)",bleepsoundid)
     
@@ -338,7 +351,7 @@ class Model:
         feeds = []
         stmts = [
             (str(self.countVideos().get("count")),"Overall Uploaded Videos","info","video-camera","/videos"),
-            (str(self.countBleepVideos().get("count")),"Overall Bleeped Videos","olive","soundcloud","/bleepedvideos"),
+            (str(self.countBleepVideos().get("count")),"Overall Bleeped Videos","olive","film","/bleepedvideos"),
             (str(self.countProfanityWords().get("count")),"Overall Profanities Collected","maroon","comments-o","/profanities"),
             (str(self.countUniqueProfanityWords().get("count")),"Overall Unique Profanities","purple","commenting-o","/uniqueprofanities")
         ]
@@ -356,6 +369,9 @@ class Model:
 
     def selectRoles(self):
         return self.querySelectAll("call sp_select_roles()")
+    
+    def selectNavByLocation(self,location):
+        return self.querySelect("call sp_select_nav_by_location(%s)",location)
     
     def selectAccountCountsByRole(self):
         feeds = []
@@ -483,6 +499,9 @@ class Model:
     def countAccountsSearch(self,search):
         return self.querySelect("call sp_count_accounts_search(%s)",search)
     
+    def countBleepSoundSearch(self,search):
+        return self.querySelect("call sp_count_bleep_sound_search(%s)",search)
+    
     #================================================== Inserts
     def insertRole(self,rolename):
         return self.queryInsert("call sp_add_roles(%s)",rolename)
@@ -505,6 +524,8 @@ class Model:
     def insertAccount(self,email,fname,lname,pwd,role_id):
         return self.queryInsert("call sp_add_account(%s,%s,%s,%s,%s)",email,fname,lname,pwd,role_id)
     
+    def insertBleepSound(self,filename,uniquefilename,filelocation,longversion):
+        return self.queryInsert("call sp_add_bleep_sound(%s,%s,%s,%s)",filename,uniquefilename,filelocation,longversion)
     #================================================== Update
     def updateAccFname(self,email,fname):
         return self.queryUpdate("call sp_update_account_fname(%s,%s)",email,fname)
@@ -528,7 +549,13 @@ class Model:
         return self.queryUpdate("call sp_update_account_lname_by_id(%s,%s)",id,lname)  
 
     def updateAccRoleIdById(self,id,role_id):
-        return self.queryUpdate("call sp_update_account_role_id_by_id(%s,%s)",id,role_id)       
+        return self.queryUpdate("call sp_update_account_role_id_by_id(%s,%s)",id,role_id)
+
+    def updateBleepSoundFilenameById(self,bleepsound_id,filename):
+        return self.queryUpdate("call sp_update_bleep_sound_filename_by_id(%s,%s)",bleepsound_id,filename)
+
+    def updateBleepSoundById(self,bleepsound_id,filename,uniquefilename,filelocation,longversion):
+        return self.queryUpdate("call sp_update_bleep_sound_by_id(%s,%s,%s,%s,%s)",bleepsound_id,filename,uniquefilename,filelocation,longversion)    
     
     #================================================== Delete
     def deleteAccById(self,id):
@@ -545,6 +572,9 @@ class Model:
     
     def deleteProfanityWordsByVidId(self,pvid_id):
         return self.queryDelete("call sp_delete_pword_by_pvid_id(%s)",pvid_id)
+    
+    def deleteBleepSoundById(self,bleepsound_id):
+        return self.queryDelete("call sp_delete_bleep_sound(%s)",bleepsound_id)
 
     
     

@@ -1,126 +1,118 @@
-{% extends 'layout2.html' %}
+{% extends 'layout3.html' %}
 
-{% block body %}
-    <section>
-        <!-- Input code here -->
-        <div class=" jumbotron bg-white shadow">
-            <h1 class=" font-weight-light"> Videos </h1>
-            <hr>
+{% block section %}
 
-            {% if viewdata.get('latest_video') %}
-                <div class="card collapsed-card " id="videopreviewcard">
-                    <div class="card-header bg-theme-secondary text-theme-secondary">
-                    <h3 class="card-title">Video Player</h3>
 
-                    <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                            <i class="fa fa-expand text-theme-secondary"></i>
-                        </button>
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                            <i class="fa fa-plus text-theme-secondary" id="collapseicon"></i>
-                        </button>
-                    </div>
-                    </div>
-                    <div class="card-body">
-                        <p>
-                            <b>Title:</b> <span id="video_filename">{{viewdata.get('latest_video').get('filename')}}</span> 
-                            <br>
-                            <b>Uploaded on: </b> <span id="video_upload_time">{{viewdata.get('latest_video').get('upload_time')}}</span>
-                            {% if viewdata.get('has_uploadedby')%}
-                            <br>
-                            <b>Uploaded by: </b> <span id="video_uploaded_by">{{viewdata.get('latest_video').get('uploadedby')}}</span>
-                            {% endif%} 
-                        </p>
-                        <div class="embed-responsive embed-responsive-16by9">
-                            <video class="embed-responsive-item " id="videopreview" controls>
-                                <source src="{{url_for('static', filename=viewdata.get('latest_video').get('filelocation') )}}" type="video/mp4" />
-                                This video is not supported by your browser...
-                            </video>
-                        </div>
-                    </div>
-                    <!-- /.card-body -->
-                </div>
-            {% else %}
-                <!--No Result -->
-                {% include 'includes/_noresult.html' %}
-            {% endif %}
-                    
+    {% if viewdata.get('latest_video') %}
+        <div class="card collapsed-card " id="videopreviewcard">
+            <div class="card-header bg-theme-secondary text-theme-secondary">
+            <h3 class="card-title">Video Player</h3>
 
-            <div class=" container ">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Videos</h3>
-        
-                        <div class="card-tools">
-                            <!--Card tool search-->
-                            {% include 'includes/card_tool/_search.html' %}
-                        </div>
-                    </div>
-                    <!-- ./card-header -->
-                    <div class="card-body table-responsive-md">
-                        <!--Result Badge-->
-                        {% include 'includes/_resultbadge.html' %}
-                        <table class="table table-bordered table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Uploaded on</th>
-                                    {% if viewdata.get('has_uploadedby')%}
-                                    <th>Uploaded by</th>
-                                    {% endif%}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for video in viewdata.get('videos') %}
-                                <tr data-widget="expandable-table" aria-expanded="false">
-                                    <td>{{video.get('filename')}}</td>
-                                    <td>{{video.get('upload_time')}}</td>
-                                    {% if video.get('uploadedby')%}
-                                        <td>{{video.get('uploadedby').title()}}</td>
-                                    {% endif%}
-                                </tr>
-                                <tr class="expandable-body ">
-                                    {% if video.get('uploadedby')%}
-                                    <td colspan="3">
-                                    {% else %}
-                                    <td colspan="2">
-                                    {% endif%}
-                                        <div>
-                                            <div class="row ">
-                                                <div class="col-md-6 col-12">
-                                                    <form action="/deletevideo" method="post">
-                                                        <button class="btn btn-theme-secondary btnvideoplayer my-1" value="{{video.get('video_id')}}" type="button"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>  
-                                                        <a href="/downloadvideo/{{video.get('video_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-download" aria-hidden="true"></i> Download </button> </a>
-                                                        <input type="hidden" name="path" id="path" value="{{video.get('video_id')}}">
-                                                        <button class="btn btn-danger my-1" type="submit"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                            
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- /.card-body -->
-                    <div class="card-footer clearfix">
-                        <!--Pagination -->
-                        {% include 'includes/_pagination.html' %}
-                    </div>
-                    <!-- /.card-footer -->
-                </div>
-                <!-- /.card -->
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                    <i class="fa fa-expand text-theme-secondary"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fa fa-plus text-theme-secondary" id="collapseicon"></i>
+                </button>
             </div>
-            
+            </div>
+            <div class="card-body">
+                <p>
+                    <b>Title:</b> <span id="video_filename">{{viewdata.get('latest_video').get('filename')}}</span> 
+                    <br>
+                    <b>Uploaded on: </b> <span id="video_upload_time">{{viewdata.get('latest_video').get('upload_time')}}</span>
+                    {% if viewdata.get('has_uploadedby')%}
+                    <br>
+                    <b>Uploaded by: </b> <span id="video_uploaded_by">{{viewdata.get('latest_video').get('uploadedby')}}</span>
+                    {% endif%} 
+                </p>
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video class="embed-responsive-item " id="videopreview" controls>
+                        <source src="{{url_for('static', filename=viewdata.get('latest_video').get('filelocation') )}}" type="video/mp4" />
+                        This video is not supported by your browser...
+                    </video>
+                </div>
+            </div>
+            <!-- /.card-body -->
+        </div>
+    {% else %}
+        <!--No Result -->
+        {% include 'includes/_noresult.html' %}
+    {% endif %}
             
 
+    <div class=" container ">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Videos</h3>
+
+                <div class="card-tools">
+                    <!--Card tool search-->
+                    {% include 'includes/card_tool/_search.html' %}
+                </div>
+            </div>
+            <!-- ./card-header -->
+            <div class="card-body table-responsive-md">
+                <!--Result Badge-->
+                {% include 'includes/_resultbadge.html' %}
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Uploaded on</th>
+                            {% if viewdata.get('has_uploadedby')%}
+                            <th>Uploaded by</th>
+                            {% endif%}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for video in viewdata.get('videos') %}
+                        <tr data-widget="expandable-table" aria-expanded="false">
+                            <td>{{video.get('filename')}}</td>
+                            <td>{{video.get('upload_time')}}</td>
+                            {% if video.get('uploadedby')%}
+                                <td>{{video.get('uploadedby').title()}}</td>
+                            {% endif%}
+                        </tr>
+                        <tr class="expandable-body ">
+                            {% if video.get('uploadedby')%}
+                            <td colspan="3">
+                            {% else %}
+                            <td colspan="2">
+                            {% endif%}
+                                <div>
+                                    <div class="row ">
+                                        <div class="col-md-6 col-12">
+                                            <form action="/deletevideo" method="post">
+                                                <button class="btn btn-theme-secondary btnvideoplayer my-1" value="{{video.get('video_id')}}" type="button"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>  
+                                                <a href="/downloadvideo/{{video.get('video_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1" type="button"> <i class="fa fa-download" aria-hidden="true"></i> Download </button> </a>
+                                                <input type="hidden" name="path" id="path" value="{{video.get('video_id')}}">
+                                                <button class="btn btn-danger my-1" type="submit"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <!--Pagination -->
+                {% include 'includes/_pagination.html' %}
+            </div>
+            <!-- /.card-footer -->
         </div>
-    </section>
+        <!-- /.card -->
+    </div>
+            
 {% endblock %}
 
-{% block script %}
+{% block sectionscript %}
 <script>
     $('.btnvideoplayer').on('click', function() {
         if($(this).val()){
@@ -160,13 +152,6 @@
             $('#videopreview source').attr('src', '');
             $("#videopreview ")[0].load();
         }
-    });
-
-    $("button[type='submit']:not(.searchbtn)").on( "click", function(){
-            result= confirm("Are you sure?");
-            if ( !(result === true) ) {
-                event.preventDefault();
-            } 
     });
 </script>
 {% endblock %}

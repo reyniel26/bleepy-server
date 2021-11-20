@@ -1,0 +1,435 @@
+{% extends 'layout3.html' %}
+
+{% block section %}
+<button class="btn btn-success mb-3" data-toggle="modal" data-target="#addbleepsoundmodal">Add Bleep Sound</button>
+<div id="targetdivscroll"></div>
+
+    <!--Latest Bleep sound-->
+    <section class="my-3 py-3 px-1 mx-1 bg-theme-secondary rounded-pill" >
+        <div class="container my-5">
+            {% if viewdata.get('latest_bleepsound') %}
+            <div class="" id="bleepsoundpreview">
+                <div class="text-center">
+                    <h3 class=" font-weight-light text-theme-secondary" id="bleepsoundpreviewtitle">{{viewdata.get('latest_bleepsound').get('filename')}}</h3>
+                </div>
+    
+                <audio controls class=" w-100" id="bleepsoundplayer">
+                    <source src="{{url_for('static', filename=viewdata.get('latest_bleepsound').get('filelocation'))}}" id="mp3_src" type="audio/mp3">
+                    Your browser does not support the audio tag.
+                </audio>
+            </div>
+            {% else %}
+            <h3 class="text-center text-theme-secondary font-weight-light">No result</h3>
+            {% endif %}
+        </div>
+    </section>
+    
+    <div class=" container ">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Bleep Sounds</h3>
+
+                <div class="card-tools">
+                    <!--Card tool search-->
+                    {% include 'includes/card_tool/_search.html' %}
+                </div>
+            </div>
+            <!-- ./card-header -->
+            <div class="card-body table-responsive-md">
+                <!--Result Badge-->
+                {% include 'includes/_resultbadge.html' %}
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Uploaded on</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bleepsound in viewdata.get('bleepsounds')%}
+                            <tr data-widget="expandable-table" aria-expanded="false">
+                                <td>{{bleepsound.get('filename')}}</td>
+                                <td>{{bleepsound.get('upload_time')}}</td>
+                            </tr>
+                            <tr class="expandable-body ">
+                                <td colspan="2">
+                                    <div>
+                                        <div class="row ">
+                                            <div class="col-12">
+                                                    <button class="btn btn-theme-secondary my-1 btnbleepsoundplayer" value="{{bleepsound.get('bleep_sound_id')}}"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i> Play</button>
+                                                    <a href="/downloadbleepsound/{{bleepsound.get('bleep_sound_id')}}" target="_blank"> <button class=" btn btn-theme-secondary my-1"> <i class="fa fa-download" aria-hidden="true"></i> Download</button> </a>
+                                                    <button class="btn btn-info my-1 btnviewbleepsound " value="{{bleepsound.get('bleep_sound_id')}}"><i class="fa fa-eye fa-lg" aria-hidden="true"></i> View</button>
+                                                    <button class="btn btn-warning my-1 btneditbleepsound " value="{{bleepsound.get('bleep_sound_id')}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i> Edit</button>
+                                                    <button class="btn btn-danger my-1 btndeletebleepsound" value="{{bleepsound.get('bleep_sound_id')}}"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer clearfix">
+                <!--Pagination -->
+                {% include 'includes/_pagination.html' %}
+            </div>
+            <!-- /.card-footer -->
+        </div>
+        <!-- /.card -->
+    </div>
+
+    <!-- Modals -->
+    <div>
+        <!-- The Modal  Add | Upload bleep sounds-->
+        <div class="modal fade" id="addbleepsoundmodal">
+            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header bg-success">
+                <h4 class="modal-title">Upload bleep sound</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    {% include 'includes/_overlay.html' %}
+                    <form action="/addbleepsound" method="post" id="addbleepsoundform" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="addtitle">Bleep sound title: <span class="invalid text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter first name" id="addtitle" name="addtitle" value="" >
+                        </div>
+                        
+                        
+                        <label for="addfile">File: <span class="invalid text-danger">*</span></label>
+                        <span class="text-danger"id="addcancelUploadMsg"></span>
+                        <div class="custom-file mb-3">
+                            <input type="file" class="custom-file-input" id="addfile" name="addfile" accept="audio/*">
+                            <label class="custom-file-label" for="addfile">Choose file</label>
+                        </div>
+                        <input type="hidden" name="addfilesize" id="addfilesize" value="">
+                        
+                        <button class="btn btn-success btnsubmit" type="submit" >Add</button>
+                    </form>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
+        </div>
+
+        <!-- The Modal  View bleep sounds-->
+        <div class="modal fade" id="viewbleepsoundmodal">
+            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header bg-info">
+                <h4 class="modal-title">View bleep sound</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    {% include 'includes/_overlay.html' %}
+                    <form action="" method="post" id="viewbleepsoundform" enctype="multipart/form-data">
+                        <input type="hidden" name="viewbleepsoundid" id="viewbleepsoundid" value="">
+                        <div class="form-group">
+                            <label for="viewtitle">Bleep sound title: <span class="invalid text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter title" id="viewtitle" name="viewtitle" value="" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="viewuploadtime">Upload time: <span class="invalid text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter upload" id="viewuploadtime" name="viewuploadtime" value="" disabled>
+                        </div>
+
+                        <label for="viewfile">File: <span class="invalid text-danger">*</span></label>
+                        <div class="" id="viewbleepsoundpreview">
+                            <audio controls class=" w-100" id="viewbleepsoundplayer">
+                                <source src="" class="audio_src" type="audio/mp3">
+                                Your browser does not support the audio tag.
+                            </audio>
+                        </div>
+                        
+                    </form>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
+        </div>
+
+        <!-- The Modal  Edit bleep sounds-->
+        <div class="modal fade" id="editbleepsoundmodal">
+            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header bg-warning">
+                <h4 class="modal-title">Edit bleep sound</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    {% include 'includes/_overlay.html' %}
+                    <form action="/editbleepsound" method="post" id="editbleepsoundform" enctype="multipart/form-data">
+                        <input type="hidden" name="editbleepsoundid" id="editbleepsoundid" value="">
+                        <div class="form-group">
+                            <label for="edittitle">Bleep sound title: <span class="invalid text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter title" id="edittitle" name="edittitle" value="" >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edituploadtime">Upload time: <span class="invalid text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter upload" id="edituploadtime" name="edituploadtime" value="" disabled>
+                        </div>
+
+                        <label for="editfile">File: <span class="invalid text-danger"></span></label>
+                        <div class="custom-file mb-3">
+                            <input type="file" class="custom-file-input" id="editfile" name="editfile" accept="audio/*">
+                            <label class="custom-file-label" for="editfile">Choose file</label>
+                        </div>
+                        <input type="hidden" name="editfilesize" id="editfilesize" value="">
+                        
+                        <div class="my-1" id="editbleepsoundpreview">
+                            <audio controls class=" w-100" id="editbleepsoundplayer">
+                                <source src="" class="audio_src" type="audio/mp3">
+                                Your browser does not support the audio tag.
+                            </audio>
+                        </div>
+                        <button class="btn btn-warning btnsubmit" type="submit">Update</button>
+                    </form>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
+        </div>
+
+        <!-- The Modal  Delete bleep sounds-->
+        <div class="modal fade" id="deletebleepsoundmodal">
+            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header bg-danger">
+                <h4 class="modal-title">Delete bleep sound</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    {% include 'includes/_overlay.html' %}
+                    <form action="/deletebleepsound" method="post" id="deletebleepsoundform" enctype="multipart/form-data">
+                        <input type="hidden" name="deletebleepsoundid" id="deletebleepsoundid" value="">
+                        <div class="form-group">
+                            <label for="deletetitle">Bleep sound title: <span class="invalid text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter title" id="deletetitle" name="deletetitle" value="" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="deleteuploadtime">Upload time: <span class="invalid text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Enter upload" id="deleteuploadtime" name="deleteuploadtime" value="" disabled>
+                        </div>
+
+                        <label for="deletefile">File: <span class="invalid text-danger">*</span></label>
+                        <div class="" id="deletebleepsoundpredelete">
+                            <audio controls class=" w-100" id="deletebleepsoundplayer">
+                                <source src="" class="audio_src" type="audio/mp3">
+                                Your browser does not support the audio tag.
+                            </audio>
+                        </div>
+
+                        <button class="btn btn-danger btnsubmit" type="submit">Delete</button>
+                    </form>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
+        </div>
+
+    </div>
+            
+{% endblock %}
+
+{% block sectionscript %}
+<script>
+    
+    $(".btnviewbleepsound").click(function(){
+        $.ajax ({
+            type:"POST",
+            url:"/viewbleepsound",
+            data: {
+                bleepsound_id:$(this).val()
+            },
+            cache: false,
+            success:function(data){
+                $('#viewbleepsoundid').val(data.bleep_sound_id)
+                $('#viewtitle').val(data.filename)
+                $('#viewuploadtime').val(data.upload_time)
+                loadAudioSrc("#viewbleepsoundplayer",data.filelocation)
+                $("#viewbleepsoundmodal").modal();
+            },error:function(e){
+                alert("error: "+e)
+            }
+        });
+    });
+
+    $(".btneditbleepsound").click(function(){
+        $.ajax ({
+            type:"POST",
+            url:"/viewbleepsound",
+            data: {
+                bleepsound_id:$(this).val()
+            },
+            cache: false,
+            success:function(data){
+                $('#editbleepsoundid').val(data.bleep_sound_id)
+                $('#edittitle').val(data.filename)
+                $('#edituploadtime').val(data.upload_time)
+                loadAudioSrc("#editbleepsoundplayer",data.filelocation)
+                $("#editbleepsoundmodal").modal();
+            },error:function(e){
+                alert("error: "+e)
+            }
+        });
+    });
+
+    $(".btndeletebleepsound").click(function(){
+        $.ajax ({
+            type:"POST",
+            url:"/viewbleepsound",
+            data: {
+                bleepsound_id:$(this).val()
+            },
+            cache: false,
+            success:function(data){
+                $('#deletebleepsoundid').val(data.bleep_sound_id)
+                $('#deletetitle').val(data.filename)
+                $('#deleteuploadtime').val(data.upload_time)
+                loadAudioSrc("#deletebleepsoundplayer",data.filelocation)
+                $("#deletebleepsoundmodal").modal();
+            },error:function(e){
+                alert("error: "+e)
+            }
+        });
+    });
+
+    $(".custom-file-input").on("change", function() {
+        var fileName = $(this).val().split("\\").pop();
+        $(this).siblings(".custom-file-label").addClass("selected").html(fileName == "" ? "Choose file":fileName);
+    });
+
+    //Bleep sound player
+    $('.btnbleepsoundplayer').on('click', function() {
+        requestAudioSrc($(this).val())
+    });
+
+    function requestAudioSrc(id){
+        if(id){
+            $.ajax ({
+                type:"POST",
+                url:"/getbleepsoundinfo",
+                data: {
+                    bleepsound_id:id
+                },
+                cache: false,
+                success:function(data){
+                    changeAudioSrc(data.filelocation)
+                    $('#bleepsoundpreviewtitle').html(data.filename);
+
+                    $('html, body').animate({
+                                scrollTop: $("#targetdivscroll").offset().top
+                    }, 1000);
+
+                },error:function(e){
+                    alert("error: "+e)
+                }
+            });
+        }
+        else{
+            //Stops audio
+            changeAudioSrc("")
+        }
+    }
+
+    function changeAudioSrc(sourceUrl) {
+        var audio = $("#bleepsoundplayer");      
+        $("#mp3_src").attr("src", sourceUrl);
+        /****************/
+        audio[0].load();
+        audio[0].play();
+    }
+
+    function loadAudioSrc(audioplayer,sourceUrl) {
+        var audio = $(audioplayer);      
+        $(".audio_src").attr("src", sourceUrl);
+        /****************/
+        audio[0].load();
+    }
+
+    $(".overlay").hide()
+    $("button.btnsubmit").click(function(){
+        $(this).hide()
+        $(".overlay").show()
+    });
+
+    $('#addfile').on('change', function() {
+        if($('#addfile').val()){
+            $('#addfilesize').val(this.files[0].size)
+        }
+    });
+
+    $('#editfile').on('change', function() {
+        if($('#editfile').val()){
+            $('#editfilesize').val(this.files[0].size)
+        }
+    });
+    
+    $('#addbleepsoundform').validate({
+        errorElement: 'span',
+        errorClass: 'invalid',
+        rules: {
+            addtitle:{
+                required: true
+            },
+            addfile:{
+                required: true
+            }
+        }
+    });
+
+    $('#editbleepsoundform').validate({
+        errorElement: 'span',
+        errorClass: 'invalid',
+        rules: {
+            edittitle:{
+                required: true
+            }
+        }
+    });
+    
+</script>
+{% endblock %}
