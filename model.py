@@ -549,7 +549,13 @@ class Model:
         return self.queryUpdate("call sp_update_account_lname_by_id(%s,%s)",id,lname)  
 
     def updateAccRoleIdById(self,id,role_id):
-        return self.queryUpdate("call sp_update_account_role_id_by_id(%s,%s)",id,role_id)       
+        return self.queryUpdate("call sp_update_account_role_id_by_id(%s,%s)",id,role_id)
+
+    def updateBleepSoundFilenameById(self,bleepsound_id,filename):
+        return self.queryUpdate("call sp_update_bleep_sound_filename_by_id(%s,%s)",bleepsound_id,filename)
+
+    def updateBleepSoundById(self,bleepsound_id,filename,uniquefilename,filelocation,longversion):
+        return self.queryUpdate("call sp_update_bleep_sound_by_id(%s,%s,%s,%s,%s)",bleepsound_id,filename,uniquefilename,filelocation,longversion)    
     
     #================================================== Delete
     def deleteAccById(self,id):
@@ -566,6 +572,9 @@ class Model:
     
     def deleteProfanityWordsByVidId(self,pvid_id):
         return self.queryDelete("call sp_delete_pword_by_pvid_id(%s)",pvid_id)
+    
+    def deleteBleepSoundById(self,bleepsound_id):
+        return self.queryDelete("call sp_delete_bleep_sound(%s)",bleepsound_id)
 
     
     

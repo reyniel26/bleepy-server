@@ -247,6 +247,46 @@ def saveBleepSound(file,title,uniquefilename):
     else:
         flash('The audio file is not acceptable because the sound volume is too low, try to upload other audio file with higher sound volume', 'danger')
         return False
+
+def updateBleepSound(bleepsound_id,file,title,uniquefilename):
+    
+    # Save the file in directory
+    savefolder = app.config['AUDIO_UPLOADS_ORIG']
+    
+    try:
+        file.save(os.path.join("static/"+savefolder, uniquefilename))
+    except Exception as e:
+        flashPrintsforAdmin(e,"Error in saving file: ")
+    
+    audio = AudioFile()
+    audio.setFile("static/"+savefolder+"/"+uniquefilename)
+
+    # Make longer version of the file
+    longversion = generateLongBleepSound(audio)
+    if longversion:
+        bleepsound_data = db.selectBleepSoundById(bleepsound_id)
+        #Delete the previous data
+        #Delete orig version
+        if os.path.exists("static/"+bleepsound_data.get("filelocation")):
+            os.remove("static/"+bleepsound_data.get("filelocation"))
+            flashPrintsforAdmin("Success","Deleted Previous original file: ")
+
+        #Delete long version
+        if os.path.exists("static/"+bleepsound_data.get("longversion")):
+            os.remove("static/"+bleepsound_data.get("longversion"))
+            flashPrintsforAdmin("Success","Deleted Previous longversion file: ")
+
+        # Save to db the data
+        filename = title
+        filelocation = app.config['AUDIO_UPLOADS_ORIG']+"/"+uniquefilename
+        longversion = app.config['AUDIO_UPLOADS_LONG']+"/"+longversion
+        msg = db.updateBleepSoundById(bleepsound_id,filename,uniquefilename,filelocation,longversion)
+        flashPrintsforAdmin(msg,"Update Bleep sound")
+
+        return True
+    else:
+        flash('The audio file is not acceptable because the sound volume is too low, try to upload other audio file with higher sound volume', 'danger')
+        return False
     
 def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory,profanities:list):
     bleepedvideoinfo = {
@@ -857,7 +897,8 @@ def deletevideo():
 
         #Delete Record
         msg = db.deleteVideoByVidId(video_id)
-        flash(videoinfo.get('filename')+" is now deleted. "+str(msg),'success')
+        flashPrintsforAdmin(msg,"Delete Video: ")
+        flash(videoinfo.get('filename')+" is now deleted. ",'success')
         return redirect(url_for('videolist'))
     else:
         flash("Invalid Request",'danger')
@@ -892,10 +933,12 @@ def deletebleepvideo():
         
         #Delete Pword records
         msg = db.deleteProfanityWordsByVidId(bleepvideo_id)
-        flash(" Profanity records of the video is also deleted. "+str(msg),'success')
+        flashPrintsforAdmin(msg,"Delete Profanities from bleep video: ")
+        flash(" Profanity records of the video is also deleted. ",'success')
         #Delete Record of Video
         msg = db.deleteBleepVideoByVidId(bleepvideo_id)
-        flash(bleepvideoinfo.get('filename')+" Bleep Version is now deleted. "+str(msg),'success')
+        flashPrintsforAdmin(msg,"Delete Bleep Video: ")
+        flash(bleepvideoinfo.get('filename')+" Bleep Version is now deleted. ",'success')
         return redirect(url_for('bleepvideolist'))
     else:
         flash("Invalid Request",'danger')
@@ -1649,7 +1692,6 @@ def viewbleepsound():
     }
     return jsonify(bleepsound)
 
-
 # Add Bleep sound
 @app.route('/addbleepsound',methods=["POST",'GET'])
 @testConn
@@ -1697,13 +1739,44 @@ def addbleepsound():
 @isEditor
 def editbleepsound():
     if request.method == "POST":
-        # Post request 
-        # Validate the file
-        # Save the file in directory
-        # Make longer version of the file
-        # Save to db the data
+        bleepsound_id =  request.form.get("editbleepsoundid")
+        title = request.form.get("edittitle")
+        if not (bleepsound_id and title):
+            flash('Empty fields', 'danger')
+            return redirect(url_for('managebleepsounds'))
+        
+        file = request.files.get("editfile")
 
-        flash('Edit bleep sound!', 'success')
+        if file:
+            filesize = request.form.get("editfilesize")
+
+            if not filesize:
+                flash('Empty fields', 'danger')
+                return redirect(url_for('managebleepsounds'))
+            
+            if not allowedAudioFileSize(filesize):
+                #If the filesize exceeds
+                errormsg = "File too large. Maximum File size allowed is "+str(basicControl.bytesToMb(app.config["MAX_AUDIO_FILESIZE"]))+" mb"
+                flash(errormsg, 'danger')
+                return redirect(url_for('managebleepsounds'))
+
+            # Validate the file
+            audio = AudioFile()
+
+            if not audio.isAllowedExt(audio.getExtension(file.filename)):
+                #If the file ext is not allowed
+                errormsg = "File type is not allowed. Allowed file extension are: "+str(audio.getAllowedExts())
+                flash(errormsg, 'danger')
+                return redirect(url_for('managebleepsounds'))
+            
+            # Update file
+            uniquefilename = str(uuid.uuid4()) +"."+audio.getExtension(file.filename)
+            if updateBleepSound(bleepsound_id,file,title,uniquefilename):
+                flash('Bleep sound has been updated!', 'success')
+        else:
+            msg = db.updateBleepSoundFilenameById(bleepsound_id,title)
+            flashPrintsforAdmin(msg,"Update Bleep sound")
+            flash('Bleep sound title has been updated!', 'success')
     else:
         flash('Invalid Request!', 'warning')
     return redirect(url_for('managebleepsounds'))
@@ -1716,12 +1789,41 @@ def editbleepsound():
 def deletebleepsound():
     if request.method == "POST":
         # Post request 
-        # Validate the file
-        # Save the file in directory
-        # Make longer version of the file
-        # Save to db the data
+        bleepsound_id =  request.form.get("deletebleepsoundid")
+        if not bleepsound_id:
+            flash('Empty fields', 'danger')
+            return redirect(url_for('managebleepsounds'))
 
-        flash('Delete bleep sound!', 'success')
+        bleepsound_data = db.selectBleepSoundById(bleepsound_id)
+
+        if not bleepsound_data:
+            flash('Bleep sound not exist', 'danger')
+            return redirect(url_for('managebleepsounds'))
+
+        # Delete original sound
+        try:
+            if os.path.exists("static/"+bleepsound_data.get('filelocation')):
+                os.remove("static/"+bleepsound_data.get('filelocation'))
+                msg = bleepsound_data.get('filename')+" original version bleep sound  deleted with a file name "+bleepsound_data.get('filelocation')
+                flashPrintsforAdmin(msg,"Delete Bleep sound:")
+        except Exception as e:
+            flash("Problem occur while deleting the bleepsound. "+str(e),'danger')
+        
+
+        # Delete long version
+        try:
+            if os.path.exists("static/"+bleepsound_data.get('longversion')):
+                os.remove("static/"+bleepsound_data.get('longversion'))
+                msg = bleepsound_data.get('filename')+" original version bleep sound  deleted with a file name "+bleepsound_data.get('longversion')
+                flashPrintsforAdmin(msg,"Delete Bleep sound:")
+        except Exception as e:
+            flash("Problem occur while deleting the bleepsound. "+str(e),'danger')
+
+        # Delete data
+        msg = db.deleteBleepSoundById(bleepsound_id)
+        flashPrintsforAdmin(msg,"Delete Bleep sound:")
+
+        flash('Bleep sound succesfully deleted', 'success')
     else:
         flash('Invalid Request!', 'warning')
     return redirect(url_for('managebleepsounds'))

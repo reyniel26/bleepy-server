@@ -401,6 +401,35 @@
             $('#addfilesize').val(this.files[0].size)
         }
     });
+
+    $('#editfile').on('change', function() {
+        if($('#editfile').val()){
+            $('#editfilesize').val(this.files[0].size)
+        }
+    });
+    
+    $('#addbleepsoundform').validate({
+        errorElement: 'span',
+        errorClass: 'invalid',
+        rules: {
+            addtitle:{
+                required: true
+            },
+            addfile:{
+                required: true
+            }
+        }
+    });
+
+    $('#editbleepsoundform').validate({
+        errorElement: 'span',
+        errorClass: 'invalid',
+        rules: {
+            edittitle:{
+                required: true
+            }
+        }
+    });
     
 </script>
 {% endblock %}
