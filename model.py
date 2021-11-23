@@ -516,7 +516,8 @@ class Model:
         return self.queryInsert("call sp_add_profanityvideo(%s,%s, %s, %s, %s)",vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
     
     def insertProfanities(self,vals:list):
-        return self.queryInsertMany("call sp_add_profanityword(%s, %s,%s,%s)",vals)
+        #word , start, end, lang, pvid_id
+        return self.queryInsertMany("call sp_add_profanityword(%s, %s,%s,%s,%s)",vals)
     
     def insertUser(self,email:str,fname:str,lname:str,pwd):
         return self.queryInsert("call sp_add_user(%s, %s, %s, %s)",email,fname,lname,pwd)

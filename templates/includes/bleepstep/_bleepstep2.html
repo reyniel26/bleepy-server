@@ -60,6 +60,22 @@
                     </audio>
                 </div>
                 {% endif %}
+
+                {% if viewdata.get("langs") %}
+                <div class="form-group">
+                    <label for="lang">Select Language:</label>
+                    <select class="form-control" id="lang" name="lang">
+                        {% for lang in viewdata.get("langs") %}
+                            {% if lang == viewdata.get("defaultLang")%}
+                                <option value="{{lang}}" selected>{{lang.title()}}</option>
+                            {% else %}
+                                <option value="{{lang}}">{{lang.title()}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                  </div>
+                {% endif %}
+
                 <div class="form-group" id="runBleepySubmitDiv">
                     <button type="submit" class="btn btn-primary">Run Bleepy!</button>
                 </div>
@@ -108,7 +124,8 @@
                     url:"/bleepstep2",
                     data: {
                         bleepsound_id:$('#choosebleepsound').val(),
-                        vid_id:$('#runbleepyvid_id').val()
+                        vid_id:$('#runbleepyvid_id').val(),
+                        lang:$('#lang').val(),
                     },
                     cache: false,
                     success:function(data){

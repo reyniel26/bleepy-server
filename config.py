@@ -41,6 +41,9 @@ class Config(object):
     DEFAULT_MAX_LIMIT = 10
     DEFAULT_ATLEAST_LIMIT = 10
 
+    DEFAULT_LANG  = 'tagalog-english'
+    LANGS = ["tagalog-english","english","tagalog"]
+
 
 
 class ProductionConfig(Config):
