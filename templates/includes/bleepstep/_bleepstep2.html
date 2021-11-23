@@ -32,6 +32,8 @@
             <hr>
             <p>{{viewdata.get('videoinfo').get('filename')}}</p>
             <form action="/bleepstep2" id="runbleepyform" method="POST">
+                <input type="hidden" name="video_duration" id="video_duration" value="{{viewdata.get('video_duration')}}">
+                <input type="hidden" name="est_multiplier" id="est_multiplier" value="{{viewdata.get('est_multiplier')}}">
                 <div class="embed-responsive embed-responsive-16by9">
                     <video class="embed-responsive-item" controls id="choosevideopreview">
                         <source src="{{url_for('static', filename=viewdata.get('videoinfo').get('filelocation') )}}" type="video/mp4" />
@@ -85,10 +87,19 @@
                         Loading..
                     </button>
                     <input type="button" id="runBleepyCancelSubmit" value="Cancel" class="btn btn-danger" />
+
+                    <p class="mt-2">
+                        <span class=" font-weight-bold">Elapsed time:</span> <span id="runBleepyElapsedtime">00:00:00</span>
+                        <br>
+                        <span class=" font-weight-bold">Estimated Progress:</span>
+                    </p>
+
                 </div>
                 
+                
+
                 <div class="progress" id="runBleepyProgress" style="display: none;">
-                    <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">50%</div>
+                    <div id="runBleepyProgressbar" class="progress-bar progress-bar-striped bg-success progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">50%</div>
                 </div>
 
                 <div id="runbleepyresponsemsg" class="mt-3">
@@ -102,6 +113,94 @@
 </div>   
 
 <script>
+    class Process{
+        constructor(){
+            this.process = false
+        }
+        onProcess(){
+            this.process = true
+        }
+        doneProcess(){
+            this.process = false
+        }
+        isOnProcess(){
+            return this.process
+        }
+    }
+
+    var process = new Process()
+
+    $(window).bind("beforeunload",function(event) {
+        if(process.isOnProcess()) return "Leaving or closing the page will stop the current process. Still want to leave this page?";
+    });
+
+    ///////////
+
+    class Progress{
+        constructor (est_duration,progress_bar,elapsedtimespan){
+            this.percent = 0
+            this.lapse = 0
+            this.interval = null
+            this.progress_bar = progress_bar
+            this.est_duration = est_duration
+            this.elapsedtimespan = elapsedtimespan
+        }
+        initial(){
+            $(this.progress_bar).width('0%')
+            $(this.progress_bar).html('0%');
+            $(this.elapsedtimespan).html('00:00:00');
+            this.percent = 0
+        }
+
+        setLapse(lapse){
+            this.lapse = lapse
+        }
+        getLapse(){
+            return this.lapse
+        }
+
+        incrementLapse(){
+            this.setLapse(this.getLapse()+1)
+        }
+
+        getLapseTime(){
+            // let hours = parseInt(this.getLapse()/3600)
+            // let minutes = parseInt((this.getLapse()%3600)/60)
+            // let seconds = parseInt((this.getLapse()%3600)%60)
+            // return hours.toString()+":"+minutes.toString()+":"+seconds.toString()
+            return new Date(this.getLapse() * 1000).toISOString().substr(11, 8)
+        }
+        setPercent(percent){
+            this.percent = percent
+        }
+
+        getPercent(){
+            return this.percent
+        }
+
+        computePercent(){
+            this.setPercent(parseInt((this.getLapse()/this.est_duration)*100))
+        }
+
+        process(){
+            this.incrementLapse()
+            this.computePercent()
+            $(this.progress_bar).width(this.getPercent()+'%')
+            $(this.progress_bar).html(this.getPercent()+'%');
+            $(this.elapsedtimespan).html(this.getLapseTime());
+        }
+        
+        run(){
+            this.initial()
+            this.interval = setInterval(this.process.bind(this), 1000);
+        }
+        stop(){
+            clearInterval(this.interval);
+        }
+    }
+    ///////////
+
+
     $('#bleepsoundpreview').hide();
     $('#listenfirst').on('click', function() {
         requestAudioSrc()
@@ -116,6 +215,12 @@
         event.preventDefault();
         if($('#runbleepyvid_id').val()){
             if($('#choosebleepsound').val()){
+                
+                est_duration = parseFloat($('#video_duration').val())*parseFloat($('#est_multiplier').val())
+                let progress = new Progress(est_duration,'#runBleepyProgressbar','#runBleepyElapsedtime')
+                progress.run()
+                process.onProcess();
+
                 $('#runBleepySubmitDiv').hide();
                 $('#runBleepyCancelSubmitDiv').show();
                 $('#runBleepyProgress').show();
@@ -129,6 +234,9 @@
                     },
                     cache: false,
                     success:function(data){
+                        process.doneProcess();
+                        $(this.progress_bar).width('100%')
+                        $(this.progress_bar).html('100%');
                         $('#runbleepyresponsemsg').html(data.responsemsg)
                         $('#runBleepySubmitDiv').show();
                         $('#runBleepyCancelSubmitDiv').hide();
@@ -140,11 +248,13 @@
                             $('#bleepstep3div').html(data.bleepstep2response);
                             $('#runBleepySubmitDiv').hide();
                         }
+                        progress.stop()
                     },error:function(e){
                         alert("error: "+e)
                         $('#runBleepySubmitDiv').show();
                         $('#runBleepyCancelSubmitDiv').hide();
                         $('#runBleepyProgress').hide();
+                        progress.stop()
                     }
                 });
             }
@@ -188,4 +298,9 @@
         /****************/
         audio[0].load();
     }
+
+    
+    
+
+    
 </script>

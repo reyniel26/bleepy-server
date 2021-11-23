@@ -59,6 +59,7 @@ class BleepyControl():
         profanities = extractor.getProfanities()
 
         #run blocker if has profanity
+        block_directory = ''
         if len(profanities) > 0:
                 blocker.run(video,bleepsound,profanities)
                 block_directory = blocker.getFileLocation()
@@ -760,6 +761,7 @@ def profile():
 
 #Video List route
 @app.route('/videolist')
+@app.route('/videos')
 @testConn
 @authentication
 def videolist():
@@ -815,6 +817,8 @@ def videolist():
 
 #Bleep Video List route
 @app.route('/bleepvideolist')
+@app.route('/bleepvideos')
+@app.route('/bleepedvideos')
 @testConn
 @authentication
 def bleepvideolist():
@@ -1147,6 +1151,7 @@ def downloadbleepsound(path):
 def bleepstep1():
     if request.method == "POST":
         acc_id = getIdViaAuth() 
+        video = VideoFile()
 
         videoinfo = {
             "filename":"Error",
@@ -1156,12 +1161,17 @@ def bleepstep1():
         bleepsounds = db.selectBleepSounds()
         langs = app.config['LANGS']
         defaultLang = app.config['DEFAULT_LANG']
+        est_multiplier = app.config['DEFAULT_EST_MULTIPLIER']
+        video_duration = 0.0
 
         #If choose video
         if request.form.get("choosevideo"):
 
             vid_id = request.form.get("vid_id")
             videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
+
+            video.setFile("static/"+videoinfo.get('filelocation'))
+            video_duration = video.getDuration()
 
             msg = str(videoinfo.get("filename"))+" has been choosen"
 
@@ -1174,7 +1184,7 @@ def bleepstep1():
                 errormsg = "File too large. Maximum File size allowed is "+str(basicControl.bytesToGb(app.config["MAX_VIDEO_FILESIZE"]))+" gb"
                 return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
 
-            video = VideoFile()
+            
             
             if not video.isAllowedExt(video.getExtension(file.filename)):
                 errormsg = "File type is not allowed. Allowed file extension are: "+str(video.getAllowedExts())
@@ -1186,9 +1196,20 @@ def bleepstep1():
 
             videoinfo = saveVideo(file,filename,uniquefilename,acc_id)
 
+            video.setFile("static/"+videoinfo.get('filelocation'))
+            video_duration = video.getDuration()
+
             msg = "File Uploaded Successfully"
 
-        return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', viewdata = viewData(videoinfo=videoinfo,bleepsounds=bleepsounds, langs=langs,defaultLang=defaultLang)) ,
+        return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', 
+                            viewdata = viewData(videoinfo=videoinfo,
+                                bleepsounds=bleepsounds, 
+                                langs=langs,
+                                defaultLang=defaultLang,
+                                video_duration=video_duration,
+                                est_multiplier = est_multiplier 
+                            )
+                        ) ,
                         'responsemsg': render_template('includes/_messages.html', msg=msg)
                     })
 
@@ -1238,6 +1259,7 @@ def bleepstep2():
             profanities = []
             bleepyControl = BleepyControl()
 
+            #Choose language
             if lang.lower() == 'english':
                 flashPrintsforAdmin("English","Language")
                 bleepyinfo = bleepyControl.englishBleepVideo(audio,video)
@@ -1252,35 +1274,23 @@ def bleepstep2():
                 bleepyinfo = bleepyControl.tagalogBleepVideo(audio,video)
                 profanities.extend(bleepyinfo.get("profanities"))
 
+                tagalogOnlyBleepDir = bleepyinfo.get("block_directory") if bleepyinfo.get("block_directory") else ""
                 if bleepyinfo.get("block_directory"):
                     video.setFile(bleepyinfo.get("block_directory"))
-                    tagalogOnlyBleepDir = bleepyinfo.get("block_directory")
 
                 #then english
                 bleepyinfo = bleepyControl.englishBleepVideo(audio,video)
                 profanities.extend(bleepyinfo.get("profanities"))
 
                 #delete tagalog only bleep
-                if os.path.exists(tagalogOnlyBleepDir):
-                    os.remove(tagalogOnlyBleepDir)
-                    flashPrintsforAdmin("Deleted","Delete tagalog only bleep")
+                if tagalogOnlyBleepDir:
+                    if os.path.exists(tagalogOnlyBleepDir):
+                        os.remove(tagalogOnlyBleepDir)
+                        flashPrintsforAdmin("Deleted","Delete tagalog only bleep")
             else:
                 flash('Invalid language', 'danger')
-
-
-            # stt = SpeechToText("stt-language-models/model-en")
-            # extractor = ProfanityExtractor()
-            # blocker = ProfanityBlocker()
-            # blocker.setClipsDirectory("static/media/Trash/Videos")
-            # blocker.setSaveDirectory("static/media/Storage/Videos/Processed")
             
-            # stt.run(video)
-
-            # extractor.setProfanities([]) #Reset Profanities
-            # extractor.run(stt.getResults())
-            # profanities = extractor.getProfanities()
-            
-
+            #Save to db
             if len(profanities) > 0:
                 block_directory = bleepyinfo.get("block_directory")
                 block_filelocation = basicControl.removeStaticDirectory(block_directory)
