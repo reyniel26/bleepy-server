@@ -94,9 +94,9 @@
                 </div>
             </div>
 
-            {% if viewdata.get('bleepinfo_data').get('profanitiesall') %}
+            
             <div class="row">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="card ">
                         <div class="card-header bg-theme-secondary text-theme-secondary">
                         <h3 class="card-title">Profanities</h3>        
@@ -110,27 +110,81 @@
                         </div>
                         </div>
                         <!-- /.card-header -->
+                        {% if viewdata.get('bleepinfo_data').get('profanitiesall') %}
+                            <div class="card-body table-responsive p-0" style="height: 300px;">
+                            <table class="table table-head-fixed text-nowrap table-hover">
+                                <thead>
+                                <tr>
+                                    <th>Word</th>
+                                    <th>Start</th>
+                                    <th>End</th>
+                                    <th>Language</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                    {% for profanity in viewdata.get('bleepinfo_data').get('profanitiesall') %}
+                                    <tr>
+                                        <td>{{profanity.get('word')}}</td>
+                                        <td>{{profanity.get('start_time')}}</td>
+                                        <td>{{profanity.get('end_time')}}</td>
+                                        <td>
+                                            {% if profanity.get('lang') %}
+                                                {{profanity.get('lang').title()}}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                
+                                </tbody>
+                            </table>
+                            </div>
+                        {% endif %}
+                        <!-- /.card-body -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card ">
+                        <div class="card-header bg-theme-secondary text-theme-secondary">
+                        <h3 class="card-title">Unique Profanities</h3>        
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                                <i class="fa fa-expand text-theme-secondary"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fa fa-minus text-theme-secondary"></i>
+                            </button>
+                        </div>
+                        </div>
+                        <!-- /.card-header -->
+                        {% if viewdata.get('bleepinfo_data').get('uniqueprofanitiesall') %}
                         <div class="card-body table-responsive p-0" style="height: 300px;">
                         <table class="table table-head-fixed text-nowrap table-hover">
                             <thead>
                             <tr>
                                 <th>Word</th>
-                                <th>Start</th>
-                                <th>End</th>
+                                <th>Occurence</th>
+                                <th>Language</th>
                             </tr>
                             </thead>
                             <tbody>
-                                {% for profanity in viewdata.get('bleepinfo_data').get('profanitiesall') %}
+                                {% for profanity in viewdata.get('bleepinfo_data').get('uniqueprofanitiesall') %}
                                 <tr>
                                     <td>{{profanity.get('word')}}</td>
-                                    <td>{{profanity.get('start')}}</td>
-                                    <td>{{profanity.get('end')}}</td>
+                                    <td>{{profanity.get('occurrence')}}</td>
+                                    <td>
+                                        {% if profanity.get('lang') %}
+                                            {{profanity.get('lang').title()}}
+                                        {% endif %}
+                                    </td>
                                 </tr>
                                 {% endfor %}
-                            
                             </tbody>
                         </table>
                         </div>
+                        {% endif %}
                         <!-- /.card-body -->
                     </div>
                 </div>
@@ -149,23 +203,23 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <canvas id="profanitiesChartSummary" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                            {% for profanity in viewdata.get('bleepinfo_data').get('uniqueprofanities') %}
+                            {% if viewdata.get('bleepinfo_data').get('uniqueprofanities') %}
+                                <canvas id="profanitiesChartSummary" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                                {% for profanity in viewdata.get('bleepinfo_data').get('uniqueprofanities') %}
 
-                                    {% if profanity.get('occurrence') != "0" %}
-                                    <input type="hidden" name="word" value="{{profanity.get('word')}}">
-                                    <input type="hidden" name="occurrence" value="{{profanity.get('occurrence')}}">
-                                    {% endif %}
+                                        {% if profanity.get('occurrence') != "0" %}
+                                        <input type="hidden" name="word" value="{{profanity.get('word')}}">
+                                        <input type="hidden" name="occurrence" value="{{profanity.get('occurrence')}}">
+                                        {% endif %}
 
-                            {% endfor %}
+                                {% endfor %}
+                            {% endif %}
                         </div>
                         <!-- /.card-body -->
                     </div>
                 </div>
             </div>
-            {% endif %}
-
-            {% if viewdata.get('bleepinfo_data').get('uniqueprofanitiesall') %}
+            
             <div class="row">
                 <div class="col-md-6">
                     <div class="card ">
@@ -182,56 +236,58 @@
                         </div>
                         </div>
                         <div class="card-body">
-                            <canvas id="mostFrequentProfanityChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                            {% for profanity in viewdata.get('bleepinfo_data').get('top10profanities') %}
+                            {% if viewdata.get('bleepinfo_data').get('top10profanities') %}
+                                <canvas id="mostFrequentProfanityChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                                {% for profanity in viewdata.get('bleepinfo_data').get('top10profanities') %}
 
-                                    {% if profanity.get('occurrence') != "0" %}
-                                    <input type="hidden" name="mostfrequentword" value="{{profanity.get('word')}}">
-                                    <input type="hidden" name="mostfrequentoccurrence" value="{{profanity.get('occurrence')}}">
-                                    {% endif %}
+                                        {% if profanity.get('occurrence') != "0" %}
+                                        <input type="hidden" name="mostfrequentword" value="{{profanity.get('word')}}">
+                                        <input type="hidden" name="mostfrequentoccurrence" value="{{profanity.get('occurrence')}}">
+                                        {% endif %}
 
-                            {% endfor %}
+                                {% endfor %}
+                            {% endif %}
                         </div>
                         <!-- /.card-body -->
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="card ">
-                        <div class="card-header bg-theme-secondary text-theme-secondary">
-                        <h3 class="card-title">Unique Profanities</h3>        
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="maximize">
-                                <i class="fa fa-expand text-theme-secondary"></i>
-                            </button>
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <div class="card-header bg-theme-secondary  ">
+                        <h3 class="card-title text-theme-secondary">Language</h3>
+        
+                            <div class="card-tools ">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                 <i class="fa fa-minus text-theme-secondary"></i>
-                            </button>
+                                </button>
+                                <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fa fa-times text-theme-secondary"></i>
+                                </button>
+                            </div>
                         </div>
-                        </div>
-                        <!-- /.card-header -->
-                        <div class="card-body table-responsive p-0" style="height: 300px;">
-                        <table class="table table-head-fixed text-nowrap table-hover">
-                            <thead>
-                            <tr>
-                                <th>Word</th>
-                                <th>Occurence</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                                {% for profanity in viewdata.get('bleepinfo_data').get('uniqueprofanitiesall') %}
-                                <tr>
-                                    <td>{{profanity.get('word')}}</td>
-                                    <td>{{profanity.get('occurrence')}}</td>
-                                </tr>
+                        <div class="card-body">
+                            {% if viewdata.get('bleepinfo_data').get('countperlang') %}
+                            <!--    ///////////////////// -->
+                                <canvas id="countPerLangChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                                {% for langobj in viewdata.get('bleepinfo_data').get('countperlang') %}
+
+                                        {% if langobj.get('count') != "0" %}
+                                            {% if langobj.get('lang') %}
+                                                <input type="hidden" name="langobjlang" value="{{langobj.get('lang').title()}}">
+                                            {% else %}
+                                                <input type="hidden" name="langobjlang" value="{{langobj.get('lang')}}">
+                                            {% endif %}
+                                            <input type="hidden" name="langobjcount" value="{{langobj.get('count')}}">
+                                        {% endif %}
+
                                 {% endfor %}
-                            </tbody>
-                        </table>
+                            {% endif %}
                         </div>
                         <!-- /.card-body -->
                     </div>
                 </div>
             </div>
-            {% endif %}
+            
 
             
             <form action="/deletebleepvideo" method="post">
@@ -335,6 +391,44 @@
                 }
             }
             });
+        })
+    </script>
+
+    <script>
+        $(function () {
+            let words = []
+            $("input[name=langobjlang]").each(function(){
+                words.push($(this).val())
+            });
+            let occurrence = []
+            $("input[name=langobjcount]").each(function(){
+                occurrence.push($(this).val())
+            });
+            var graphData   = {
+                labels: words,
+                datasets: [
+                {
+                    data: occurrence,
+                    backgroundColor : ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d',"#43aa8b","#4d908e","#577590","#277da1"],
+                }
+                ]
+            }
+            //-------------
+            //- PIE CHART -
+            //-------------
+            // Get context with jQuery - using jQuery's .get() method.
+            var pieChartCanvas = $('#countPerLangChart').get(0).getContext('2d')
+            var pieData        = graphData;
+            var pieOptions     = {
+                maintainAspectRatio : false,
+                responsive : true,
+            }
+            new Chart(pieChartCanvas, {
+                type: 'pie',
+                data: pieData,
+                options: pieOptions
+            })
+
         })
     </script>
     {% endif %}

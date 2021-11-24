@@ -179,7 +179,10 @@
         }
 
         computePercent(){
-            this.setPercent(parseInt((this.getLapse()/this.est_duration)*100))
+            let temp_percent = parseInt((this.getLapse()/this.est_duration)*100)
+            if (temp_percent<100){
+                this.setPercent(temp_percent)
+            }
         }
 
         process(){

@@ -350,6 +350,7 @@ def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory
         bleepedvideoinfo["profanities"] = db.selectProfanitiesOfVideo(pvid_id) #list
         bleepedvideoinfo["uniqueprofanities"] = db.selectUniqueProfanityWordsByVideo(pvid_id) #list
         bleepedvideoinfo["top10profanities"] = db.selectTop10ProfanitiesByVideo(pvid_id)
+        bleepedvideoinfo["countperlang"] = db.selectCountPerLangOfBleepVideo(pvid_id)
 
 
     except Exception as e:
@@ -696,7 +697,8 @@ def dashboard():
     widgets_data = {
         "mostfrequentprofanities":db.selectUniqueProfanityWordsByAccount(acc_id),
         "bleepedvideos":db.selectBleepedVideosByAccountSearchLimitOffset(acc_id,"",app.config['DEFAULT_ATLEAST_LIMIT'],0),
-        "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A")
+        "datetoday":now.strftime("%B %d %Y")+", "+now.strftime("%A"),
+        "countperlang":db.selectCountPerLangOfAccount(acc_id)
     }
 
     feeds = db.selectFeeds(acc_id) if acc_role != app.config["ROLE_ADMIN"] else db.selectAdminFeeds()
@@ -723,6 +725,7 @@ def dashboard():
         widgets_data["has_uploadedby"] = True
         widgets_data["mostfrequentprofanities"]=db.selectTop10ProfanitiesAll()
         widgets_data["bleepedvideos"]=db.selectBleepedVideosAllSearchLimitOffset("",app.config['DEFAULT_ATLEAST_LIMIT'],0)
+        widgets_data["countperlang"]=db.selectCountPerLangAll()
         #Update latest bleep
         latestbleep_data = db.selectLatestBleepSummaryDataAllSearch("")
     
@@ -1209,7 +1212,7 @@ def bleepstep1():
                                 video_duration=video_duration,
                                 est_multiplier = est_multiplier 
                             )
-                        ) ,
+                        ),
                         'responsemsg': render_template('includes/_messages.html', msg=msg)
                     })
 
