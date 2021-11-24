@@ -1,6 +1,5 @@
 #================================================== Imports
 #Flask
-from re import search
 from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify, send_file,abort
 #For decorator
 from functools import wraps 

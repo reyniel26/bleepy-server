@@ -1,4 +1,3 @@
-from typing import Dict
 import mysql.connector
 
 class Model:
@@ -237,7 +236,7 @@ class Model:
         latestbleep = self.selectLatestBleepAllSearch(search)
         return self.selectLatestBleepDataBuilder(latestbleep)
     
-    def selectBleepInfoDataBuilder(self,bleepinfo:Dict):
+    def selectBleepInfoDataBuilder(self,bleepinfo:dict):
         #bleepinfo should be a query
         bleepinfo_data = {}
         if bleepinfo:
