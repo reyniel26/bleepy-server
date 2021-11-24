@@ -1,4 +1,3 @@
-from re import search
 from typing import Dict
 import mysql.connector
 
@@ -251,7 +250,8 @@ class Model:
                 "profanitycount":self.countProfanityWordsByBleepedVideo(bleepinfo.get("pvideo_id")).get("count"),
                 "mostfrequentword":self.selectMostFrequentProfanityWordByVideo(bleepinfo.get("pvideo_id")).get("word"),
                 "top10profanities":self.selectTop10ProfanitiesByVideo(bleepinfo.get("pvideo_id")),
-                "uploadedby":bleepinfo.get("uploadedby")
+                "uploadedby":bleepinfo.get("uploadedby"),
+                "countperlang":self.selectCountPerLangOfBleepVideo(bleepinfo.get("pvideo_id"))
             }
         return bleepinfo_data
 
@@ -280,6 +280,21 @@ class Model:
 
     def selectUniqueProfanityWordsByAccount(self,id:str):
         return self.querySelectAll("call sp_select_unique_profanitywords_by_account(%s)",id)
+    
+    def selectTop10ProfanitiesByVideo(self,pvid):
+        return self.querySelectAll("call sp_select_top_10_profanities_by_video(%s)",pvid)
+    
+    def selectTop10ProfanitiesAll(self):
+        return self.querySelectAll("call sp_select_top_10_profanities_all()")
+    
+    def selectCountPerLangAll(self):
+        return self.querySelectAll("call sp_select_lang_of_pword_groupby_lang_all()")
+    
+    def selectCountPerLangOfBleepVideo(self,pvid):
+        return self.querySelectAll("call sp_select_lang_of_pword_groupby_lang_by_video(%s)",pvid)
+    
+    def selectCountPerLangOfAccount(self,acc_id):
+        return self.querySelectAll("call sp_select_lang_of_pword_groupby_lang_by_account(%s)",acc_id)
     
     def selectBleepedVideosByAccount(self,id:str):
         return self.querySelectAll("call sp_select_censored_videos_by_account(%s)",id)
@@ -335,12 +350,6 @@ class Model:
     def selectBleepVideoByFileName(self,pfilename):
         return self.querySelect("call sp_select_pvideo_by_filename(%s)",pfilename)
     
-    def selectTop10ProfanitiesByVideo(self,pvid):
-        return self.querySelectAll("call sp_select_top_10_profanities_by_video(%s)",pvid)
-    
-    def selectTop10ProfanitiesAll(self):
-        return self.querySelectAll("call sp_select_top_10_profanities_all()")
-
     def selectNavOfRole(self,role_id):
         return self.querySelectAll("call sp_select_navs_of_role(%s)",role_id)
     
@@ -516,7 +525,8 @@ class Model:
         return self.queryInsert("call sp_add_profanityvideo(%s,%s, %s, %s, %s)",vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
     
     def insertProfanities(self,vals:list):
-        return self.queryInsertMany("call sp_add_profanityword(%s, %s,%s,%s)",vals)
+        #word , start, end, lang, pvid_id
+        return self.queryInsertMany("call sp_add_profanityword(%s, %s,%s,%s,%s)",vals)
     
     def insertUser(self,email:str,fname:str,lname:str,pwd):
         return self.queryInsert("call sp_add_user(%s, %s, %s, %s)",email,fname,lname,pwd)

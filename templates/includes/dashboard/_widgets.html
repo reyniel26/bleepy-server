@@ -1,11 +1,85 @@
 <div class="row">
-    <div class="col-lg-7">
+    <div class="col-lg-6">
+        <section>
+            <!-- PIE CHART -->
+            <div class="card shadow">
+                <div class="card-header bg-theme-secondary text-theme-secondary">
+                <h3 class="card-title">Language </h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool text-theme-secondary" data-card-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool text-theme-secondary" data-card-widget="remove">
+                    <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                </div>
+                <div class="card-body">
+                    {% if viewdata.get('widgets_data').get('countperlang') %}
+                        
+                        <canvas id="countPerLangChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                        {% for langobj in viewdata.get('widgets_data').get('countperlang') %}
+
+                                {% if langobj.get('count') != "0" %}
+                                    {% if langobj.get('lang') %}
+                                        <input type="hidden" name="langobjlang" value="{{langobj.get('lang').title()}}">
+                                    {% else %}
+                                        <input type="hidden" name="langobjlang" value="{{langobj.get('lang')}}">
+                                    {% endif %}
+                                    <input type="hidden" name="langobjcount" value="{{langobj.get('count')}}">
+                                {% endif %}
+                        {% endfor %}
+
+                    {% endif %}
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+        </section>
+    </div>
+    <div class="col-lg-6">
+        <section>
+            <!-- PIE CHART -->
+            <div class="card shadow">
+                <div class="card-header bg-theme-secondary text-theme-secondary">
+                <h3 class="card-title">Top 10 Most Frequent Profanities</h3>
+
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool text-theme-secondary" data-card-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool text-theme-secondary" data-card-widget="remove">
+                    <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                </div>
+                <div class="card-body">
+                    {% if viewdata.get('widgets_data').get('mostfrequentprofanities') %}
+                        <canvas id="mostFrequentProfanityChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                        {% for profanities in viewdata.get('widgets_data').get('mostfrequentprofanities') %}
+                            {% if profanities.get("occurrence") != "0" %}
+                            <input type="hidden" name="mostfrequentprofanitiesword" value="{{profanities.get('word')}}" >
+                            <input type="hidden" name="mostfrequentprofanitiesoccurrence" value="{{profanities.get('occurrence')}}" >
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+        </section>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
         <!-- My Bleep Videos -->
         {% if viewdata.get('widgets_data').get('bleepedvideos') %}
         <section>
             <div class="card shadow">
                 <div class="card-header bg-theme-secondary text-theme-secondary">
-                <h3 class="card-title">Bleep Videos</h3>        
+                <h3 class="card-title"><a href="/bleepvideolist">Bleep Videos</a></h3>        
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-card-widget="maximize">
                         <i class="fa fa-expand text-theme-secondary"></i>
@@ -65,38 +139,6 @@
                 </div>
                 <!-- /.card-body -->
             </div>
-        </section>
-        {% endif %}
-    </div>
-    <div class="col-lg-5">
-        {% if viewdata.get('widgets_data').get('mostfrequentprofanities') %}
-        <section>
-            <!-- PIE CHART -->
-            <div class="card shadow">
-                <div class="card-header bg-theme-secondary text-theme-secondary">
-                <h3 class="card-title">Top 10 Most Frequent Profanities</h3>
-
-                <div class="card-tools">
-                    <button type="button" class="btn btn-tool text-theme-secondary" data-card-widget="collapse">
-                    <i class="fa fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool text-theme-secondary" data-card-widget="remove">
-                    <i class="fa fa-times"></i>
-                    </button>
-                </div>
-                </div>
-                <div class="card-body">
-                    <canvas id="mostFrequentProfanityChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                    {% for profanities in viewdata.get('widgets_data').get('mostfrequentprofanities') %}
-                        {% if profanities.get("occurrence") != "0" %}
-                        <input type="hidden" name="mostfrequentprofanitiesword" value="{{profanities.get('word')}}" >
-                        <input type="hidden" name="mostfrequentprofanitiesoccurrence" value="{{profanities.get('occurrence')}}" >
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                <!-- /.card-body -->
-            </div>
-            <!-- /.card -->
         </section>
         {% endif %}
     </div>

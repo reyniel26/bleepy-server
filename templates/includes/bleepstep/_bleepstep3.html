@@ -152,10 +152,43 @@
                     {% endif %}
                 </div>
 
+                <!--Language Frequency-->
+                <div>
+                    <hr>
+                    <div class="card card-theme-secondary card-outline shadow">
+                        <div class="card-header ">
+                        <h3 class="card-title">Language</h3>
+        
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                        </div>
+                        <div class="card-body">
+                            {% if viewdata.get('bleepedvideoinfo').get('countperlang') %}
+                            <canvas id="countPerLangChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                                {% for langobj in viewdata.get('bleepedvideoinfo').get('countperlang') %}
+                                        {% if langobj.get('count') != "0" %}
+                                            {% if langobj.get('lang') %}
+                                                <input type="hidden" name="langobjlang" value="{{langobj.get('lang').title()}}">
+                                            {% else %}
+                                                <input type="hidden" name="langobjlang" value="{{langobj.get('lang')}}">
+                                            {% endif %}
+                                            <input type="hidden" name="langobjcount" value="{{langobj.get('count')}}">
+                                        {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
                 
                 <!--First 10 Profanities Detected-->
                 <div>
-                    {% if viewdata.get('bleepedvideoinfo').get('profanities') %}
                     <hr>
                     <div class="card card-theme-secondary card-outline shadow">
                         <div class="card-header">
@@ -174,40 +207,48 @@
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body table-responsive p-0" style="height: 300px;">
-                        <table class="table table-head-fixed text-nowrap table-hover">
-                            <thead>
+                        {% if viewdata.get('bleepedvideoinfo').get('profanities') %}
+                            <table class="table table-head-fixed text-nowrap table-hover">
+                                <thead>
+                                    <tr>
+                                    <th>Word</th>
+                                    <th>Start</th>
+                                    <th>End</th>
+                                    <th>Language</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for profanities in viewdata.get('bleepedvideoinfo').get('profanities') %}
                                 <tr>
-                                <th>Word</th>
-                                <th>Start</th>
-                                <th>End</th>
+                                    {% if profanities.get('occurrence') != "0" %}
+                                    <td>{{profanities.get('word')}}</td>
+                                    <td>{{profanities.get('start_time')}}</td>
+                                    <td>{{profanities.get('end_time')}}</td>
+                                    <td>
+                                        {% if profanities.get('lang') %}
+                                            {{profanities.get('lang').title()}}
+                                        {% endif %}
+                                    </td>
+                                    {% endif %}
                                 </tr>
-                            </thead>
-                            <tbody>
-                            {% for profanities in viewdata.get('bleepedvideoinfo').get('profanities') %}
-                            <tr>
-                                {% if profanities.get('occurrence') != "0" %}
-                                <td>{{profanities.get('word')}}</td>
-                                <td>{{profanities.get('start')}}</td>
-                                <td>{{profanities.get('end')}}</td>
-                                {% endif %}
-                            </tr>
-                            {% endfor %}
-                            </tbody> 
-                        </table>
+                                {% endfor %}
+                                </tbody> 
+                            </table>
+                        {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                 </div>
-            
+
+                
             {% else %}
 
-            <div class=" alert alert-success ">
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-                This video is already profanity free. No profanities detected
-            </div>
-            <div class=" jumbotron bg-white shadow text-center">
-                <a href="/bleepvideo"> <button class="btn btn-theme-secondary text-theme-secondary"> Try other video </button>  </a>
-            </div>
+                <div class=" alert alert-success ">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    This video is already profanity free. No profanities detected
+                </div>
+                <div class=" jumbotron bg-white shadow text-center">
+                    <a href="/bleepvideo"> <button class="btn btn-theme-secondary text-theme-secondary"> Try other video </button>  </a>
+                </div>
 
             {% endif %}
         </div>
@@ -296,6 +337,46 @@
                 }
             }
             });
+        })
+    </script>
+    {% endif %}
+
+    {% if viewdata.get('bleepedvideoinfo').get('countperlang') %}
+    <script>
+        $(function () {
+            let words = []
+            $("input[name=langobjlang]").each(function(){
+                words.push($(this).val())
+            });
+            let occurrence = []
+            $("input[name=langobjcount]").each(function(){
+                occurrence.push($(this).val())
+            });
+            var graphData   = {
+                labels: words,
+                datasets: [
+                {
+                    data: occurrence,
+                    backgroundColor : ['#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f', '#90be6d',"#43aa8b","#4d908e","#577590","#277da1"],
+                }
+                ]
+            }
+            //-------------
+            //- PIE CHART -
+            //-------------
+            // Get context with jQuery - using jQuery's .get() method.
+            var pieChartCanvas = $('#countPerLangChart').get(0).getContext('2d')
+            var pieData        = graphData;
+            var pieOptions     = {
+                maintainAspectRatio : false,
+                responsive : true,
+            }
+            new Chart(pieChartCanvas, {
+                type: 'pie',
+                data: pieData,
+                options: pieOptions
+            })
+
         })
     </script>
     {% endif %}
