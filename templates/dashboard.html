@@ -13,11 +13,13 @@
     {% if viewdata.get("admin_data") %}
         <!-- Additional For admin -->
         {% include 'includes/dashboard/_admin.html' %}
+        <hr>
     {% endif %}
 
     {% if viewdata.get("editor_data") %}
         <!-- Additional For editor -->
         {% include 'includes/dashboard/_editor.html' %}
+        <hr>
     {% endif %}
 
 
@@ -226,6 +228,7 @@
         <!--No Result -->
         {% include 'includes/_noresult.html' %}
     {% endif %}
+    <hr>
 
 
     <!-- Widgets-->
@@ -369,7 +372,15 @@
     {% endif %}
 
 
-    {% include 'includes/dashboard/_scripts_admin.html' %}
+    {% if viewdata.get("admin_data") %}
+        <!-- Additional For admin -->
+        {% include 'includes/dashboard/_scripts_admin.html' %}
+    {% endif %}
+
+    {% if viewdata.get("editor_data") %}
+        <!-- Additional For editor -->
+        {% include 'includes/dashboard/_scripts_editor.html' %}
+    {% endif %}
 
 {% endblock %}
 

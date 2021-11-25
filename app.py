@@ -1,6 +1,5 @@
 #================================================== Imports
 #Flask
-from re import search
 from flask import Flask, render_template, flash, redirect, url_for, request, make_response, jsonify, send_file,abort
 #For decorator
 from functools import wraps 
@@ -710,7 +709,10 @@ def dashboard():
     if acc_role == app.config["ROLE_EDITOR"] or acc_role == app.config["ROLE_ADMIN"]:
         #Set the data that the editor and admin can have
         editor_data = {
-            "role":"editor"
+            "role":"editor",
+            "bleepsounds" : db.selectBleepSoundsSearchLimitOffset('',10,0),
+            "latest_bleepsound" : db.selectLatestBleepSoundSearch(''),
+            "bleepsoundcount": db.countBleepSoundSearch('').get('count') if db.countBleepSoundSearch('') else 0
         }
         
 

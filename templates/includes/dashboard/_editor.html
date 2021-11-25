@@ -1,9 +1,111 @@
 <section>
     <div class="row">
-        <div class="col-12">
-            <div class="jumbotron bg-white shadow">
-                <h1>Editor</h1>
-                <hr>
+        <div class="col-md-8">
+            <section>
+                <div class="card shadow">
+                    <div class="card-header bg-theme-secondary text-theme-secondary">
+                    <h3 class="card-title"><a href="/bleepsoundlist">Latest Bleep Sound</a></h3>        
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                            <i class="fa fa-expand text-theme-secondary"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fa fa-minus text-theme-secondary"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fa fa-times text-theme-secondary"></i>
+                        </button>
+                    </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body table-responsive p-0" style="height: 300px;">
+                        {% if viewdata.get('editor_data').get('bleepsounds') %}
+                        <table class="table table-head-fixed text-nowrap table-hover ">
+                            <thead>
+                            <tr>
+                                <th>Track Name</th>
+                                <th>Added on</th>
+                                <th></th>
+                                <th> <a class="btn btn-theme" href="/managebleepsounds">View All</a></th>
+                                
+                            </tr>
+                            </thead>
+                            <tbody>
+                                {% for bleepsound in viewdata.get('editor_data').get('bleepsounds') %}
+                                <tr>
+                                    <td>{{bleepsound.get('filename')}}</td>
+                                    <td>{{bleepsound.get('upload_time')}}</td>
+                                    <td>
+                                        <button class="btn btn-theme-secondary btnbleepsoundplayer" value="{{bleepsound.get('bleep_sound_id')}}"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>
+                                    </td>
+                                    <td> 
+                                        <a href="/downloadbleepsound/{{bleepsound.get('bleep_sound_id')}}" target="_blank"> <button class=" btn btn-theme-secondary"> <i class="fa fa-download" aria-hidden="true"></i></button> </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% endif %}
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+            </section>
+        </div>
+        <div class="col-md-4">
+            <div class="row">
+                <div class="col-12">
+                    <section>
+                        <div class="card shadow">
+                            <div class="card-header bg-theme-secondary text-theme-secondary">
+                            <h3 class="card-title"><a href="/bleepsoundlist">Bleep Sound Player</a></h3>        
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                                    <i class="fa fa-expand text-theme-secondary"></i>
+                                </button>
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fa fa-minus text-theme-secondary"></i>
+                                </button>
+                                <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                    <i class="fa fa-times text-theme-secondary"></i>
+                                </button>
+                            </div>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body " style="height: 200px;">
+                                {% if viewdata.get('editor_data').get('latest_bleepsound') %}
+                                <div class="mt-4" id="bleepsoundpreview">
+                                    <div class="text-center ">
+                                        <h3 class=" " id="bleepsoundpreviewtitle">{{viewdata.get('editor_data').get('latest_bleepsound').get('filename')}}</h3>
+                                    </div>
+
+                                    <audio controls class=" w-100" id="bleepsoundplayer">
+                                        <source src="{{url_for('static', filename=viewdata.get('editor_data').get('latest_bleepsound').get('filelocation'))}}" id="mp3_src" type="audio/mp3">
+                                        Your browser does not support the audio tag.
+                                    </audio>
+                                </div>
+                                {% else %}
+                                <p class="text-center">No result</p>
+                                {% endif %}
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="info-box shadow">
+                        {%if viewdata.get('editor_data').get('bleepsoundcount') %}
+                        <span class="info-box-icon bg-info"><i class="fa fa-music"></i></span>
+        
+                        <div class="info-box-content">
+                        <span class="info-box-text">Total Bleep Sound</span>
+                        <span class="info-box-number">{{viewdata.get('editor_data').get('bleepsoundcount')}}</span>
+                        </div>
+                        {% endif %}
+                        <!-- /.info-box-content -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -1,4 +1,3 @@
-from typing import Dict
 import mysql.connector
 
 class Model:
@@ -237,7 +236,7 @@ class Model:
         latestbleep = self.selectLatestBleepAllSearch(search)
         return self.selectLatestBleepDataBuilder(latestbleep)
     
-    def selectBleepInfoDataBuilder(self,bleepinfo:Dict):
+    def selectBleepInfoDataBuilder(self,bleepinfo:dict):
         #bleepinfo should be a query
         bleepinfo_data = {}
         if bleepinfo:
@@ -415,6 +414,9 @@ class Model:
     def selectUploadVideoTrend(self):
         return self.querySelectAll("call sp_select_trend_upload_video()")
     
+    def selectBleepsoundTrend(self):
+        return self.querySelectAll("call sp_select_trend_bleep_sound()")
+    
     def selectBleepVideoTrend(self):
         return self.querySelectAll("call sp_select_trend_bleep_video()")
     
@@ -423,6 +425,7 @@ class Model:
         registration = []
         videouploads = []
         bleepvideos = []
+        bleepsounds = []
 
         for items in self.selectAccountRegTrend():
             registration.append(items.get("count"))
@@ -433,11 +436,15 @@ class Model:
         
         for items in self.selectBleepVideoTrend():
             bleepvideos.append(items.get("count"))
+
+        for items in self.selectBleepsoundTrend():
+            bleepsounds.append(items.get("count"))
         
         trends = [
             {"Registration ": registration},
             {"Video Uploads ": videouploads},
             {"Bleep Video ": bleepvideos},
+            {"Bleep Sound":bleepsounds}
         ]
 
         
