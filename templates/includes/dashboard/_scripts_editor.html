@@ -1,0 +1,43 @@
+{% if viewdata.get('editor_data').get('latest_bleepsound') %}
+<script>
+    $('.btnbleepsoundplayer').on('click', function() {
+        requestAudioSrc($(this).val())
+    });
+
+    function requestAudioSrc(id){
+        if(id){
+            $.ajax ({
+                type:"POST",
+                url:"/getbleepsoundinfo",
+                data: {
+                    bleepsound_id:id
+                },
+                cache: false,
+                success:function(data){
+                    changeAudioSrc(data.filelocation)
+                    $('#bleepsoundpreviewtitle').html(data.filename);
+
+                    $('html, body').animate({
+                                scrollTop: $("#targetdivscroll").offset().top
+                    }, 1000);
+
+                },error:function(e){
+                    alert("error: "+e)
+                }
+            });
+        }
+        else{
+            //Stops audio
+            changeAudioSrc("")
+        }
+    }
+
+    function changeAudioSrc(sourceUrl) {
+        var audio = $("#bleepsoundplayer");      
+        $("#mp3_src").attr("src", sourceUrl);
+        /****************/
+        audio[0].load();
+        audio[0].play();
+    }
+</script>
+{% endif %}
