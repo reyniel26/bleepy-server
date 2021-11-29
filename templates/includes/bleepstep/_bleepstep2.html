@@ -68,10 +68,10 @@
                     <label for="lang">Select Language:</label>
                     <select class="form-control" id="lang" name="lang">
                         {% for lang in viewdata.get("langs") %}
-                            {% if lang == viewdata.get("defaultLang")%}
-                                <option value="{{lang}}" selected>{{lang.title()}}</option>
+                            {% if lang.get('lang') == viewdata.get("defaultLang")%}
+                                <option value="{{lang.get('lang_id')}}" selected>{{lang.get('lang').title()}}</option>
                             {% else %}
-                                <option value="{{lang}}">{{lang.title()}}</option>
+                                <option value="{{lang.get('lang_id')}}">{{lang.get('lang').title()}}</option>
                             {% endif %}
                         {% endfor %}
                     </select>

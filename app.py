@@ -335,7 +335,8 @@ def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory
         vals = []
 
         for profanity in profanities:
-            item = (profanity["word"],profanity["start"],profanity["end"],profanity.get("lang"),pvid_id)
+            lang_id = db.selectLangByLang(profanity.get("lang")).get("lang_id") if db.selectLangByLang(profanity.get("lang")) else 0
+            item = (profanity["word"],profanity["start"],profanity["end"],lang_id,pvid_id)
             vals.append(item)
         
         msg = db.insertProfanities(vals)
@@ -905,8 +906,9 @@ def bleepvideo():
     acc_id = getIdViaAuth() 
 
     videos = db.selectVideosUploadedByAccount(acc_id)
+    bleepedvideos = db.selectBleepedVideosByAccount(acc_id)
     
-    return render_template('bleepvideo.html', viewdata = viewData(videos=videos))
+    return render_template('bleepvideo.html', viewdata = viewData(videos=videos, bleepedvideos = bleepedvideos))
 
 #Delete Files
 #Delete Video
@@ -1164,10 +1166,12 @@ def bleepstep1():
         }
 
         bleepsounds = db.selectBleepSounds()
-        langs = app.config['LANGS']
+        langs = db.selectLangsAll()
         defaultLang = app.config['DEFAULT_LANG']
         est_multiplier = app.config['DEFAULT_EST_MULTIPLIER']
         video_duration = 0.0
+
+        advance_options = {}
 
         #If choose video
         if request.form.get("choosevideo"):
@@ -1180,6 +1184,7 @@ def bleepstep1():
 
             msg = str(videoinfo.get("filename"))+" has been choosen"
 
+        #Elif upload file
         elif request.files.get("uploadFile"):
             file = request.files.get("uploadFile")
             # print(request.cookies.get('filesize'))
@@ -1205,6 +1210,12 @@ def bleepstep1():
             video_duration = video.getDuration()
 
             msg = "File Uploaded Successfully"
+        
+        #Elif Refilter
+        elif request.files.get("refiltervideo"):
+            #Get the info of the bleep video
+            pass
+
 
         return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', 
                             viewdata = viewData(videoinfo=videoinfo,
@@ -1231,7 +1242,8 @@ def bleepstep2():
 
         vid_id = request.form.get("vid_id")
         bleepsound_id = request.form.get("bleepsound_id")
-        lang = request.form.get('lang')
+        lang_id = request.form.get('lang')
+        lang = db.selectLangById(lang_id).get('lang') if db.selectLangById(lang_id) else ''
         flashPrintsforAdmin(lang,"Language")
 
         if not (vid_id and bleepsound_id):

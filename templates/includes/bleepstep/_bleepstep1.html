@@ -1,0 +1,123 @@
+<div class="card card-tabs" id="bleepstep1card">
+    <div class="card-header p-0 pt-1 bg-theme-secondary text-theme-secondary">
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="maximize">
+                <i class="fa fa-expand text-theme-secondary"></i>
+            </button>
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fa fa-minus text-theme-secondary"></i>
+            </button>
+        </div>
+        <ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">
+            <li class="pt-2 px-3"><h3 class="card-title">Step 1:</h3></li>
+            <li class="nav-item">
+            <a class="nav-link active" id="step1-upload-video-tab" data-toggle="pill" href="#step1-upload-video" role="tab" aria-controls="bleepstep1-tab-uploadvideo" aria-selected="true">Upload Video</a>
+            </li>
+            <li class="nav-item">
+            <a class="nav-link" id="step1-choose-video-tab" data-toggle="pill" href="#step1-choose-video" role="tab" aria-controls="bleepstep1-tab-choosevideo" aria-selected="false">Choose Video</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="step1-refilter-video-tab" data-toggle="pill" href="#step1-refilter-video" role="tab" aria-controls="bleepstep1-tab-refiltervideo" aria-selected="false">Refilter Video</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="custom-tabs-two-tabContent">
+            <div class="tab-pane fade show active" id="step1-upload-video" role="tabpanel" aria-labelledby="step1-upload-video-tab">
+                <h3 class=" font-weight-light">Upload new video</h3>
+                <span class="text-danger"id="cancelUploadMsg"></span>
+                <form action="/bleepstep1" id="uploadVideoForm" method="POST" enctype="multipart/form-data">
+                    <div class="custom-file mb-3">
+                    <input type="file" class="custom-file-input" id="uploadFile" name="uploadFile" accept="video/mp4, video/mkv">
+                    <label class="custom-file-label" for="uploadFile">Choose file</label>
+                    </div>
+                    <input type="hidden" name="uploadfilesize" id="uploadfilesize" value="">
+                    <div class="form-group" id="uploadSubmitDiv" style="display: none;">
+                        <input type="submit" id="uploadSubmit" value="Upload" class="btn btn-info" />
+                    </div>
+                    <div class="form-group" id="cancelSubmitDiv" style="display: none;">
+                        <button class="btn btn-info" disabled id="loader-icon">
+                            <span class="spinner-border spinner-border-sm"></span>
+                            Loading..
+                        </button>
+                        <input type="button" id="cancelSubmit" value="Cancel" class="btn btn-danger" />
+                    </div>
+                    
+                    <div class="progress" id="uploadProgress" style="display: none;">
+                        <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 50%;">50%</div>
+                    </div>
+                    <div id="targetLayer" style="display:none;" class="mt-3">
+    
+                    </div>
+                </form>
+            </div>
+            <div class="tab-pane fade" id="step1-choose-video" role="tabpanel" aria-labelledby="step1-choose-video-tab">
+                <h3 class=" font-weight-light">Choose from your videos</h3>
+                {% if viewdata.get("videos") %}
+                <form action="" id="chooseVideoForm">
+                    <div class="input-group mb-3">
+                        <select name="chooseVideo" class="custom-select" id="chooseVideo">
+                        <option selected value="">Choose video</option>
+                        {% for videoinfo in viewdata.get("videos") %}
+                        <option value="{{videoinfo.get('video_id')}}">{{videoinfo.get("filename")}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="embed-responsive embed-responsive-16by9 mb-3" id="choosevideopreviewdiv">
+                        <video class="embed-responsive-item" controls id="choosevideopreview">
+                            <source src="" type="video/mp4" />
+                            This video is not supported by your browser...
+                        </video>
+                    </div>
+
+                    <div class="form-group" id="chooseSubmitDiv" style="display: none;">
+                        <input type="submit" id="chooseSubmit" value="Choose" class="btn btn-info" />
+                    </div>
+
+                    <div id="choosevideomsgdiv">
+
+                    </div>
+                </form>
+                {% else %}
+                    <!--No Result -->
+                    {% include 'includes/_noresult.html' %}
+                {% endif %}
+            </div>
+            <div class="tab-pane fade" id="step1-refilter-video" role="tabpanel" aria-labelledby="step1-refilter-video-tab">
+                <h3 class=" font-weight-light">Choose bleeped video you want to refilter</h3>
+                {% if viewdata.get("bleepedvideos") %}
+                <form action="" id="refilterVideoForm">
+                    <div class="input-group mb-3">
+                        <select name="refilterVideo" class="custom-select" id="refilterVideo">
+                        <option selected value="">Choose video</option>
+                        {% for bleepedvideoinfo in viewdata.get("bleepedvideos") %}
+                        <option value="{{bleepedvideoinfo.get('pvideo_id')}}">{{bleepedvideoinfo.get("filename")}} - {{bleepedvideoinfo.get("bfilename")}} - {{bleepedvideoinfo.get("process_time")}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="embed-responsive embed-responsive-16by9 mb-3" id="refiltervideopreviewdiv">
+                        <video class="embed-responsive-item" controls id="refiltervideopreview">
+                            <source src="" type="video/mp4" />
+                            This video is not supported by your browser...
+                        </video>
+                    </div>
+
+                    <div class="form-group" id="refilterVideoSubmitDiv" style="display: none;">
+                        <input type="submit" id="refilterVideoSubmit" value="Choose" class="btn btn-info" />
+                    </div>
+
+                    <div id="refiltervideomsgdiv">
+
+                    </div>
+                </form>
+                {% else %}
+                    <!--No Result -->
+                    {% include 'includes/_noresult.html' %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- /.card -->
+</div>

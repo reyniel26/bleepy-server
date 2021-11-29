@@ -463,6 +463,16 @@ class Model:
     
     def selectAccountAllSearchLimitOffset(self,search,limit,offset):
         return self.querySelectAll("call sp_select_accounts_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
+    
+    def selectLangByLang(self,lang):
+        return self.querySelect("call sp_select_lang_by_lang(%s)",lang)
+    
+    def selectLangById(self,lang_id):
+        return self.querySelect("call sp_language_by_id(%s)",lang_id)
+    
+    def selectLangsAll(self):
+        return self.querySelectAll("call sp_select_languages()")
+
     #================================================== Counts
     def countVideosUploadedByAcc(self,id:str):
         return self.querySelect("call sp_count_videos_uploadedby_account(%s)",id)
@@ -532,7 +542,7 @@ class Model:
         return self.queryInsert("call sp_add_profanityvideo(%s,%s, %s, %s, %s)",vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
     
     def insertProfanities(self,vals:list):
-        #word , start, end, lang, pvid_id
+        #word , start, end, lang_id, pvid_id
         return self.queryInsertMany("call sp_add_profanityword(%s, %s,%s,%s,%s)",vals)
     
     def insertUser(self,email:str,fname:str,lname:str,pwd):
