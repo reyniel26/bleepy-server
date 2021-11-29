@@ -472,6 +472,15 @@ class Model:
     
     def selectLangsAll(self):
         return self.querySelectAll("call sp_select_languages()")
+    
+    def selectSTTModelByLangId(self,lang_id):
+        return self.querySelectAll("call sp_select_stt_model_by_lang_id(%s)",lang_id)
+    
+    def selectSTTModelByLang(self,lang):
+        return self.querySelectAll("call sp_select_stt_model_by_lang(%s)",lang)
+    
+    def selectSTTModelById(self,stt_model_id):
+        return self.querySelect("call sp_select_stt_model_by_id(%s)",stt_model_id)
 
     #================================================== Counts
     def countVideosUploadedByAcc(self,id:str):
@@ -538,8 +547,27 @@ class Model:
     def insertUploadedBy(self,vidid,id):
         return self.queryInsert("call sp_add_uploadedby(%s, %s)",vidid,id)
 
-    def insertBleepedVideo(self,vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory):
-        return self.queryInsert("call sp_add_profanityvideo(%s,%s, %s, %s, %s)",vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
+    def insertBleepedVideo(self,bleepvideodict:dict):
+        """
+        Dictionary
+        - vid_id
+        - bleepsound_id
+        - pfilename
+        - pfilelocation
+        - psavedirectory
+        - refilter_level
+        - stt_model_id
+
+        """
+        return self.queryInsert("call sp_add_profanityvideo(%s,%s, %s, %s, %s, %s, %s)",
+                    bleepvideodict.get('vid_id'),
+                    bleepvideodict.get('bleepsound_id'),
+                    bleepvideodict.get('pfilename'),
+                    bleepvideodict.get('pfilelocation'),
+                    bleepvideodict.get('psavedirectory'),
+                    bleepvideodict.get('refilter_level'),
+                    bleepvideodict.get('stt_model_id')
+                )
     
     def insertProfanities(self,vals:list):
         #word , start, end, lang_id, pvid_id

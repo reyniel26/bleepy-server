@@ -75,7 +75,29 @@
                             {% endif %}
                         {% endfor %}
                     </select>
-                  </div>
+                </div>
+                {% endif %}
+
+                {% if viewdata.get("advance_options") %}
+                <div class="form-group form-check">
+                    <label class="form-check-label" for="advanceoptions">
+                      <input class="form-check-input" type="checkbox" name="advanceoptions" id="advanceoptions"> <b>Advance Options: </b>
+                    </label>
+                </div>
+                    {% if viewdata.get("advance_options").get('stt_models') %}
+                    <div class="form-group" id="stt_model_div" style="display: none;">
+                        <label for="stt_models">Select Speech-To-Text Model:</label>
+                        <select class="form-control" id="stt_models" name="stt_models">
+                            {% for stt_model in viewdata.get("advance_options").get('stt_models') %}
+                                {% if stt_model.get('foldername') in viewdata.get("advance_options").get("defaultsttmodels")%}
+                                    <option value="{{stt_model.get('model_id')}}" selected>{{stt_model.get('name')}} (Recommended)</option>
+                                {% else %}
+                                    <option value="{{stt_model.get('model_id')}}">{{stt_model.get('name')}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
                 {% endif %}
 
                 <div class="form-group" id="runBleepySubmitDiv">
@@ -217,7 +239,7 @@
     $('#runbleepyform').submit(function(event){
         event.preventDefault();
         if($('#runbleepyvid_id').val()){
-            if($('#choosebleepsound').val()){
+            if($('#choosebleepsound').val() && $('#lang').val() && $('#stt_models').val()){
                 
                 est_duration = parseFloat($('#video_duration').val())*parseFloat($('#est_multiplier').val())
                 let progress = new Progress(est_duration,'#runBleepyProgressbar','#runBleepyElapsedtime')
@@ -234,6 +256,7 @@
                         bleepsound_id:$('#choosebleepsound').val(),
                         vid_id:$('#runbleepyvid_id').val(),
                         lang:$('#lang').val(),
+                        stt_model_id:$('#stt_models').val(),
                     },
                     cache: false,
                     success:function(data){
@@ -302,7 +325,52 @@
         audio[0].load();
     }
 
-    
+    $('#lang').on('change', function() {
+        if($('#lang').val()){
+            $.ajax ({
+                type:"POST",
+                url:"/getsttmodelinfo",
+                data: {
+                    lang_id:$('#lang').val()
+                },
+                cache: false,
+                success:function(data){
+
+                    function isRecommendedModel(model){
+                        for (let x of data.defaultsttmodels){
+                            if (model == x){
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                    
+                    $("#stt_models").empty()
+                    for (let x of data.stt_models){
+                        let option = (isRecommendedModel(x["foldername"])) ? 
+                                $('<option selected></option>').attr("value", x["model_id"]).text(x["name"]+" (Recommended)") :
+                                $('<option></option>').attr("value", x["model_id"]).text(x["name"]) ;
+
+                        $("#stt_models").append(option)
+                    }
+
+                    console.log($('#stt_models').val())
+                    
+                },error:function(e){
+                    alert("error: "+e)
+                }
+            });
+        }
+    });
+
+    $('#advanceoptions').on('click', function() {
+        if($('#advanceoptions').is(':checked')){
+            $('#stt_model_div').show()
+        }else{
+            $('#stt_model_div').hide()
+        }
+        
+    });
     
 
     

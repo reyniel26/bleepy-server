@@ -42,7 +42,9 @@ class Config(object):
     DEFAULT_ATLEAST_LIMIT = 10
     DEFAULT_EST_MULTIPLIER = 2.5
     DEFAULT_LANG  = 'tagalog-english'
-    LANGS = ["tagalog-english","english","tagalog"]
+    DEFAULT_STT_MODEL_ENG = 'model-en'
+    DEFAULT_STT_MODEL_TAG = 'model-ph'
+    DEFAULT_STT_MODELS = (DEFAULT_STT_MODEL_ENG,DEFAULT_STT_MODEL_TAG,'default')
 
 
 
