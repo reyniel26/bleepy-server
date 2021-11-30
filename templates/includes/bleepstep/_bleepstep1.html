@@ -17,7 +17,7 @@
             <a class="nav-link" id="step1-choose-video-tab" data-toggle="pill" href="#step1-choose-video" role="tab" aria-controls="bleepstep1-tab-choosevideo" aria-selected="false">Choose Video</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="step1-refilter-video-tab" data-toggle="pill" href="#step1-refilter-video" role="tab" aria-controls="bleepstep1-tab-refiltervideo" aria-selected="false">Refilter Video</a>
+                <a class="nav-link" id="step1-refilter-video-tab" data-toggle="pill" href="#step1-refilter-video" role="tab" aria-controls="bleepstep1-tab-refiltervideo" aria-selected="false">Re-filter Video</a>
             </li>
         </ul>
     </div>
@@ -85,9 +85,10 @@
                 {% endif %}
             </div>
             <div class="tab-pane fade" id="step1-refilter-video" role="tabpanel" aria-labelledby="step1-refilter-video-tab">
-                <h3 class=" font-weight-light">Choose bleeped video you want to refilter</h3>
+                <h3 class=" font-weight-light">Choose bleeped video you want to re-filter</h3>
                 {% if viewdata.get("bleepedvideos") %}
                 <form action="" id="refilterVideoForm">
+
                     <div class="input-group mb-3">
                         <select name="refilterVideo" class="custom-select" id="refilterVideo">
                         <option selected value="">Choose video</option>
@@ -96,6 +97,14 @@
                         {% endfor %}
                         </select>
                     </div>
+
+                    <p id="refiltervideodetails" style="display: none;">
+                        <b>Title: </b><span id="refiltervideotitle"></span><br>
+                        <b>STT model used: </b><span id="refiltersttmodel"></span><br>
+                        <b>STT Language: </b><span id="refilterlanguage"></span><br>
+                        <b>Refilter Level: </b><span id="refilterlevel"></span><br>
+                        <b>Last Bleep Version: </b><span id="refilterlastbleepversionid"></span><br>
+                    </p>
 
                     <div class="embed-responsive embed-responsive-16by9 mb-3" id="refiltervideopreviewdiv">
                         <video class="embed-responsive-item" controls id="refiltervideopreview">

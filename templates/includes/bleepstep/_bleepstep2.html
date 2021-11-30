@@ -30,25 +30,58 @@
             </div>
 
             <hr>
-            <p>{{viewdata.get('videoinfo').get('filename')}}</p>
+            
             <form action="/bleepstep2" id="runbleepyform" method="POST">
+            
+                {% if viewdata.get('videoinfo').get('isforrefilter') %}
+                    <b>Re-filter the following Bleep Video </b> <br>
+                {% endif %}
+
+                <p><b>File name: </b> {{viewdata.get('videoinfo').get('filename')}}</p>
+
+                {% if viewdata.get('videoinfo').get('isforrefilter') %}
+                <p>
+                    <b>Bleep Sound: </b> {{viewdata.get('videoinfo').get('bfilename')}} <br>
+                    <b>Previous STT model used: </b> {{viewdata.get('videoinfo').get('stt_model_name')}}<br>
+                    <b>STT model language: </b> {{viewdata.get('videoinfo').get('language')}}<br>
+                    <b>Re-filter level: </b> {{viewdata.get('videoinfo').get('refilter_level')}}<br>
+                    <b>Last Bleep Video Version: </b> 
+                    {% if viewdata.get('videoinfo').get('lastbleepvideoid') %}
+                    <a href="/bleepvideoinfo/{{viewdata.get('videoinfo').get('lastbleepvideoid')}}" target="_blank">View</a> 
+                    {% else %}
+                        None
+                    {% endif %}
+                    <br>
+                </p>
+                    <input type="hidden" name="runbleepyvid_id" id="runbleepyvid_id" value="{{viewdata.get('videoinfo').get('pvideo_id')}}">
+                {% else %}
+                    <input type="hidden" name="runbleepyvid_id" id="runbleepyvid_id" value="{{viewdata.get('videoinfo').get('video_id')}}">
+                {% endif %}
+
                 <input type="hidden" name="video_duration" id="video_duration" value="{{viewdata.get('video_duration')}}">
                 <input type="hidden" name="est_multiplier" id="est_multiplier" value="{{viewdata.get('est_multiplier')}}">
+
                 <div class="embed-responsive embed-responsive-16by9">
                     <video class="embed-responsive-item" controls id="choosevideopreview">
-                        <source src="{{url_for('static', filename=viewdata.get('videoinfo').get('filelocation') )}}" type="video/mp4" />
+                        {% if viewdata.get('videoinfo').get('isforrefilter') %}
+                        <source src="{{url_for('static', filename=viewdata.get('videoinfo').get('pfilelocation') )}}" type="video/mp4" />
+                        {% else %}
+                            <source src="{{url_for('static', filename=viewdata.get('videoinfo').get('filelocation') )}}" type="video/mp4" />
+                        {% endif %}
                         This video is not supported by your browser...
                     </video>
                 </div>
 
-                <input type="hidden" name="runbleepyvid_id" id="runbleepyvid_id" value="{{viewdata.get('videoinfo').get('video_id')}}">
-                
                 {% if viewdata.get("bleepsounds") %}
                 <p class="mt-3 font-weight-bold">Bleep Sound</p>
                 <div class="input-group mb-3">
                     <select name="choosebleepsound" class="custom-select" id="choosebleepsound">
                         {% for bleepsound in viewdata.get("bleepsounds") %}
-                        <option value="{{bleepsound.get('bleep_sound_id')}}">{{bleepsound.get("filename")}}</option>
+                            {% if bleepsound.get('bleep_sound_id') == viewdata.get('videoinfo').get('bleep_sound_id') %}
+                                <option value="{{bleepsound.get('bleep_sound_id')}}" selected>{{bleepsound.get("filename")}}</option> 
+                            {% else %}
+                                <option value="{{bleepsound.get('bleep_sound_id')}}">{{bleepsound.get("filename")}}</option>
+                            {% endif %}
                         {% endfor %}
                     </select>
                     <div class="input-group-append">
@@ -127,6 +160,9 @@
                 <div id="runbleepyresponsemsg" class="mt-3">
 
                 </div>
+
+                
+                <input type="hidden" name="runbleepyforrefilter" id="runbleepyforrefilter" value="{% if viewdata.get('videoinfo').get('isforrefilter') %}{{viewdata.get('videoinfo').get('isforrefilter')}} {% endif %}">
             </form>
         </div>
       </div>
@@ -238,6 +274,10 @@
 
     $('#runbleepyform').submit(function(event){
         event.preventDefault();
+        let isrefilter = false
+        if($('#runbleepyforrefilter').val()){
+            isrefilter = true
+        }
         if($('#runbleepyvid_id').val()){
             if($('#choosebleepsound').val() && $('#lang').val() && $('#stt_models').val()){
                 
@@ -257,6 +297,7 @@
                         vid_id:$('#runbleepyvid_id').val(),
                         lang:$('#lang').val(),
                         stt_model_id:$('#stt_models').val(),
+                        isrefilter:isrefilter
                     },
                     cache: false,
                     success:function(data){

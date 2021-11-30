@@ -77,7 +77,11 @@
     function loadStep1(step1){
         if (step1 == "step1-choose-video") {
             $('.nav-tabs a[href="#step1-choose-video"]').tab('show')
-        }else{
+        }
+        else if(step1 == "step1-refilter-video"){
+            $('.nav-tabs a[href="#step1-refilter-video"]').tab('show')
+        }
+        else{
             $('.nav-tabs a[href="#step1-upload-video"]').tab('show')
         }
     }
@@ -244,6 +248,7 @@
     $('#refiltervideopreviewdiv').hide();
     $('#refilterVideo').on('change', function() {
         $('#refiltervideopreviewdiv').hide();
+        $('#refiltervideodetails').hide()
         if($('#refilterVideo').val()){
             $.ajax ({
                 type:"POST",
@@ -257,9 +262,20 @@
                     $('#refiltervideopreviewdiv').show();
                     $('#refiltervideopreview source').attr('src',data.pfilelocation);
                     $("#refiltervideopreview ")[0].load();
-                    
+                    $('#refiltervideodetails').show()
+                    $('#refiltervideotitle').html(data.filename)
+                    $('#refiltersttmodel').html(data.stt_model_name)
+                    $('#refilterlanguage').html(data.language)
+                    $('#refilterlevel').html(data.refilter_level)
+                    if(data.lastbleepvideoid){
+                        $('#refilterlastbleepversionid').html("<a href ='/bleepvideoinfo/"+data.lastbleepvideoid+"' target='_blank'>View</a>")
+                    }else{
+                        $('#refilterlastbleepversionid').html('None')
+                    }
+
                 },error:function(e){
                     alert("error: "+e)
+                    $('#refiltervideodetails').hide()
                 }
             });
         }
@@ -278,7 +294,7 @@
                 type:"POST",
                 url:"/bleepstep1",
                 data: {
-                    vid_id:$('#refilterVideo').val(),
+                    pvid_id:$('#refilterVideo').val(),
                     refiltervideo:true
                 },
                 cache: false,

@@ -555,18 +555,40 @@ class Model:
         - pfilename
         - pfilelocation
         - psavedirectory
-        - refilter_level
         - stt_model_id
 
         """
-        return self.queryInsert("call sp_add_profanityvideo(%s,%s, %s, %s, %s, %s, %s)",
+        return self.queryInsert("call sp_add_profanityvideo(%s,%s, %s, %s, %s, %s)",
                     bleepvideodict.get('vid_id'),
                     bleepvideodict.get('bleepsound_id'),
                     bleepvideodict.get('pfilename'),
                     bleepvideodict.get('pfilelocation'),
                     bleepvideodict.get('psavedirectory'),
-                    bleepvideodict.get('refilter_level'),
                     bleepvideodict.get('stt_model_id')
+                )
+    
+    def insertRefilterVideo(self,refiltervideodict:dict):
+        """
+        Dictionary
+        - vid_id
+        - bleepsound_id
+        - pfilename
+        - pfilelocation
+        - psavedirectory
+        - stt_model_id,
+        - refilter_level,
+        - lastbleepvideoid
+
+        """
+        return self.queryInsert("call sp_add_refiltervideo(%s,%s, %s, %s, %s, %s,%s,%s)",
+                    refiltervideodict.get('vid_id'),
+                    refiltervideodict.get('bleepsound_id'),
+                    refiltervideodict.get('pfilename'),
+                    refiltervideodict.get('pfilelocation'),
+                    refiltervideodict.get('psavedirectory'),
+                    refiltervideodict.get('stt_model_id'),
+                    refiltervideodict.get('refilter_level'),
+                    refiltervideodict.get('lastbleepvideoid')
                 )
     
     def insertProfanities(self,vals:list):

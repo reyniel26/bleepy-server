@@ -101,10 +101,10 @@
                                     <td class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('refilter_level')}}</td>
                                 {% endif %}
                                 
-                                {% if viewdata.get('bleepinfo_data').get('bleepinfo').get('last_pvid_id') %}
-                                    <td class="text-center"><a href="/bleepvideoinfo/{{viewdata.get('bleepinfo_data').get('bleepinfo').get('last_pvid_id')}}">View</a></td>
+                                {% if viewdata.get('bleepinfo_data').get('bleepinfo').get('lastbleepvideoid') %}
+                                    <td class="text-center"><a href="/bleepvideoinfo/{{viewdata.get('bleepinfo_data').get('bleepinfo').get('lastbleepvideoid')}}">View</a></td>
                                 {% else %}
-                                    <td class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('last_pvid_id')}}</td>
+                                    <td class="text-center">None</td>
                                 {% endif %}
                                 
                             </tr>
