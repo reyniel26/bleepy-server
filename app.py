@@ -67,10 +67,10 @@ class BleepyControl():
         return {"profanities":profanities,"block_directory":block_directory}
     
     def englishBleepVideo(self,bleepsound:AudioFile, video:VideoFile):
-        return self.customBleepVideo(bleepsound,video,"english","stt-language-models/model-en")
+        return self.customBleepVideo(bleepsound,video,"english","stt-language-models/"+app.config['DEFAULT_STT_MODEL_ENG'])
     
     def tagalogBleepVideo(self,bleepsound:AudioFile, video:VideoFile):
-        return self.customBleepVideo(bleepsound,video,"tagalog","stt-language-models/model-ph")
+        return self.customBleepVideo(bleepsound,video,"tagalog","stt-language-models/"+app.config['DEFAULT_STT_MODEL_TAG'])
 
 
 #================================================== App Control Methods
@@ -320,22 +320,38 @@ def updateBleepSound(bleepsound_id,file,title,uniquefilename):
         flash('The audio file is not acceptable because the sound volume is too low, try to upload other audio file with higher sound volume', 'danger')
         return False
     
-def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory,profanities:list):
+def saveBleepedVideo(bleepvideodict:dict,isrefilter:bool):
+    """
+
+    Dictionary
+    - vid_id
+    - bleepsound_id
+    - pfilename
+    - pfilelocation
+    - psavedirectory
+    - profanities (list)
+    - stt_model_id
+
+    for refilter
+
+    """
     bleepedvideoinfo = {
         "filename":"NaN",
         "filelocation":"NaN"
     }
 
     try:
-        msg = db.insertBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
-        flashPrintsforAdmin(msg,"Insert Bleeped Video")
+        #insertbleepvideo if not isrefilter else insertrefiltervideo
+        msg = db.insertBleepedVideo(bleepvideodict) if not isrefilter else  db.insertRefilterVideo(bleepvideodict)
+        flashPrintsforAdmin(msg,"Insert Bleeped Video" if not isrefilter else "Insert Refiltered Video")
         
-        bleepedvideoinfo = db.selectBleepVideoByFileName(pfilename)
+        bleepedvideoinfo = db.selectBleepVideoByFileName(bleepvideodict.get('pfilename'))
         pvid_id = bleepedvideoinfo.get("pvideo_id")
         vals = []
 
-        for profanity in profanities:
-            item = (profanity["word"],profanity["start"],profanity["end"],profanity.get("lang"),pvid_id)
+        for profanity in bleepvideodict.get('profanities'):
+            lang_id = db.selectLangByLang(profanity.get("lang")).get("lang_id") if db.selectLangByLang(profanity.get("lang")) else 0
+            item = (profanity["word"],profanity["start"],profanity["end"],lang_id,pvid_id)
             vals.append(item)
         
         msg = db.insertProfanities(vals)
@@ -350,6 +366,7 @@ def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory
         bleepedvideoinfo["uniqueprofanities"] = db.selectUniqueProfanityWordsByVideo(pvid_id) #list
         bleepedvideoinfo["top10profanities"] = db.selectTop10ProfanitiesByVideo(pvid_id)
         bleepedvideoinfo["countperlang"] = db.selectCountPerLangOfBleepVideo(pvid_id)
+        bleepedvideoinfo["isrefilter"] = isrefilter
 
 
     except Exception as e:
@@ -357,6 +374,8 @@ def saveBleepedVideo(vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory
         bleepedvideoinfo["error"] = e
     
     return bleepedvideoinfo
+
+
 
 #================================================== Decorators
 def testConn(f):
@@ -905,8 +924,9 @@ def bleepvideo():
     acc_id = getIdViaAuth() 
 
     videos = db.selectVideosUploadedByAccount(acc_id)
+    bleepedvideos = db.selectBleepedVideosByAccount(acc_id)
     
-    return render_template('bleepvideo.html', viewdata = viewData(videos=videos))
+    return render_template('bleepvideo.html', viewdata = viewData(videos=videos, bleepedvideos = bleepedvideos))
 
 #Delete Files
 #Delete Video
@@ -1070,6 +1090,17 @@ def getbleepvideoinfo():
         uniqueprofanitycount =bleepinfo_data.get("uniqueprofanitycount")
         mostfrequentword=bleepinfo_data.get("mostfrequentword")
 
+        #advance details
+        stt_model_name = bleepinfo_data.get("bleepinfo").get("stt_model_name")
+        refilter_level = bleepinfo_data.get("bleepinfo").get("refilter_level")
+        lastbleepvideoid= bleepinfo_data.get("bleepinfo").get("lastbleepvideoid")
+
+        #Get language
+        lang_id = 0
+        if db.selectSTTModelById(bleepinfo_data.get("bleepinfo").get("model_id")):
+            lang_id = db.selectSTTModelById(bleepinfo_data.get("bleepinfo").get("model_id")).get('lang_id')
+        language = db.selectLangById(lang_id).get('lang').title() if db.selectLangById(lang_id) else ''
+
         return jsonify({
             "pvideo_id":pvideo_id,
             "filelocation":filelocation,
@@ -1080,10 +1111,29 @@ def getbleepvideoinfo():
             "uniqueprofanitycount":uniqueprofanitycount,
             "mostfrequentword":mostfrequentword,
             "process_time":process_time,
-            "pfilelocation":pfilelocation
+            "pfilelocation":pfilelocation,
+            "stt_model_name":stt_model_name,
+            "refilter_level":refilter_level,
+            "lastbleepvideoid":lastbleepvideoid,
+            "language":language
         })
 
     return jsonify('')
+
+#Get STT Model info json
+@app.route('/getsttmodelinfo', methods=["POST",'GET'])
+@testConn
+@authentication
+def getsttmodelinfo():
+    stt_models = {}
+    defaultsttmodels = app.config['DEFAULT_STT_MODELS']
+    if request.method == "POST":
+        lang_id= request.form.get("lang_id")
+        stt_models = db.selectSTTModelByLangId(lang_id) if db.selectSTTModelByLangId(lang_id) else {}
+    return jsonify({
+            "stt_models":stt_models,
+            "defaultsttmodels":defaultsttmodels
+        })
 
 #================Download Files
 #Download bleep video
@@ -1164,10 +1214,15 @@ def bleepstep1():
         }
 
         bleepsounds = db.selectBleepSounds()
-        langs = app.config['LANGS']
+        langs = db.selectLangsAll()
         defaultLang = app.config['DEFAULT_LANG']
         est_multiplier = app.config['DEFAULT_EST_MULTIPLIER']
         video_duration = 0.0
+
+        advance_options = {
+            "stt_models":db.selectSTTModelByLang(app.config['DEFAULT_LANG']),
+            "defaultsttmodels":app.config['DEFAULT_STT_MODELS']
+        }
 
         #If choose video
         if request.form.get("choosevideo"):
@@ -1180,6 +1235,7 @@ def bleepstep1():
 
             msg = str(videoinfo.get("filename"))+" has been choosen"
 
+        #Elif upload file
         elif request.files.get("uploadFile"):
             file = request.files.get("uploadFile")
             # print(request.cookies.get('filesize'))
@@ -1205,6 +1261,26 @@ def bleepstep1():
             video_duration = video.getDuration()
 
             msg = "File Uploaded Successfully"
+        
+        #Elif Refilter
+        elif request.form.get("refiltervideo"):
+            #Get the info of the bleep video
+            pvideo_id = request.form.get("pvid_id")
+            videoinfo = db.selectBleepedVideosByAccountAndPvid(acc_id,pvideo_id)
+            videoinfo['isforrefilter'] = True
+
+            #Get language
+            lang_id = 0
+            if db.selectSTTModelById(videoinfo.get("model_id")):
+                lang_id = db.selectSTTModelById(videoinfo.get("model_id")).get('lang_id')
+            videoinfo['language'] = db.selectLangById(lang_id).get('lang').title() if db.selectLangById(lang_id) else ''
+            
+
+            video.setFile("static/"+videoinfo.get('pfilelocation'))
+            video_duration = video.getDuration()
+
+            msg = str(videoinfo.get("filename"))+" has been choosen for refiltering"
+
 
         return jsonify({ 'bleepstep1response': render_template('includes/bleepstep/_bleepstep2.html', 
                             viewdata = viewData(videoinfo=videoinfo,
@@ -1212,7 +1288,8 @@ def bleepstep1():
                                 langs=langs,
                                 defaultLang=defaultLang,
                                 video_duration=video_duration,
-                                est_multiplier = est_multiplier 
+                                est_multiplier = est_multiplier,
+                                advance_options=advance_options 
                             )
                         ),
                         'responsemsg': render_template('includes/_messages.html', msg=msg)
@@ -1231,17 +1308,26 @@ def bleepstep2():
 
         vid_id = request.form.get("vid_id")
         bleepsound_id = request.form.get("bleepsound_id")
-        lang = request.form.get('lang')
+        lang_id = request.form.get('lang')
+        lang = db.selectLangById(lang_id).get('lang') if db.selectLangById(lang_id) else ''
+        stt_model_id = request.form.get('stt_model_id')
         flashPrintsforAdmin(lang,"Language")
+
+        isrefilter = request.form.get('isrefilter') == 'true'
+        print(isrefilter)
+        flashPrintsforAdmin(isrefilter,"Is Refilter?")
 
         if not (vid_id and bleepsound_id):
             errormsg = "Invalid request! Video and Bleep Sound has no value"
             return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
         
-        videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id)
         bleepsoundinfo = db.selectBleepSoundById(bleepsound_id)
 
-        video_filelocation = videoinfo.get("filelocation")
+        #select video If not isrefilter else select bleeped video
+        videoinfo = db.selectVideoByAccountAndVidId(acc_id,vid_id) if not isrefilter else db.selectBleepedVideosByAccountAndPvid(acc_id,vid_id)
+        
+        #select video filelocation If not isrefilter else select bleeped video filocation
+        video_filelocation = videoinfo.get("filelocation") if not isrefilter else videoinfo.get("pfilelocation")
         bleep_longversion = bleepsoundinfo.get("longversion") #This file will be use as bleep sound
 
         if not (video_filelocation and bleep_longversion):
@@ -1265,33 +1351,32 @@ def bleepstep2():
             bleepyControl = BleepyControl()
 
             #Choose language
-            if lang.lower() == 'english':
-                flashPrintsforAdmin("English","Language")
-                bleepyinfo = bleepyControl.englishBleepVideo(audio,video)
-                profanities.extend(bleepyinfo.get("profanities"))
-            elif lang.lower() == 'tagalog':
-                flashPrintsforAdmin("Tagalog","Language")
-                bleepyinfo = bleepyControl.tagalogBleepVideo(audio,video)
-                profanities.extend(bleepyinfo.get("profanities"))
-            elif lang.lower() == 'tagalog-english':
-                flashPrintsforAdmin("Tagalog-English","Language")
-                #Tagalog first
-                bleepyinfo = bleepyControl.tagalogBleepVideo(audio,video)
-                profanities.extend(bleepyinfo.get("profanities"))
+            if lang:
+                if lang.lower() == 'tagalog-english':
+                    flashPrintsforAdmin("Tagalog-English","Language")
+                    #Tagalog first
+                    bleepyinfo = bleepyControl.tagalogBleepVideo(audio,video)
+                    profanities.extend(bleepyinfo.get("profanities"))
 
-                tagalogOnlyBleepDir = bleepyinfo.get("block_directory") if bleepyinfo.get("block_directory") else ""
-                if bleepyinfo.get("block_directory"):
-                    video.setFile(bleepyinfo.get("block_directory"))
+                    tagalogOnlyBleepDir = bleepyinfo.get("block_directory") if bleepyinfo.get("block_directory") else ""
+                    if bleepyinfo.get("block_directory"):
+                        video.setFile(bleepyinfo.get("block_directory"))
 
-                #then english
-                bleepyinfo = bleepyControl.englishBleepVideo(audio,video)
-                profanities.extend(bleepyinfo.get("profanities"))
+                    #then english
+                    bleepyinfo = bleepyControl.englishBleepVideo(audio,video)
+                    profanities.extend(bleepyinfo.get("profanities"))
 
-                #delete tagalog only bleep
-                if tagalogOnlyBleepDir:
-                    if os.path.exists(tagalogOnlyBleepDir):
-                        os.remove(tagalogOnlyBleepDir)
-                        flashPrintsforAdmin("Deleted","Delete tagalog only bleep")
+                    #delete tagalog only bleep
+                    if tagalogOnlyBleepDir:
+                        if os.path.exists(tagalogOnlyBleepDir):
+                            os.remove(tagalogOnlyBleepDir)
+                            flashPrintsforAdmin("Deleted","Delete tagalog only bleep")
+
+                else:
+                    flashPrintsforAdmin(lang.title(),"Language")
+                    stt_model = db.selectSTTModelById(stt_model_id) if db.selectSTTModelById(stt_model_id)  else {}
+                    bleepyinfo = bleepyControl.customBleepVideo(audio,video,lang.lower(),stt_model.get('filelocation'))
+                    profanities.extend(bleepyinfo.get("profanities"))
             else:
                 flash('Invalid language', 'danger')
             
@@ -1300,7 +1385,18 @@ def bleepstep2():
                 block_directory = bleepyinfo.get("block_directory")
                 block_filelocation = basicControl.removeStaticDirectory(block_directory)
                 block_filename = basicControl.getFileNameFromDirectory(block_filelocation)
-                bleepedvideoinfo = saveBleepedVideo(vid_id,bleepsound_id,block_filename,block_filelocation,block_directory,profanities)
+                bleepvideodict = {
+                    "vid_id":vid_id if not isrefilter else videoinfo.get('video_id'),
+                    "bleepsound_id":bleepsound_id,
+                    "pfilename":block_filename,
+                    "pfilelocation":block_filelocation,
+                    "psavedirectory":block_directory,
+                    "profanities":profanities,
+                    "stt_model_id":stt_model_id,
+                    "refilter_level":0 if not isrefilter else int(videoinfo.get('refilter_level') if videoinfo.get('refilter_level') else 0 )+1,
+                    "lastbleepvideoid":videoinfo.get('pvideo_id'),
+                }
+                bleepedvideoinfo = saveBleepedVideo(bleepvideodict,isrefilter)
             else:
                 msg = "This video is already profanity free. No profanities detected"
                 print(msg)
@@ -1309,7 +1405,7 @@ def bleepstep2():
                     })
 
         except Exception as e:
-            errormsg = e
+            errormsg = "Error: "+str(e)
             return jsonify({'responsemsg': render_template('includes/_messages.html', error=errormsg) })
         
         msg = "The video is now profanity free"

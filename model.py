@@ -463,6 +463,25 @@ class Model:
     
     def selectAccountAllSearchLimitOffset(self,search,limit,offset):
         return self.querySelectAll("call sp_select_accounts_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
+    
+    def selectLangByLang(self,lang):
+        return self.querySelect("call sp_select_lang_by_lang(%s)",lang)
+    
+    def selectLangById(self,lang_id):
+        return self.querySelect("call sp_language_by_id(%s)",lang_id)
+    
+    def selectLangsAll(self):
+        return self.querySelectAll("call sp_select_languages()")
+    
+    def selectSTTModelByLangId(self,lang_id):
+        return self.querySelectAll("call sp_select_stt_model_by_lang_id(%s)",lang_id)
+    
+    def selectSTTModelByLang(self,lang):
+        return self.querySelectAll("call sp_select_stt_model_by_lang(%s)",lang)
+    
+    def selectSTTModelById(self,stt_model_id):
+        return self.querySelect("call sp_select_stt_model_by_id(%s)",stt_model_id)
+
     #================================================== Counts
     def countVideosUploadedByAcc(self,id:str):
         return self.querySelect("call sp_count_videos_uploadedby_account(%s)",id)
@@ -528,11 +547,52 @@ class Model:
     def insertUploadedBy(self,vidid,id):
         return self.queryInsert("call sp_add_uploadedby(%s, %s)",vidid,id)
 
-    def insertBleepedVideo(self,vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory):
-        return self.queryInsert("call sp_add_profanityvideo(%s,%s, %s, %s, %s)",vid_id,bleepsound_id,pfilename,pfilelocation,psavedirectory)
+    def insertBleepedVideo(self,bleepvideodict:dict):
+        """
+        Dictionary
+        - vid_id
+        - bleepsound_id
+        - pfilename
+        - pfilelocation
+        - psavedirectory
+        - stt_model_id
+
+        """
+        return self.queryInsert("call sp_add_profanityvideo(%s,%s, %s, %s, %s, %s)",
+                    bleepvideodict.get('vid_id'),
+                    bleepvideodict.get('bleepsound_id'),
+                    bleepvideodict.get('pfilename'),
+                    bleepvideodict.get('pfilelocation'),
+                    bleepvideodict.get('psavedirectory'),
+                    bleepvideodict.get('stt_model_id')
+                )
+    
+    def insertRefilterVideo(self,refiltervideodict:dict):
+        """
+        Dictionary
+        - vid_id
+        - bleepsound_id
+        - pfilename
+        - pfilelocation
+        - psavedirectory
+        - stt_model_id,
+        - refilter_level,
+        - lastbleepvideoid
+
+        """
+        return self.queryInsert("call sp_add_refiltervideo(%s,%s, %s, %s, %s, %s,%s,%s)",
+                    refiltervideodict.get('vid_id'),
+                    refiltervideodict.get('bleepsound_id'),
+                    refiltervideodict.get('pfilename'),
+                    refiltervideodict.get('pfilelocation'),
+                    refiltervideodict.get('psavedirectory'),
+                    refiltervideodict.get('stt_model_id'),
+                    refiltervideodict.get('refilter_level'),
+                    refiltervideodict.get('lastbleepvideoid')
+                )
     
     def insertProfanities(self,vals:list):
-        #word , start, end, lang, pvid_id
+        #word , start, end, lang_id, pvid_id
         return self.queryInsertMany("call sp_add_profanityword(%s, %s,%s,%s,%s)",vals)
     
     def insertUser(self,email:str,fname:str,lname:str,pwd):

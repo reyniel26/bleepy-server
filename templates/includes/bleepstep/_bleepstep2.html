@@ -30,25 +30,58 @@
             </div>
 
             <hr>
-            <p>{{viewdata.get('videoinfo').get('filename')}}</p>
+            
             <form action="/bleepstep2" id="runbleepyform" method="POST">
+            
+                {% if viewdata.get('videoinfo').get('isforrefilter') %}
+                    <b>Re-filter the following Bleep Video </b> <br>
+                {% endif %}
+
+                <p><b>File name: </b> {{viewdata.get('videoinfo').get('filename')}}</p>
+
+                {% if viewdata.get('videoinfo').get('isforrefilter') %}
+                <p>
+                    <b>Bleep Sound: </b> {{viewdata.get('videoinfo').get('bfilename')}} <br>
+                    <b>Previous STT model used: </b> {{viewdata.get('videoinfo').get('stt_model_name')}}<br>
+                    <b>STT model language: </b> {{viewdata.get('videoinfo').get('language')}}<br>
+                    <b>Re-filter level: </b> {{viewdata.get('videoinfo').get('refilter_level')}}<br>
+                    <b>Last Bleep Video Version: </b> 
+                    {% if viewdata.get('videoinfo').get('lastbleepvideoid') %}
+                    <a href="/bleepvideoinfo/{{viewdata.get('videoinfo').get('lastbleepvideoid')}}" target="_blank">View</a> 
+                    {% else %}
+                        None
+                    {% endif %}
+                    <br>
+                </p>
+                    <input type="hidden" name="runbleepyvid_id" id="runbleepyvid_id" value="{{viewdata.get('videoinfo').get('pvideo_id')}}">
+                {% else %}
+                    <input type="hidden" name="runbleepyvid_id" id="runbleepyvid_id" value="{{viewdata.get('videoinfo').get('video_id')}}">
+                {% endif %}
+
                 <input type="hidden" name="video_duration" id="video_duration" value="{{viewdata.get('video_duration')}}">
                 <input type="hidden" name="est_multiplier" id="est_multiplier" value="{{viewdata.get('est_multiplier')}}">
+
                 <div class="embed-responsive embed-responsive-16by9">
                     <video class="embed-responsive-item" controls id="choosevideopreview">
-                        <source src="{{url_for('static', filename=viewdata.get('videoinfo').get('filelocation') )}}" type="video/mp4" />
+                        {% if viewdata.get('videoinfo').get('isforrefilter') %}
+                        <source src="{{url_for('static', filename=viewdata.get('videoinfo').get('pfilelocation') )}}" type="video/mp4" />
+                        {% else %}
+                            <source src="{{url_for('static', filename=viewdata.get('videoinfo').get('filelocation') )}}" type="video/mp4" />
+                        {% endif %}
                         This video is not supported by your browser...
                     </video>
                 </div>
 
-                <input type="hidden" name="runbleepyvid_id" id="runbleepyvid_id" value="{{viewdata.get('videoinfo').get('video_id')}}">
-                
                 {% if viewdata.get("bleepsounds") %}
                 <p class="mt-3 font-weight-bold">Bleep Sound</p>
                 <div class="input-group mb-3">
                     <select name="choosebleepsound" class="custom-select" id="choosebleepsound">
                         {% for bleepsound in viewdata.get("bleepsounds") %}
-                        <option value="{{bleepsound.get('bleep_sound_id')}}">{{bleepsound.get("filename")}}</option>
+                            {% if bleepsound.get('bleep_sound_id') == viewdata.get('videoinfo').get('bleep_sound_id') %}
+                                <option value="{{bleepsound.get('bleep_sound_id')}}" selected>{{bleepsound.get("filename")}}</option> 
+                            {% else %}
+                                <option value="{{bleepsound.get('bleep_sound_id')}}">{{bleepsound.get("filename")}}</option>
+                            {% endif %}
                         {% endfor %}
                     </select>
                     <div class="input-group-append">
@@ -68,14 +101,36 @@
                     <label for="lang">Select Language:</label>
                     <select class="form-control" id="lang" name="lang">
                         {% for lang in viewdata.get("langs") %}
-                            {% if lang == viewdata.get("defaultLang")%}
-                                <option value="{{lang}}" selected>{{lang.title()}}</option>
+                            {% if lang.get('lang') == viewdata.get("defaultLang")%}
+                                <option value="{{lang.get('lang_id')}}" selected>{{lang.get('lang').title()}}</option>
                             {% else %}
-                                <option value="{{lang}}">{{lang.title()}}</option>
+                                <option value="{{lang.get('lang_id')}}">{{lang.get('lang').title()}}</option>
                             {% endif %}
                         {% endfor %}
                     </select>
-                  </div>
+                </div>
+                {% endif %}
+
+                {% if viewdata.get("advance_options") %}
+                <div class="form-group form-check">
+                    <label class="form-check-label" for="advanceoptions">
+                      <input class="form-check-input" type="checkbox" name="advanceoptions" id="advanceoptions"> <b>Advance Options: </b>
+                    </label>
+                </div>
+                    {% if viewdata.get("advance_options").get('stt_models') %}
+                    <div class="form-group" id="stt_model_div" style="display: none;">
+                        <label for="stt_models">Select Speech-To-Text Model:</label>
+                        <select class="form-control" id="stt_models" name="stt_models">
+                            {% for stt_model in viewdata.get("advance_options").get('stt_models') %}
+                                {% if stt_model.get('foldername') in viewdata.get("advance_options").get("defaultsttmodels")%}
+                                    <option value="{{stt_model.get('model_id')}}" selected>{{stt_model.get('name')}} (Recommended)</option>
+                                {% else %}
+                                    <option value="{{stt_model.get('model_id')}}">{{stt_model.get('name')}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
                 {% endif %}
 
                 <div class="form-group" id="runBleepySubmitDiv">
@@ -105,6 +160,9 @@
                 <div id="runbleepyresponsemsg" class="mt-3">
 
                 </div>
+
+                
+                <input type="hidden" name="runbleepyforrefilter" id="runbleepyforrefilter" value="{% if viewdata.get('videoinfo').get('isforrefilter') %}{{viewdata.get('videoinfo').get('isforrefilter')}} {% endif %}">
             </form>
         </div>
       </div>
@@ -216,8 +274,12 @@
 
     $('#runbleepyform').submit(function(event){
         event.preventDefault();
+        let isrefilter = false
+        if($('#runbleepyforrefilter').val()){
+            isrefilter = true
+        }
         if($('#runbleepyvid_id').val()){
-            if($('#choosebleepsound').val()){
+            if($('#choosebleepsound').val() && $('#lang').val() && $('#stt_models').val()){
                 
                 est_duration = parseFloat($('#video_duration').val())*parseFloat($('#est_multiplier').val())
                 let progress = new Progress(est_duration,'#runBleepyProgressbar','#runBleepyElapsedtime')
@@ -234,6 +296,8 @@
                         bleepsound_id:$('#choosebleepsound').val(),
                         vid_id:$('#runbleepyvid_id').val(),
                         lang:$('#lang').val(),
+                        stt_model_id:$('#stt_models').val(),
+                        isrefilter:isrefilter
                     },
                     cache: false,
                     success:function(data){
@@ -302,7 +366,52 @@
         audio[0].load();
     }
 
-    
+    $('#lang').on('change', function() {
+        if($('#lang').val()){
+            $.ajax ({
+                type:"POST",
+                url:"/getsttmodelinfo",
+                data: {
+                    lang_id:$('#lang').val()
+                },
+                cache: false,
+                success:function(data){
+
+                    function isRecommendedModel(model){
+                        for (let x of data.defaultsttmodels){
+                            if (model == x){
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                    
+                    $("#stt_models").empty()
+                    for (let x of data.stt_models){
+                        let option = (isRecommendedModel(x["foldername"])) ? 
+                                $('<option selected></option>').attr("value", x["model_id"]).text(x["name"]+" (Recommended)") :
+                                $('<option></option>').attr("value", x["model_id"]).text(x["name"]) ;
+
+                        $("#stt_models").append(option)
+                    }
+
+                    console.log($('#stt_models').val())
+                    
+                },error:function(e){
+                    alert("error: "+e)
+                }
+            });
+        }
+    });
+
+    $('#advanceoptions').on('click', function() {
+        if($('#advanceoptions').is(':checked')){
+            $('#stt_model_div').show()
+        }else{
+            $('#stt_model_div').hide()
+        }
+        
+    });
     
 
     

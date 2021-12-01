@@ -10,15 +10,19 @@
         {% if viewdata.get('bleepinfo_data') %}
         <a href="/bleepvideolist"> <button class="btn btn-theme-secondary text-theme-secondary">Back</button></a>
 
-            <div class=" table-responsive-xl  my-3">
+            <!--Advance Details-->
+            <div class="form-group form-check float-right">
+                <label class="form-check-label" for="showadvancedetails">
+                  <input class="form-check-input" type="checkbox" name="showadvancedetails" id="showadvancedetails"> Show Advance Details:
+                </label>
+            </div>
+
+            <div class=" table-responsive-xl  my-3 shadow">
                 <table class="table table-bordered table-hover">
                     <thead class="bg-theme-secondary text-theme-secondary">
                         <tr>
                             <th class="text-center">Video Title</th>
                             <th class="text-center">Bleep Sound</th>
-                            <th class="text-center">Profanities Identified</th>
-                            <th class="text-center">Unique Profanities Identified </th>
-                            <th class="text-center">Most Frequent Word</th>
                             <th class="text-center">Bleep Date </th>
                             {% if viewdata.get('has_uploadedby')%}
                             <th class="text-center">Uploaded by</th>
@@ -28,19 +32,90 @@
 
                     <tbody>
                         <tr>
-                            <th class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('filename')}}</th>
-                            <th class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('bfilename')}}</th>
-                            <th class="text-center">{{viewdata.get('bleepinfo_data').get('profanitycount')}}</th>
-                            <th class="text-center">{{viewdata.get('bleepinfo_data').get('uniqueprofanitycount')}}</th>
-                            <th class="text-center">{{viewdata.get('bleepinfo_data').get('mostfrequentword')}}</th>
-                            <th class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('process_time')}}</th>
+                            <td class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('filename')}}</td>
+                            <td class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('bfilename')}}</td>
+                            <td class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('process_time')}}</td>
                             {% if viewdata.get('bleepinfo_data').get('uploadedby')%}
-                                        <th class="text-center">{{viewdata.get('bleepinfo_data').get('uploadedby')}}</th>
+                                        <td class="text-center">{{viewdata.get('bleepinfo_data').get('uploadedby')}}</td>
                             {% endif%}
                         </tr>
                     </tbody>
                 </table>
             </div>
+
+            <div class="row">
+                <div class="col-xl-4">
+                    <div class="info-box shadow">
+                        <span class="info-box-icon bg-maroon"><i class="fa fa-comments"></i></span>
+          
+                        <div class="info-box-content">
+                          <span class="info-box-text font-weight-bold">Profanities</span>
+                          <span class="info-box-number font-weight-light">{{viewdata.get('bleepinfo_data').get('profanitycount')}}</span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                </div>
+                <div class="col-xl-4">
+                    <div class="info-box shadow">
+                        <span class="info-box-icon bg-purple"><i class="fa fa-commenting-o"></i></span>
+          
+                        <div class="info-box-content">
+                          <span class="info-box-text font-weight-bold">Unique Profanities</span>
+                          <span class="info-box-number font-weight-light">{{viewdata.get('bleepinfo_data').get('uniqueprofanitycount')}}</span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                </div>
+                <div class="col-xl-4">
+                    <div class="info-box shadow">
+                        <span class="info-box-icon bg-orange "><i class="fa fa-comment-o text-white"></i></span>
+          
+                        <div class="info-box-content">
+                          <span class="font-weight-bold">Most Frequent Word</span>
+                          <span class="info-box-number font-weight-light">{{viewdata.get('bleepinfo_data').get('mostfrequentword')}}</span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                </div>
+            </div>
+            
+            <div id="advancedetails_div" class="" style="display: none;">
+                <b>Advance Details:</b>
+                <div class=" table-responsive-xl shadow">
+                    <table class="table table-bordered table-hover">
+                        <thead class="bg-theme-secondary text-theme-secondary">
+                            <tr>
+                                <th class="text-center">STT Model</th>
+                                <th class="text-center">Refilter Level</th>
+                                <th class="text-center">Last Bleep Video Version</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('stt_model_name')}}</td>
+                                
+                                {% if viewdata.get('bleepinfo_data').get('bleepinfo').get('refilter_level') %}
+                                    <td class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('refilter_level')}} times</td>
+                                {% else %}
+                                    <td class="text-center">{{viewdata.get('bleepinfo_data').get('bleepinfo').get('refilter_level')}}</td>
+                                {% endif %}
+                                
+                                {% if viewdata.get('bleepinfo_data').get('bleepinfo').get('lastbleepvideoid') %}
+                                    <td class="text-center"><a href="/bleepvideoinfo/{{viewdata.get('bleepinfo_data').get('bleepinfo').get('lastbleepvideoid')}}">View</a></td>
+                                {% else %}
+                                    <td class="text-center">None</td>
+                                {% endif %}
+                                
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+
+            
+
 
             <!-- Original Video vs Bleeped Video-->
             <div class="row">
@@ -430,6 +505,17 @@
             })
 
         })
+    </script>
+
+    <script>
+        $('#showadvancedetails').on('click', function() {
+            if($('#showadvancedetails').is(':checked')){
+                $('#advancedetails_div').slideDown();
+            }else{
+                $('#advancedetails_div').slideUp();
+            }
+        
+        });
     </script>
     {% endif %}
 {% endblock %}
