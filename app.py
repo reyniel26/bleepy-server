@@ -528,6 +528,40 @@ def index():
     #inside of template folder is the home.html
     return render_template('index.html', viewdata = viewData() )
 
+#About Us Page
+@app.route('/aboutus' )
+@testConn
+def aboutus():
+    return render_template('aboutus.html', viewdata = viewData() )
+
+#Contact Us Page
+@app.route('/contactus' )
+@testConn
+def contactus():
+    return render_template('contactus.html', viewdata = viewData() )
+
+#Terms and Condition Page
+@app.route('/termsandcondition' )
+@app.route('/tandc' )
+@testConn
+def termsandcondition():
+    return render_template('termsandcondition.html', viewdata = viewData() )
+
+#Privacy and Security Policy Page
+@app.route('/privacyandsecuritypolicies' )
+@app.route('/privacypolicies' )
+@app.route('/securitypolicies' )
+@testConn
+def privacyandsecuritypolicies():
+    return render_template('privacyandsecuritypolicies.html', viewdata = viewData() )
+
+#Help | FAQs Page
+@app.route('/help' )
+@app.route('/faqs' )
+@testConn
+def help():
+    return render_template('help.html', viewdata = viewData() )
+
 #Bleep Sounds
 @app.route('/bleepsoundlist')
 @testConn

@@ -1,0 +1,70 @@
+{% extends 'layout/layout.html' %}
+<!-- #About Us -->
+{% block body %}
+<section style="min-height: 300px;">
+    <div class = "container my-5">
+        <div class="row">
+          <div class="col-md-4 mx-auto">
+            <div id = "about-us" >
+              <h1 class="text-theme-tertiary display-4 font-weight-bold ">About Us</h1> 
+              <p class="text-justify mt-3">We are the <b>Team Bleepy</b>! We are 4th year Bachelor of Science in Computer Science students from <i>City College of Calamba</i> and this system is our thesis project served as partial fulfillment of the program that we are taking.
+                This web application is called "Bleepy" as it is bleeping the profanities in the recorded videos. we are happy to present to you our developed system.</p>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <img src="{{url_for('static', filename='Bleepy_UI/src/we.jpg')}}" alt="we" class="w-100 mt-3 " >
+          </div>
+        </div>
+ </section>
+
+<section class="bg-theme my-5 py-3">
+    <div class="container my-5" > 
+    <div class="text-center text-theme-secondary">
+        <h2>Our Vision</h2> 
+        <i>"To create a peaceful and enjoyable environment in the world of gaming"</i> <br> <br>
+        <h2>Our Mission</h2> 
+        <i>"To help the Filipino streamers to have a better videos by removing profanities to the recorded videos."</i>
+    </div>
+    </div>
+</section>
+    
+<div class="container my-5" > 
+    <div class="row">
+    <div class="col-md-4">
+        <div>
+            <img class="rounded-circle" src="{{url_for('static', filename='Bleepy_UI/src/184884068_179678604047011_1367235326352677479_n.jpg')}}" alt="Card image" style="width:100%">
+            <div class="card-body" style="text-align: center;">
+                <h5 class="card-text" style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Reyniel Mark Escamillas</h5>
+                <p class="card-text"> Full Stack Developer </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div >
+            <img class="rounded-circle" src="{{url_for('static', filename='Bleepy_UI/src/Aya.jpg')}}" alt="Card image" style="width:100%">
+            <div class="card-body" style="text-align: center;">
+                <h5 class="card-text" style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Mariah Gift Miranda</h5>
+                <p class="card-text"> Researcher / Front End Programmer </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div >
+            <img class="rounded-circle" src="{{url_for('static', filename='Bleepy_UI/src/185806136_956423785141127_8339484295284526418_n.jpg')}}" alt="Card image" style="width:100%">
+            <div class="card-body" style="text-align: center;">
+                <h5 class="card-text" style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;"> Alain Dale Tadifa </h5>
+                <p class="card-text">Researcher</p>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block script %} 
+
+{% endblock %}

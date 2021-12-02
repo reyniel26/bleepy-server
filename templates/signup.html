@@ -50,7 +50,9 @@
                 <div class="form-group form-check">
                     <label for="agreetandc"><span class="invalid text-danger"></span></label> <br>
                     <label class="form-check-label">
-                        <input class="form-check-input" type="checkbox" id="agreetandc" name="agreetandc"> I agree and accept the <a href="">Terms and Conditions</a>
+                        <input class="form-check-input" type="checkbox" id="agreetandc" name="agreetandc"> I agree and accept the 
+                        <a data-toggle="modal" data-target="#tandcmodal" class="text-theme-tertiary font-weight-bold">Terms and Conditions</a> and
+                        <a data-toggle="modal" data-target="#privacypoliciesmodal" class="text-theme-tertiary font-weight-bold">Privacy and Security Policies</a> 
                     </label>
                 </div>
                 
@@ -62,6 +64,59 @@
                     <a href="/signin">Sign in</a>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!--Modals-->
+    <div>
+        <!-- The Modal  TANDC-->
+        <div class="modal fade" id="tandcmodal">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header bg-theme-secondary">
+                <h4 class="modal-title text-theme-secondary">Terms and Conditions</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    {% include 'includes/_tandc.html' %}
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
+        </div>
+
+
+        <div class="modal fade" id="privacypoliciesmodal">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+            
+                <!-- Modal Header -->
+                <div class="modal-header bg-theme-secondary">
+                <h4 class="modal-title text-theme-secondary">Privacy and Security Policies</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    {% include 'includes/_privacypolicies.html' %}
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                
+            </div>
+            </div>
         </div>
     </div>
 </div>
