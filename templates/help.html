@@ -1,0 +1,84 @@
+{% extends 'layout/layout.html' %}
+<!-- #Help | FAQs -->
+{% block body %}
+<section style="min-height: 500px;">
+    <div class = "container"> <br>
+        <h3>Frequently Ask Questions (FAQs)</h3>
+
+  <div id="accordion">
+    <div class="card">
+        <a class="card-link" data-toggle="collapse" href="#collapseOne">
+            <div class="card-header bg-light"> 
+                What my account can do?
+                
+            </div>
+        </a>
+        <div id="collapseOne" class="collapse show" data-parent="#accordion">
+            <div class="card-body">
+            <div class="card">
+                <div class="card-header bg-theme-secondary text-theme-secondary"><i class="fa fa-question-circle" style="font-size:24px"></i> Can I bleep videos if I don't have an account?</div>
+                <div class="card-body"> Unfortunately, you cannot bleep videos if you don't have an account.</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-theme-secondary text-theme-secondary"><i class="fa fa-question-circle" style="font-size:24px"></i> How to make an account?</div>
+                <div class="card-body"> You can make an account through clicking the sign up page. You can also click this link: <a href="signup.html">Sign up</a> to direct to the page.</div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <a class="collapsed card-link" data-toggle="collapse" href="#collapseTwo">
+            <div class="card-header bg-light">
+
+                What your system can do?
+            </div>
+        </a>
+        <div id="collapseTwo" class="collapse" data-parent="#accordion">
+            <div class="card-body">
+            <div class="card">
+                <div class="card-header bg-theme-secondary text-theme-secondary"><i class="fa fa-question-circle" style="font-size:24px"></i> What are the language that can block of your website?</div>
+                <div class="card-body"> This website can block two languages including Tagalog, English, and Tagalog-English(Tag-lish). We provide a list of profanity detected on the videos uploaded, statistics of the profanity seen 
+                    in the videos. 
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <a class="collapsed card-link" data-toggle="collapse" href="#collapseThree">
+            <div class="card-header bg-light">
+                How to bleep video?
+            </div>
+        </a>
+        <div id="collapseThree" class="collapse" data-parent="#accordion">
+            <div class="card-body">
+                <div class="card">
+                <div class="card-header bg-theme-secondary text-theme-secondary"><i class="fa fa-question-circle" style="font-size:24px"></i> How to bleep video?</div>
+                    <div class="card-body"> 
+                        First go to the <a href="/dashboard">dashboard,</a>  navigate to Bleep New Video section. Choose between  (a) upload new video, (b) choose from you video, and (c) re-filter bleep video. 
+                        Next, choose bleep sound you want to use. Then run the bleepy. Lastly, after the process is done, you can download the bleep video or see its full report.
+                    </div>
+                </div>
+
+                <div class="card">
+                <div class="card-header bg-theme-secondary text-theme-secondary"><i class="fa fa-question-circle" style="font-size:24px"></i> How to go Bleep Video page ?</div>
+                    <div class="card-body"> 
+                        You can go to the <a href="/dashboard">dashboard,</a>  navigate to Bleep New Video section. Or click this <a href="/bleepvideo">link</a>. 
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+  </div>
+    </div>
+</section>
+{% endblock %}
+
+
+{% block script %} 
+
+{% endblock %}
