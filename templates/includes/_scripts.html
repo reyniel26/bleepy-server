@@ -1,0 +1,49 @@
+<!-- Scripts -->
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- jQuery Validation -->
+    <script src="{{url_for('static', filename='Bleepy_UI/plugins/jqueryvalidation/jquery.validate.js')}}"></script>
+    <!-- jQuery FORM-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.min.js" integrity="sha384-qlmct0AOBiA2VPZkMY3+2WqkHtIQ9lSdAsAn5RUJD/3vA5MKDgSGcdmIv4ycVxyn" crossorigin="anonymous"></script>
+    <!-- ChartJS -->
+    <script src="{{url_for('static', filename='Bleepy_UI/plugins/chart.js/Chart.min.js')}}"></script>
+    <!-- AdminLTE App -->
+    <script src="{{url_for('static', filename='Bleepy_UI/plugins/adminlte/adminlte.min.js')}}"></script>
+
+    <!-- Custom js -->
+    <!-- <script src="{{url_for('static', filename='Bleepy_UI/js/themes.js')}}"></script> -->
+
+    <!-- Updated script for theme -->
+    <script>
+        function getCookie(cname) {
+            let name = cname + "=";
+            let decodedCookie = decodeURIComponent(document.cookie);
+            let ca = decodedCookie.split(';');
+            for(let i = 0; i <ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
+        var storedTheme = localStorage.getItem('theme');
+        var blpytkn = getCookie("blpytkn");
+        if (storedTheme && blpytkn){
+            document.documentElement.setAttribute('data-theme', storedTheme)
+        }
+        else {
+            localStorage.setItem('theme', 'primary');
+        }
+        
+
+            
+    </script>

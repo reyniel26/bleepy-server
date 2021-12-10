@@ -569,6 +569,12 @@ def bleepsoundlist():
     page = request.args.get("page")
     search = request.args.get("search") if request.args.get("search") else ""
 
+    hasaccess= False
+    acc_id = getIdViaAuth() 
+    acc_role = db.selectAccRole(acc_id).get("name") if db.selectAccRole(acc_id) else ''
+    if acc_role == app.config["ROLE_EDITOR"] or acc_role == app.config["ROLE_ADMIN"]:
+        hasaccess= True
+
     #Default
     count = 0    
     limit = app.config['DEFAULT_MAX_LIMIT']
@@ -592,7 +598,8 @@ def bleepsoundlist():
     viewdata = viewData(bleepsounds=bleepsounds, 
                         latest_bleepsound = latest_bleepsound,
                         resultbadge=resultbadge,
-                        pagination=pagination
+                        pagination=pagination,
+                        hasaccess=hasaccess
                         ) 
     )
 
@@ -2041,3 +2048,6 @@ def deletebleepsound():
 #================================================== Run APP 
 if __name__ == '__main__':
     app.run()
+    # To run in production 
+    # 1. set FLASK_ENV=production
+    # 2. flask run --host=0.0.0.0

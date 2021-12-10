@@ -1,28 +1,29 @@
 {% extends 'layout/layout.html' %}
 <!-- #Contact Us -->
 {% block body %}
-<section style="min-height: 500px;"> 
     <div class ="container my-5">
-        <div class="row">
+        <div class="row mb-5">
           <div class="col-md-6">
             <img src="{{url_for('static', filename='Bleepy_UI/src/contact.png')}}" class=" w-100" alt="contact">
           </div>
 
           <div class="col-md-6">
-            <div class="card">
+            <div class="card w-100 h-100">
                 <div class="card-header bg-light" > 
                 <h2 class=" display-5 font-weight-bold text-center text-theme-tertiary"> Contact Us!</h2>
                 </div>
 
                 <div class="card-body text-theme-tertiary">
-                    <i class="fa fa-facebook-square fa-5x"  aria-hidden="true"></i> <a href="" class="text-theme-tertiary display-4">Bleepy</a><br>
-                    <i class="fa fa-twitter-square fa-5x"  aria-hidden="true"></i> <a href="" class="text-theme-tertiary display-4">Bleepymo</a><br>
-                    <i class="fa fa-instagram fa-5x"  aria-hidden="true"></i> <a href="" class="text-theme-tertiary display-4">BleepyUs</a>
+                    <i class="fa fa-envelope fa-4x"  aria-hidden="true"></i> <a href="mailto:bleepyinfo@gmail.com"  class="text-theme-tertiary display-4">Bleepy Info</a><br>
+                    <i class="fa fa-facebook-square fa-5x"  aria-hidden="true"></i> <a href="http://facebook.bleepy.info" target="_blank" class="text-theme-tertiary display-4">Bleepy FB</a><br>
+                    <i class="fa fa-twitter-square fa-5x"  aria-hidden="true"></i> <a href="http://twitter.bleepy.info" target="_blank" class="text-theme-tertiary display-4">Bleepy Twitter </a><br>
+                    <i class="fa fa-instagram fa-5x"  aria-hidden="true"></i> <a href="http://instagram.bleepy.info" target="_blank" class="text-theme-tertiary display-4">Bleepy Insta </a>
                 </div>
-              </div>
+            </div>
           </div>
         </div>
-</section>
+    </div>
+
 {% endblock %}
 
 
