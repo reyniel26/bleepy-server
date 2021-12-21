@@ -1,27 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="primary">
-<head>
-    <!--LAYOUT2-->
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bleepy</title>
-
-    <!-- Bootstrap 4.5.2 -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- Font Awesome 4.7 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <!-- Theme style | AdminLTE 3 -->
-    <link rel="stylesheet" href="{{url_for('static', filename='Bleepy_UI/plugins/adminlte/adminlte.min.css')}}">
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{url_for('static', filename='Bleepy_UI/css/style-primary.css')}}">
-
-
-    
-
-
-</head>
+    {% include 'includes/_header.html' %}
 <body>
     {% include 'includes/_preloader.html' %}
     
@@ -31,40 +10,8 @@
         {% include 'includes/_messages.html' %}
         <div class="row my-3 container-fluid">
             <div class="col-md-3">
-                <!-- Widget: user widget style 1 -->
-                <div class="card card-widget widget-user shadow">
-                    <!-- Add the bg color to the header using any of the bg-* classes -->
-                    <div class="widget-user-header bg-theme-secondary text-theme-secondary">
-                    <h3 class="widget-user-username">{{viewdata.get("uw_fullname")}}</h3>
-                    <h5 class="widget-user-desc">{{viewdata.get("uw_role").title()}}</h5>
-                    </div>
-                    <div class="widget-user-image">
-                    <img class="img-circle elevation-2" src="{{url_for('static', filename=viewdata.get('uw_photo'))}}" alt="User Avatar">
-                    </div>
-                    <div class="card-footer">
-                    <div class="row">
-                        <div class="col-sm-6 border-right">
-                        <div class="description-block">
-                            <h5 class="description-header">{{viewdata.get("uw_videoscount")}}</h5>
-                            <span class="description-text">Videos</span>
-                        </div>
-                        <!-- /.description-block -->
-                        </div>
-                        <!-- /.col -->
-                        <div class="col-sm-6 border-right">
-                        <div class="description-block">
-                            <h5 class="description-header">{{viewdata.get("uw_bleepedvideoscount")}}</h5>
-                            <span class="description-text">Bleeps</span>
-                        </div>
-                        <!-- /.description-block -->
-                        </div>
-                        <!-- /.col -->
-                    </div>
-                    <!-- /.row -->
-                    </div>
-                </div>
-                <!-- /.widget-user -->
-
+                
+                {% include 'includes/_user_widget.html' %}
                 {% include 'includes/_cardnav.html' %}
 
             </div>
@@ -79,24 +26,7 @@
 
     {% include 'includes/_footer.html' %}
 
-    <!-- Scripts -->
-    <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <!-- Popper -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <!-- Bootstrap 4 -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- jQuery Validation -->
-    <script src="{{url_for('static', filename='Bleepy_UI/plugins/jqueryvalidation/jquery.validate.js')}}"></script>
-    <!-- jQuery FORM-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.min.js" integrity="sha384-qlmct0AOBiA2VPZkMY3+2WqkHtIQ9lSdAsAn5RUJD/3vA5MKDgSGcdmIv4ycVxyn" crossorigin="anonymous"></script>
-    <!-- ChartJS -->
-    <script src="{{url_for('static', filename='Bleepy_UI/plugins/chart.js/Chart.min.js')}}"></script>
-    <!-- AdminLTE App -->
-    <script src="{{url_for('static', filename='Bleepy_UI/plugins/adminlte/adminlte.min.js')}}"></script>
-
-    <!-- Custom js -->
-    <script src="{{url_for('static', filename='Bleepy_UI/js/themes.js')}}"></script>
+    {% include 'includes/_scripts.html' %}
     <!--Scripts-->
     {% block script %} {% endblock %}
 </body>

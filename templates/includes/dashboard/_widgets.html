@@ -1,3 +1,4 @@
+{% if viewdata.get('widgets_data').get('countperlang') %}
 <div class="row">
     <div class="col-lg-6">
         <section>
@@ -16,7 +17,7 @@
                 </div>
                 </div>
                 <div class="card-body">
-                    {% if viewdata.get('widgets_data').get('countperlang') %}
+                    
                         
                         <canvas id="countPerLangChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
                         {% for langobj in viewdata.get('widgets_data').get('countperlang') %}
@@ -31,7 +32,7 @@
                                 {% endif %}
                         {% endfor %}
 
-                    {% endif %}
+                    
                 </div>
                 <!-- /.card-body -->
             </div>
@@ -71,11 +72,12 @@
         </section>
     </div>
 </div>
+{% endif %}
 
+{% if viewdata.get('widgets_data').get('bleepedvideos') %}
 <div class="row">
     <div class="col-lg-12">
         <!-- My Bleep Videos -->
-        {% if viewdata.get('widgets_data').get('bleepedvideos') %}
         <section>
             <div class="card shadow">
                 <div class="card-header bg-theme-secondary text-theme-secondary">
@@ -140,6 +142,7 @@
                 <!-- /.card-body -->
             </div>
         </section>
-        {% endif %}
+        
     </div>
 </div>
+{% endif %}

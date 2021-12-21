@@ -63,7 +63,9 @@
                 <thead>
                 <tr>
                     <th>Track Name</th>
+                    {% if viewdata.get('hasaccess') %}
                     <th>Added on</th>
+                    {% endif %}
                     <th></th>
                     <th></th>
                 </tr>
@@ -72,7 +74,9 @@
                     {% for bleepsound in viewdata.get('bleepsounds')%}
                     <tr>
                         <td>{{bleepsound.get('filename')}}</td>
+                        {% if viewdata.get('hasaccess') %}
                         <td>{{bleepsound.get('upload_time')}}</td>
+                        {% endif %}
                         <td>
                             <button class="btn btn-theme-secondary btnbleepsoundplayer" value="{{bleepsound.get('bleep_sound_id')}}"><i class="fa fa-play-circle fa-lg" aria-hidden="true"></i></button>
                         </td>

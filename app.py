@@ -436,7 +436,7 @@ def authentication(f):
         # Query the acc_id
         data = db.selectAccountViaId(acc_id)
         if data == None:
-            flash("Invalid Authentication. User not found: "+data,"danger")
+            flash("Invalid Authentication. User not found: "+str(data),"danger")
             return reserror
         try:
             id = data["account_id"]
@@ -569,6 +569,12 @@ def bleepsoundlist():
     page = request.args.get("page")
     search = request.args.get("search") if request.args.get("search") else ""
 
+    hasaccess= False
+    acc_id = getIdViaAuth() 
+    acc_role = db.selectAccRole(acc_id).get("name") if db.selectAccRole(acc_id) else ''
+    if acc_role == app.config["ROLE_EDITOR"] or acc_role == app.config["ROLE_ADMIN"]:
+        hasaccess= True
+
     #Default
     count = 0    
     limit = app.config['DEFAULT_MAX_LIMIT']
@@ -592,7 +598,8 @@ def bleepsoundlist():
     viewdata = viewData(bleepsounds=bleepsounds, 
                         latest_bleepsound = latest_bleepsound,
                         resultbadge=resultbadge,
-                        pagination=pagination
+                        pagination=pagination,
+                        hasaccess=hasaccess
                         ) 
     )
 
@@ -795,6 +802,12 @@ def dashboard():
                             )
     )
 
+#Profanity Page
+@app.route('/profanities')
+@app.route('/uniqueprofanities')
+def profanities():
+    return redirect(url_for('dashboard'))
+
 #Profile route
 @app.route('/profile')
 @testConn
@@ -819,7 +832,6 @@ def profile():
 
 #Video List route
 @app.route('/videolist')
-@app.route('/videos')
 @testConn
 @authentication
 def videolist():
@@ -873,10 +885,12 @@ def videolist():
                         )
     )
 
+@app.route('/videos')
+def goto_videolist():
+    return redirect(url_for('videolist'))
+
 #Bleep Video List route
 @app.route('/bleepvideolist')
-@app.route('/bleepvideos')
-@app.route('/bleepedvideos')
 @testConn
 @authentication
 def bleepvideolist():
@@ -930,6 +944,11 @@ def bleepvideolist():
                         pagination = pagination
                         )
     )
+
+@app.route('/bleepedvideos')
+@app.route('/bleepvideos')
+def goto_bleepvideolist():
+    return redirect(url_for('bleepvideolist'))
 
 #Bleep Video Info route
 @app.route('/bleepvideoinfo/<path>',methods=["POST",'GET'])
@@ -2041,3 +2060,9 @@ def deletebleepsound():
 #================================================== Run APP 
 if __name__ == '__main__':
     app.run()
+    # To run in production 
+    # 1. set FLASK_ENV=production
+    # 2. flask run --host=0.0.0.0
+
+    #To run in ngrok
+    #ngrok http -region ap 5000

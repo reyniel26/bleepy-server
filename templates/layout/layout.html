@@ -1,27 +1,8 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="primary">
-<head>
-    <!--LAYOUT-->
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bleepy</title>
 
-    <!-- Bootstrap 4.5.2 -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- Font Awesome 4.7 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <!-- Theme style | AdminLTE 3 -->
-    <link rel="stylesheet" href="{{url_for('static', filename='Bleepy_UI/plugins/adminlte/adminlte.min.css')}}">
+{% include 'includes/_header.html' %}
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{url_for('static', filename='Bleepy_UI/css/style-primary.css')}}">
-
-
-    
-
-
-</head>
 <body>
     {% include 'includes/_preloader.html' %}
     
@@ -34,24 +15,8 @@
 
     {% include 'includes/_footer.html' %}
 
-    <!-- Scripts -->
-    <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <!-- Popper -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <!-- Bootstrap 4 -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- jQuery Validation -->
-    <script src="{{url_for('static', filename='Bleepy_UI/plugins/jqueryvalidation/jquery.validate.js')}}"></script>
-    <!-- jQuery FORM-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.min.js" integrity="sha384-qlmct0AOBiA2VPZkMY3+2WqkHtIQ9lSdAsAn5RUJD/3vA5MKDgSGcdmIv4ycVxyn" crossorigin="anonymous"></script>
-    <!-- ChartJS -->
-    <script src="{{url_for('static', filename='Bleepy_UI/plugins/chart.js/Chart.min.js')}}"></script>
-    <!-- AdminLTE App -->
-    <script src="{{url_for('static', filename='Bleepy_UI/plugins/adminlte/adminlte.min.js')}}"></script>
+    {% include 'includes/_scripts.html' %}
 
-    <!-- Custom js -->
-    <script src="{{url_for('static', filename='Bleepy_UI/js/themes.js')}}"></script>
     <!--Scripts-->
     {% block script %} {% endblock %}
 </body>
