@@ -1,6 +1,6 @@
 {% extends 'layout/layout2.html' %}
 <!--This layout use for sections -->
-{% block body %}
+{% block layout2_body %}
     <section>
         <!-- Input code here -->
         <div class=" jumbotron bg-white shadow">
@@ -13,7 +13,7 @@
     </section>
 {% endblock %}
 
-{% block script %}
+{% block layout2_script %}
 <script>
     $("button[type='submit']:not(.searchbtn)").on( "click", function(){
             result= confirm("Are you sure?");

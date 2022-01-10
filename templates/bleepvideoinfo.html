@@ -1,6 +1,6 @@
 {% extends 'layout/layout2.html' %}
 
-{% block body %}
+{% block layout2_body %}
 <section>
     <!-- Input code here -->
     <div class=" jumbotron bg-white shadow">
@@ -383,7 +383,7 @@
 </section>
 {% endblock %}
 
-{% block script %}
+{% block layout2_script %}
     {% if viewdata.get('bleepinfo_data') %}
     <script>
         $("button[type='submit']").on( "click", function(){

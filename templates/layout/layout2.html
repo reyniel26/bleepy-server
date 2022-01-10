@@ -1,33 +1,22 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="primary">
-    {% include 'includes/_header.html' %}
-<body>
-    {% include 'includes/_preloader.html' %}
-    
-    {% include 'includes/_navbar.html' %}
+{% extends 'layout/layout.html' %}
+<!-- #Layout 2 -->
+{% block layout_body %}
+<div class="row my-3 container-fluid">
+    <div class="col-md-3">
+        
+        {% include 'includes/_user_widget.html' %}
+        {% include 'includes/_cardnav.html' %}
 
-    <section class="" style="min-height: 500px;">
-        {% include 'includes/_messages.html' %}
-        <div class="row my-3 container-fluid">
-            <div class="col-md-3">
-                
-                {% include 'includes/_user_widget.html' %}
-                {% include 'includes/_cardnav.html' %}
+    </div>
+    <div class="col-md-9">
+        <section>
+            <!-- Input code here -->
+            {% block layout2_body %}{% endblock %}
+        </section>
+    </div>
+</div>
+{% endblock %}
 
-            </div>
-            <div class="col-md-9">
-                <section>
-                    <!-- Input code here -->
-                    {% block body %} {% endblock %}
-                </section>
-            </div>
-        </div>
-    </section>
-
-    {% include 'includes/_footer.html' %}
-
-    {% include 'includes/_scripts.html' %}
-    <!--Scripts-->
-    {% block script %} {% endblock %}
-</body>
-</html>
+{% block layout_script %} 
+    {% block layout2_script %} {% endblock %}
+{% endblock %}
