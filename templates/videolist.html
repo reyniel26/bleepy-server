@@ -1,6 +1,6 @@
 {% extends 'layout/layout3.html' %}
 
-{% block section %}
+{% block layout3_body %}
 
 
     {% if viewdata.get('latest_video') %}
@@ -112,7 +112,7 @@
             
 {% endblock %}
 
-{% block sectionscript %}
+{% block layout3_script %} 
 <script>
     $('.btnvideoplayer').on('click', function() {
         if($(this).val()){
