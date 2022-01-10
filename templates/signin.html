@@ -1,6 +1,6 @@
 {% extends 'layout/layout.html' %}
 
-{% block body %}
+{% block layout_body %}
 <div class="row justify-content-center py-5 container-fluid">
     <div class="col-md-4">
         <div class="jumbotron bg-white shadow p-4 mb-4">
@@ -41,7 +41,7 @@
 </div>
 {% endblock %}
 
-{% block script %}
+{% block layout_script %}
 <script src="{{url_for('static', filename='Bleepy_UI/js/showpwd.js')}}"></script>
 <script src="{{url_for('static', filename='Bleepy_UI/js/signin.js')}}"></script>
 {% endblock %}

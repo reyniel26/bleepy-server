@@ -10,7 +10,7 @@
 
     <section class="" style="min-height: 500px;">
         {% include 'includes/_messages.html' %}
-        {% block body %}{% endblock %}
+        {% block layout_body %}{% endblock %}
     </section>
 
     {% include 'includes/_footer.html' %}
@@ -18,6 +18,6 @@
     {% include 'includes/_scripts.html' %}
 
     <!--Scripts-->
-    {% block script %} {% endblock %}
+    {% block layout_script %} {% endblock %}
 </body>
 </html>

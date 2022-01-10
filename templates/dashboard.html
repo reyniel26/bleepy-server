@@ -1,6 +1,6 @@
 {% extends 'layout/layout2.html' %}
 
-{% block body %}
+{% block layout2_body %}
     <!-- Bleep new video -->
     {% include 'includes/dashboard/_bleep_new_video_div.html' %}
 
@@ -240,7 +240,7 @@
 
 {% endblock %}
 
-{% block script %}
+{% block layout2_script %}
     <script>
         $('[data-widget="expandable-table"]').on( "click", function(){
             if (($(this).attr("aria-expanded")) === 'false'){ 

@@ -1,6 +1,6 @@
 {% extends 'layout/layout3.html' %}
 
-{% block section %}
+{% block layout3_body %}
 <button class="btn btn-success mb-3" data-toggle="modal" data-target="#addbleepsoundmodal">Add Bleep Sound</button>
 <div id="targetdivscroll"></div>
 
@@ -274,7 +274,7 @@
             
 {% endblock %}
 
-{% block sectionscript %}
+{% block layout3_script %} 
 <script>
     
     $(".btnviewbleepsound").click(function(){

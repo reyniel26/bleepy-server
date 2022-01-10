@@ -1,6 +1,6 @@
 {% extends 'layout/layout.html' %}
 
-{% block body %}
+{% block layout_body %}
 <div class="container my-5">
     <div class="row justify-content-center ">
         <div class="col-lg-8 ">
@@ -80,7 +80,7 @@
 </div>
 {% endblock %}
 
-{% block script %}
+{% block layout_script %}
 <script>
     // Add the following code if you want the name of the file appear on select
     loadStep1(getParameter("step1"))

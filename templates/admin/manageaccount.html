@@ -1,6 +1,6 @@
 {% extends 'layout/layout3.html' %}
 
-{% block section %}
+{% block layout3_body %}
 
     <button class="btn btn-success mb-3" data-toggle="modal" data-target="#addaccountmodal">Add Account</button>
     <div class=" container ">
@@ -259,7 +259,7 @@
 {% endblock %}
 
 
-{% block sectionscript %}
+{% block layout3_script %} 
 <script src="{{url_for('static', filename='Bleepy_UI/js/validation_validname.js')}}"></script>
     
     <script>
