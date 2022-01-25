@@ -146,6 +146,8 @@
                     <p class="mt-2">
                         <span class=" font-weight-bold">Elapsed time:</span> <span id="runBleepyElapsedtime">00:00:00</span>
                         <br>
+                        <span class=" font-weight-bold">Estimated Remaining time:</span> <span id="runBleepyRemainingtime">00:00:00</span>
+                        <br>
                         <span class=" font-weight-bold">Estimated Progress:</span>
                     </p>
 
@@ -195,18 +197,23 @@
     ///////////
 
     class Progress{
-        constructor (est_duration,progress_bar,elapsedtimespan){
+        constructor (est_duration,progress_bar,elapsedtimespan,remainingtimespan){
             this.percent = 0
             this.lapse = 0
             this.interval = null
-            this.progress_bar = progress_bar
             this.est_duration = est_duration
+            this.remainingtime = est_duration
+
+            //
+            this.progress_bar = progress_bar
             this.elapsedtimespan = elapsedtimespan
+            this.remainingtimespan = remainingtimespan
         }
         initial(){
             $(this.progress_bar).width('0%')
             $(this.progress_bar).html('0%');
             $(this.elapsedtimespan).html('00:00:00');
+            $(this.remainingtimespan).html('00:00:00');
             this.percent = 0
         }
 
@@ -228,6 +235,23 @@
             // return hours.toString()+":"+minutes.toString()+":"+seconds.toString()
             return new Date(this.getLapse() * 1000).toISOString().substr(11, 8)
         }
+
+        setRemaining(remainingtime){
+            this.remainingtime = remainingtime
+        }
+
+        getRemaining(){
+            return this.remainingtime
+        }
+
+        decrementRemaining(){
+            this.setRemaining(this.getRemaining()-1)
+        }
+
+        getRemainingTime(){
+            return new Date(this.getRemaining() * 1000).toISOString().substr(11, 8)
+        }
+
         setPercent(percent){
             this.percent = percent
         }
@@ -246,9 +270,11 @@
         process(){
             this.incrementLapse()
             this.computePercent()
+            this.decrementRemaining()
             $(this.progress_bar).width(this.getPercent()+'%')
             $(this.progress_bar).html(this.getPercent()+'%');
             $(this.elapsedtimespan).html(this.getLapseTime());
+            $(this.remainingtimespan).html(this.getRemainingTime());
         }
         
         run(){
@@ -282,7 +308,7 @@
             if($('#choosebleepsound').val() && $('#lang').val() && $('#stt_models').val()){
                 
                 est_duration = parseFloat($('#video_duration').val())*parseFloat($('#est_multiplier').val())
-                let progress = new Progress(est_duration,'#runBleepyProgressbar','#runBleepyElapsedtime')
+                let progress = new Progress(est_duration,'#runBleepyProgressbar','#runBleepyElapsedtime','#runBleepyRemainingtime')
                 progress.run()
                 process.onProcess();
 
