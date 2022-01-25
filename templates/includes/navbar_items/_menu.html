@@ -4,6 +4,10 @@
         <span class=" d-md-none"> Menu</span>
     </a>
     <div class="dropdown-menu">
+        
+        <a class="dropdown-item" href="/bleepvideo">Bleep New Video</a>
+        <div class="dropdown-divider"></div>
+        
         {% for nav in viewdata.get('navigations') %}
             {% if nav.get('location') != '/bleepsoundlist' %}
                 <a class="dropdown-item" href="{{nav.get('location')}}">{{nav.get('name').title()}}</a>
