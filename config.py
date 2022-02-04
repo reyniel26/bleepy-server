@@ -40,9 +40,10 @@ class Config(object):
     DEFAULT_ACC_PWD = 'Password1234'
     DEFAULT_MAX_LIMIT = 10
     DEFAULT_ATLEAST_LIMIT = 10
-    DEFAULT_EST_MULTIPLIER = 2.5
+    DEFAULT_MIN_EST = 30 #seconds
+    DEFAULT_EST_MULTIPLIER = 1.5
     DEFAULT_LANG  = 'tagalog-english'
-    DEFAULT_STT_MODEL_ENG = 'model-en'
+    DEFAULT_STT_MODEL_ENG = 'model-en22'
     DEFAULT_STT_MODEL_TAG = 'model-ph'
     DEFAULT_STT_MODELS = (DEFAULT_STT_MODEL_ENG,DEFAULT_STT_MODEL_TAG,'default')
 

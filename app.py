@@ -1270,6 +1270,7 @@ def bleepstep1():
         langs = db.selectLangsAll()
         defaultLang = app.config['DEFAULT_LANG']
         est_multiplier = app.config['DEFAULT_EST_MULTIPLIER']
+        est_min = app.config['DEFAULT_MIN_EST']
         video_duration = 0.0
 
         advance_options = {
@@ -1341,6 +1342,7 @@ def bleepstep1():
                                 langs=langs,
                                 defaultLang=defaultLang,
                                 video_duration=video_duration,
+                                est_min = est_min,
                                 est_multiplier = est_multiplier,
                                 advance_options=advance_options 
                             )

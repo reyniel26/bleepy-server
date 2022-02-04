@@ -59,6 +59,7 @@
                 {% endif %}
 
                 <input type="hidden" name="video_duration" id="video_duration" value="{{viewdata.get('video_duration')}}">
+                <input type="hidden" name="est_min" id="est_min" value="{{viewdata.get('est_min')}}">
                 <input type="hidden" name="est_multiplier" id="est_multiplier" value="{{viewdata.get('est_multiplier')}}">
 
                 <div class="embed-responsive embed-responsive-16by9">
@@ -189,6 +190,7 @@
     }
 
     var process = new Process()
+    var xhr = null
 
     $(window).bind("beforeunload",function(event) {
         if(process.isOnProcess()) return "Leaving or closing the page will stop the current process. Still want to leave this page?";
@@ -245,7 +247,7 @@
         }
 
         decrementRemaining(){
-            this.setRemaining(this.getRemaining()-1)
+            this.setRemaining(this.getRemaining()-1 > 0 ? this.getRemaining()-1:60)
         }
 
         getRemainingTime(){
@@ -307,7 +309,9 @@
         if($('#runbleepyvid_id').val()){
             if($('#choosebleepsound').val() && $('#lang').val() && $('#stt_models').val()){
                 
-                est_duration = parseFloat($('#video_duration').val())*parseFloat($('#est_multiplier').val())
+                
+                est_duration = parseFloat(($('#video_duration').val())*parseFloat($('#est_multiplier').val()))
+                est_duration = est_duration + parseFloat($('#est_min').val())
                 let progress = new Progress(est_duration,'#runBleepyProgressbar','#runBleepyElapsedtime','#runBleepyRemainingtime')
                 progress.run()
                 process.onProcess();
@@ -315,7 +319,8 @@
                 $('#runBleepySubmitDiv').hide();
                 $('#runBleepyCancelSubmitDiv').show();
                 $('#runBleepyProgress').show();
-                $.ajax ({
+                $('#runbleepyresponsemsg').html('')
+                xhr = $.ajax ({
                     type:"POST",
                     url:"/bleepstep2",
                     data: {
@@ -343,11 +348,14 @@
                         }
                         progress.stop()
                     },error:function(e){
-                        alert("error: "+e)
+                        if(process.isOnProcess()){
+                            alert("error: "+e)
+                        }
                         $('#runBleepySubmitDiv').show();
                         $('#runBleepyCancelSubmitDiv').hide();
                         $('#runBleepyProgress').hide();
                         progress.stop()
+                        process.doneProcess();
                     }
                 });
             }
@@ -357,6 +365,18 @@
         }
         else{
             alert("No Data for the video")
+        }
+    });
+
+    $("#runBleepyCancelSubmit").on('click', function(){
+        result= confirm("Are you sure?");
+        if(result){
+            process.doneProcess();
+            xhr.abort();
+            $('#runbleepyresponsemsg').html("<span class='text-danger'>Cancelled!</span>");
+            $('#runBleepySubmitDiv').show();
+            $('#runBleepyCancelSubmitDiv').hide();
+            $('#runBleepyProgress').hide();
         }
     });
 
