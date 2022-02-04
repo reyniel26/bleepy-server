@@ -126,10 +126,6 @@
                     </table>
                 </div>
             </div>
-            
-
-            
-
 
             <!-- Original Video vs Bleeped Video-->
             <div class="row">
@@ -183,6 +179,7 @@
                 </div>
             </div>
 
+            {% include 'includes/_help_modal.html' %}
             <!-- Profanities table-->
             <div class="row">
                 <div class="col-md-12">
@@ -190,6 +187,9 @@
                         <div class="card-header bg-theme-secondary text-theme-secondary">
                         <h3 class="card-title">Profanities <span class="advance_details" style="display: none;"> (Advance details) </span> </h3>        
                         <div class="card-tools">
+                            <button type="button" class="btn btn-tool " data-toggle="modal" data-target="#helpmodal">
+                                <i class="fa fa-question-circle fa-lg text-theme-secondary"></i>
+                            </button>
                             <button type="button" class="btn btn-tool" data-card-widget="maximize">
                                 <i class="fa fa-expand text-theme-secondary"></i>
                             </button>
@@ -554,5 +554,7 @@
         
         });
     </script>
+
+    
     {% endif %}
 {% endblock %}
