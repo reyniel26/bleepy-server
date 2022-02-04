@@ -351,7 +351,7 @@ def saveBleepedVideo(bleepvideodict:dict,isrefilter:bool):
 
         for profanity in bleepvideodict.get('profanities'):
             lang_id = db.selectLangByLang(profanity.get("lang")).get("lang_id") if db.selectLangByLang(profanity.get("lang")) else 0
-            item = (profanity["word"],profanity["start"],profanity["end"],lang_id,pvid_id)
+            item = (profanity["word"],profanity["start"],profanity["end"],lang_id,profanity["conf"], profanity["predict_prob"], pvid_id)
             vals.append(item)
         
         msg = db.insertProfanities(vals)

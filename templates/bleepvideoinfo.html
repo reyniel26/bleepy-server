@@ -88,6 +88,8 @@
                                 <th class="text-center">STT Model</th>
                                 <th class="text-center">Refilter Level</th>
                                 <th class="text-center">Last Bleep Video Version</th>
+                                <th class="text-center">Average Prediction Probability</th>
+                                <th class="text-center">Average Confidence</th>
                             </tr>
                         </thead>
 
@@ -105,6 +107,18 @@
                                     <td class="text-center"><a href="/bleepvideoinfo/{{viewdata.get('bleepinfo_data').get('bleepinfo').get('lastbleepvideoid')}}">View</a></td>
                                 {% else %}
                                     <td class="text-center">None</td>
+                                {% endif %}
+
+                                {% if viewdata.get('bleepinfo_data').get('ave_predict_prob_percentage') %}
+                                    <td class="text-center">{{viewdata.get('bleepinfo_data').get('ave_predict_prob_percentage')}}%</td>
+                                {% else %}
+                                    <td class="text-center">No data</td>
+                                {% endif %}
+
+                                {% if viewdata.get('bleepinfo_data').get('ave_conf_percentage') %}
+                                    <td class="text-center">{{viewdata.get('bleepinfo_data').get('ave_conf_percentage')}}%</td>
+                                {% else %}
+                                    <td class="text-center">No data</td>
                                 {% endif %}
                                 
                             </tr>
@@ -169,12 +183,12 @@
                 </div>
             </div>
 
-            
+            <!-- Profanities table-->
             <div class="row">
                 <div class="col-md-12">
                     <div class="card ">
                         <div class="card-header bg-theme-secondary text-theme-secondary">
-                        <h3 class="card-title">Profanities</h3>        
+                        <h3 class="card-title">Profanities <span class="advance_details" style="display: none;"> (Advance details) </span> </h3>        
                         <div class="card-tools">
                             <button type="button" class="btn btn-tool" data-card-widget="maximize">
                                 <i class="fa fa-expand text-theme-secondary"></i>
@@ -194,6 +208,10 @@
                                     <th>Start</th>
                                     <th>End</th>
                                     <th>Language</th>
+                                    
+                                    <th style="display: none;" class="advance_details">Prediction Probability</th>
+                                    <th style="display: none;" class="advance_details">Confidence</th>
+                                    
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -205,6 +223,21 @@
                                         <td>
                                             {% if profanity.get('lang') %}
                                                 {{profanity.get('lang').title()}}
+                                            {% endif %}
+                                        </td>
+                                        
+                                        <td style="display: none;" class="advance_details">
+                                            {% if profanity.get('predict_prob_percentage') %}
+                                                {{profanity.get('predict_prob_percentage')}}%
+                                            {% else %}
+                                                No data
+                                            {% endif %}
+                                        </td>
+                                        <td style="display: none;" class="advance_details">
+                                            {% if profanity.get('conf_percentage') %}
+                                                {{profanity.get('conf_percentage')}}%
+                                            {% else %}
+                                                No data
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -507,12 +540,16 @@
         })
     </script>
 
+    <!--Show advance details-->
     <script>
         $('#showadvancedetails').on('click', function() {
             if($('#showadvancedetails').is(':checked')){
                 $('#advancedetails_div').slideDown();
+                $('.advance_details').show();
+                //advance_data_profanities
             }else{
                 $('#advancedetails_div').slideUp();
+                $('.advance_details').hide();
             }
         
         });

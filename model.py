@@ -240,6 +240,10 @@ class Model:
         #bleepinfo should be a query
         bleepinfo_data = {}
         if bleepinfo:
+            advance_ave_data = self.averageProfanityVideoConfAndPredict(bleepinfo.get("pvideo_id"))
+            if not advance_ave_data:
+                advance_ave_data = {}
+                
             bleepinfo_data ={
                 "bleepinfo":bleepinfo,
                 "uniqueprofanities":self.selectUniqueProfanityWordsByVideo(bleepinfo.get("pvideo_id")),
@@ -250,7 +254,9 @@ class Model:
                 "mostfrequentword":self.selectMostFrequentProfanityWordByVideo(bleepinfo.get("pvideo_id")).get("word"),
                 "top10profanities":self.selectTop10ProfanitiesByVideo(bleepinfo.get("pvideo_id")),
                 "uploadedby":bleepinfo.get("uploadedby"),
-                "countperlang":self.selectCountPerLangOfBleepVideo(bleepinfo.get("pvideo_id"))
+                "countperlang":self.selectCountPerLangOfBleepVideo(bleepinfo.get("pvideo_id")),
+                "ave_conf_percentage":advance_ave_data.get('ave_conf_percentage'),
+                "ave_predict_prob_percentage":advance_ave_data.get('ave_predict_prob_percentage')
             }
         return bleepinfo_data
 
@@ -537,6 +543,10 @@ class Model:
     def countBleepSoundSearch(self,search):
         return self.querySelect("call sp_count_bleep_sound_search(%s)",search)
     
+    #================================================== Average
+    def averageProfanityVideoConfAndPredict(self,pvid_id):
+        return self.querySelect("call sp_ave_censored_video_profanity_word_conf_predict(%s)",pvid_id)
+
     #================================================== Inserts
     def insertRole(self,rolename):
         return self.queryInsert("call sp_add_roles(%s)",rolename)
@@ -592,8 +602,8 @@ class Model:
                 )
     
     def insertProfanities(self,vals:list):
-        #word , start, end, lang_id, pvid_id
-        return self.queryInsertMany("call sp_add_profanityword(%s, %s,%s,%s,%s)",vals)
+        #word , start, end, lang_id, p_conf, p_predict,pvid_id
+        return self.queryInsertMany("call sp_add_profanityword(%s, %s,%s,%s,%s,%s,%s)",vals)
     
     def insertUser(self,email:str,fname:str,lname:str,pwd):
         return self.queryInsert("call sp_add_user(%s, %s, %s, %s)",email,fname,lname,pwd)
