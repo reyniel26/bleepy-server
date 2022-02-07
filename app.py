@@ -398,6 +398,7 @@ def authentication(f):
     if the token not exist, its expires or credentials not set yet
     if the token not have values or has invalid secretkey, its invalid
     if the token not have authid, its invalid
+    if the account is block
     """
     @wraps(f)
     def wrap(*args, **kwargs):
@@ -439,9 +440,12 @@ def authentication(f):
             flash("Invalid Authentication. User not found: "+str(data),"danger")
             return reserror
         try:
-            id = data["account_id"]
+            status_id = data.get("status_id")
+            if status_id == db.selectAccountStatusDefaultsViaStatus(app.config["DEFAULT_ACC_STATUS_BLOCKED"]).get("status_id"):
+                flash("The account is blocked!","danger")
+                return reserror
         except Exception as e:
-            flash("Error: "+data,"danger")
+            flash("Error: "+e,"danger")
             return reserror
         # if not exist return error
 
@@ -699,6 +703,11 @@ def signin():
         acc_pwd = account.get("pwd")
         acc_id = account.get("account_id")
 
+        status_id = account.get("status_id")
+        if status_id == db.selectAccountStatusDefaultsViaStatus(app.config["DEFAULT_ACC_STATUS_BLOCKED"]).get("status_id"):
+            flash("The account is blocked!","danger")
+            return redirect(url_for('signin'))
+
         if acc_pwd == None or acc_id == None:
             flash('Internal Error', 'danger')
             return redirect(url_for('signin'))
@@ -780,7 +789,7 @@ def dashboard():
         #Set the data that the editor and admin can have
         admin_data = {
             "accountCounts":db.selectAccountCountsByRole(),
-            "latestusers":db.selectLatestUsers(),
+            "latestusers":db.selectLatestActiveUsers(),
             "trendfeeds":db.selectTrendFeed()
         }
         #Update widgets here
@@ -1642,7 +1651,7 @@ def updatephoto():
             elif not media.isAllowedExt(media.getExtension(file.filename)):
                 flash('File type is not allowed. Allowed file extension are: '+str(media.getAllowedExts()),'danger')
             else:
-                if oldphoto != app.config["PHOTO_DEFAULT_USER"]:
+                if oldphoto not in app.config["PHOTO_DEFAULTS_USER"]:
                     if os.path.exists("static/"+oldphoto):
                         os.remove("static/"+oldphoto)
 
@@ -1677,6 +1686,7 @@ def updatephoto():
 @authentication
 @isAdmin
 def manageaccount():
+    feeds = db.selectManageAccountFeeds()
     page = request.args.get("page")
     search = request.args.get("search") if request.args.get("search") else ""
 
@@ -1686,13 +1696,13 @@ def manageaccount():
     offset = 0 
 
     #Count first the search
-    count = db.countAccountsSearch(search).get('count') if db.countAccountsSearch(search) else 0
+    count = db.countAccountsActiveSearch(search).get('count') if db.countAccountsActiveSearch(search) else 0
 
     #Arrange the offset and limit
     offset = pagingControl.generateOffset(page,count,limit)
 
     #Query the data
-    accounts = db.selectAccountAllSearchLimitOffset(search,limit,offset)
+    accounts = db.selectAccountActiveAllSearchLimitOffset(search,limit,offset)
 
     roles = db.selectRoles()
 
@@ -1705,7 +1715,8 @@ def manageaccount():
                         roles=roles, 
                         defaultpwd=defaultpwd, 
                         pagination=pagination,
-                        resultbadge = resultbadge
+                        resultbadge = resultbadge,
+                        feeds=feeds
                         )
     )
 
@@ -1842,29 +1853,127 @@ def deleteaccount():
 
         if not acc:
             flash('Account doenst exist!', 'danger')
-            return redirect(url_for('manageaccount'))
+            return redirect(request.referrer)
 
         fullname = (str(acc.get("fname"))+" "+str(acc.get("lname"))).title()
         #Delete the photo if it is not default
         photo = acc.get("photo")
-        if acc.get("photo") != app.config["PHOTO_DEFAULT_USER"]:
+        if acc.get("photo") not in app.config["PHOTO_DEFAULTS_USER"]:
             try:
                 if os.path.exists("static/"+photo):
                     os.remove("static/"+photo)
             except Exception as e:
                 flash('Error Occur in Deleting account ! '+str(e), 'warning')
-                return redirect(url_for('manageaccount'))
+                return redirect(request.referrer)
         
         #Delete uploaded by record
         msg = db.deleteUploadedById(acc_id)
-        flashPrintsforAdmin(msg,"Uploaded Records are also deleted:")
+        flashPrintsforAdmin(msg,"Uploaded Records are also deleted")
         #Delete the account
         msg = db.deleteAccById(acc_id)
+        flashPrintsforAdmin(msg,"Message")
         
-        flash(fullname+'\'s account has been deleted! '+str(msg), 'success')
+        flash(fullname+'\'s account has been deleted! ', 'success')
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(request.referrer)
+
+# Block Account 
+@app.route('/blockaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def blockaccount():
+    if request.method == "POST":
+        
+
+        acc_id = request.form.get("blockaccid")
+        acc = db.selectAccountViaId(acc_id)
+
+        if not acc:
+            flash('Account doenst exist!', 'danger')
+            return redirect(url_for('manageaccount'))
+        
+        fullname = (str(acc.get("fname"))+" "+str(acc.get("lname"))).title()
+        # Block account process
+        status_blocked_id = db.selectAccountStatusDefaultsViaStatus(app.config["DEFAULT_ACC_STATUS_BLOCKED"])
+        if status_blocked_id:
+            status_blocked_id = status_blocked_id.get("status_id")
+
+        msg = db.updateAccStatusById(acc_id,status_blocked_id)
+        flashPrintsforAdmin(msg,"Message")
+
+        flash(fullname+'\'s account has been bloked! ', 'success')
     else:
         flash('Invalid Request!', 'warning')
     return redirect(url_for('manageaccount'))
+
+# Unblock Account 
+@app.route('/unblockaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def unblockaccount():
+    if request.method == "POST":
+        
+
+        acc_id = request.form.get("unblockaccid")
+        acc = db.selectAccountViaId(acc_id)
+
+        if not acc:
+            flash('Account doenst exist!', 'danger')
+            return redirect(url_for('manageblockaccount'))
+        
+        fullname = (str(acc.get("fname"))+" "+str(acc.get("lname"))).title()
+        # Block account process
+        status_blocked_id = db.selectAccountStatusDefaultsViaStatus(app.config["DEFAULT_ACC_STATUS_ACTIVE"])
+        if status_blocked_id:
+            status_blocked_id = status_blocked_id.get("status_id")
+
+        msg = db.updateAccStatusById(acc_id,status_blocked_id)
+        flashPrintsforAdmin(msg,"Message")
+
+        flash(fullname+'\'s account has been unbloked! ', 'success')
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(url_for('manageblockaccount'))
+
+# Manage Account 
+@app.route('/manageblockaccount')
+@testConn
+@authentication
+@isAdmin
+def manageblockaccount():
+    page = request.args.get("page")
+    search = request.args.get("search") if request.args.get("search") else ""
+
+    #Default
+    count = 0    
+    limit = app.config['DEFAULT_MAX_LIMIT']
+    offset = 0 
+
+    #Count first the search
+    count = db.countAccountsBlockSearch(search).get('count') if db.countAccountsBlockSearch(search) else 0
+
+    #Arrange the offset and limit
+    offset = pagingControl.generateOffset(page,count,limit)
+
+    #Query the data
+    accounts = db.selectAccountBlockAllSearchLimitOffset(search,limit,offset)
+
+    roles = db.selectRoles()
+
+    resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
+    pagination = pagingControl.generatePagination(count,limit)
+
+    return render_template('admin/manageblockaccount.html', 
+    viewdata = viewData(accounts=accounts,
+                        roles=roles,
+                        pagination=pagination,
+                        resultbadge = resultbadge
+                        )
+    )
+
 
 #==============Editor Pages
 # Manage Bleep Sounds

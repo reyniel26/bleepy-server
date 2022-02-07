@@ -152,8 +152,14 @@ class Model:
     def selectAccountViaEmail(self,email:str):
         return self.querySelect("call sp_select_account_via_email(%s)",email)
     
+    def selectAccountActiveViaEmail(self,email:str):
+        return self.querySelect("call sp_select_account_active_via_email(%s)",email)
+    
     def selectAccountViaId(self,id:str):
         return self.querySelect("call sp_select_account_via_id(%s)",id)
+    
+    def selectAccountAccountViaId(self,id:str):
+        return self.querySelect("call sp_select_account_active_via_id(%s)",id)
     
     def selectFeeds(self,id:str):
         """
@@ -361,14 +367,12 @@ class Model:
     def selectAccRole(self,id):
         return self.querySelect("call sp_select_account_role(%s)",id)
     
-    def selectAdminFeeds(self):
+    def selectFeedBuilder(self,stmts):
+        """
+        STMTS List of Dictionaries with 5 items
+        count, title, bgcolor, icon, link
+        """
         feeds = []
-        stmts = [
-            (str(self.countVideos().get("count")),"Overall Uploaded Videos","info","video-camera","/videos"),
-            (str(self.countBleepVideos().get("count")),"Overall Bleeped Videos","olive","film","/bleepedvideos"),
-            (str(self.countProfanityWords().get("count")),"Overall Profanities Collected","maroon","comments-o","/profanities"),
-            (str(self.countUniqueProfanityWords().get("count")),"Overall Unique Profanities","purple","commenting-o","/uniqueprofanities")
-        ]
         for stmt in stmts:
             feed = {
                 "count":stmt[0],
@@ -380,6 +384,24 @@ class Model:
             feeds.append(feed)
         
         return feeds
+        
+    def selectAdminFeeds(self):
+        stmts = [
+            (str(self.countVideos().get("count")),"Overall Uploaded Videos","info","video-camera","/videos"),
+            (str(self.countBleepVideos().get("count")),"Overall Bleeped Videos","olive","film","/bleepedvideos"),
+            (str(self.countProfanityWords().get("count")),"Overall Profanities Collected","maroon","comments-o","/profanities"),
+            (str(self.countUniqueProfanityWords().get("count")),"Overall Unique Profanities","purple","commenting-o","/uniqueprofanities")
+        ]
+        return self.selectFeedBuilder(stmts)
+    
+    def selectManageAccountFeeds(self):
+        stmts = [
+            (str(self.countAccounts().get('count')),"Total Users","info","users","/manageaccount"),
+            (str(self.countAccountsActive().get('count')),"Active","olive","user","/manageaccount"),
+            (str(self.countAccountsBlocked().get('count')),"Blocked","maroon","user-times","/manageblockaccount"),
+            # (str(0),"Reset Request","purple","envelope","/resetrequest")
+        ]
+        return self.selectFeedBuilder(stmts)
 
     def selectRoles(self):
         return self.querySelectAll("call sp_select_roles()")
@@ -413,6 +435,9 @@ class Model:
 
     def selectLatestUsers(self):
         return self.querySelectAll("call sp_select_latest_users()")
+    
+    def selectLatestActiveUsers(self):
+        return self.querySelectAll("call sp_select_latest_active_users()")
     
     def selectAccountRegTrend(self):
         return self.querySelectAll("call sp_select_trend_account_reg()")
@@ -464,12 +489,24 @@ class Model:
     def selectAccountsAll(self):
         return self.querySelectAll("call sp_select_accounts_all()")
     
+    def selectAccountsActiveAll(self):
+        return self.querySelectAll("call sp_select_accounts_active_all()")
+    
     def selectAccountsAllLimitOffset(self,limit,offset):
         return self.querySelectAll("call sp_select_accounts_all_limit_offset(%s,%s)",limit,offset)
+    
+    def selectAccountsActiveAllLimitOffset(self,limit,offset):
+        return self.querySelectAll("call sp_select_accounts_active_all_limit_offset(%s,%s)",limit,offset)
     
     def selectAccountAllSearchLimitOffset(self,search,limit,offset):
         return self.querySelectAll("call sp_select_accounts_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
     
+    def selectAccountActiveAllSearchLimitOffset(self,search,limit,offset):
+        return self.querySelectAll("call sp_select_accounts_active_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
+    
+    def selectAccountBlockAllSearchLimitOffset(self,search,limit,offset):
+        return self.querySelectAll("call sp_select_accounts_block_all_search_limit_offset(%s,%s,%s)",search,limit,offset)
+
     def selectLangByLang(self,lang):
         return self.querySelect("call sp_select_lang_by_lang(%s)",lang)
     
@@ -487,6 +524,12 @@ class Model:
     
     def selectSTTModelById(self,stt_model_id):
         return self.querySelect("call sp_select_stt_model_by_id(%s)",stt_model_id)
+    
+    def selectAccountStatusDefaults(self):
+        return self.querySelectAll("call sp_select_account_status_defaults()")
+    
+    def selectAccountStatusDefaultsViaStatus(self,status):
+        return self.querySelect("call sp_select_account_status_defaults_via_status(%s)",status)
 
     #================================================== Counts
     def countVideosUploadedByAcc(self,id:str):
@@ -537,8 +580,20 @@ class Model:
     def countAccounts(self):
         return self.querySelect("call sp_count_accounts()")
     
+    def countAccountsActive(self):
+        return self.querySelect("call sp_count_accounts_active()")
+
+    def countAccountsBlocked(self):
+        return self.querySelect("call sp_count_accounts_blocked()")
+    
     def countAccountsSearch(self,search):
         return self.querySelect("call sp_count_accounts_search(%s)",search)
+    
+    def countAccountsActiveSearch(self,search):
+        return self.querySelect("call sp_count_accounts_active_search(%s)",search)
+    
+    def countAccountsBlockSearch(self,search):
+        return self.querySelect("call sp_count_accounts_block_search(%s)",search)
     
     def countBleepSoundSearch(self,search):
         return self.querySelect("call sp_count_bleep_sound_search(%s)",search)
@@ -637,6 +692,9 @@ class Model:
 
     def updateAccRoleIdById(self,id,role_id):
         return self.queryUpdate("call sp_update_account_role_id_by_id(%s,%s)",id,role_id)
+    
+    def updateAccStatusById(self,id,status_id):
+        return self.queryUpdate("call sp_update_account_status_id_by_id(%s,%s)",id,status_id)
 
     def updateBleepSoundFilenameById(self,bleepsound_id,filename):
         return self.queryUpdate("call sp_update_bleep_sound_filename_by_id(%s,%s)",bleepsound_id,filename)

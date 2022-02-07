@@ -1,0 +1,26 @@
+<script>
+    $(".btndeleteaccount").click(function(){
+        //first delete the account to be edit
+        let acc_id = $(this).val()
+        $.ajax ({
+            type:"POST",
+            url:"/viewaccount",
+            data: {
+                acc_id:acc_id
+            },
+            cache: false,
+            success:function(data){
+                $("#deletephoto").attr("src",data.photo);
+                $('#deletefname').val(data.fname)
+                $('#deletelname').val(data.lname)
+                $('#deleteemail').val(data.email)
+                $('#deleterole').val(data.role)
+                $('#deleteaccid').val(acc_id)
+                $("#deleteaccountmodal").modal();
+            },error:function(e){
+                alert("error: "+e)
+            }
+        });
+    });
+
+</script>

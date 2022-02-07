@@ -1,0 +1,26 @@
+<script>
+    $(".btnblockaccount").click(function(){
+        //first block the account to be edit
+        let acc_id = $(this).val()
+        $.ajax ({
+            type:"POST",
+            url:"/viewaccount",
+            data: {
+                acc_id:acc_id
+            },
+            cache: false,
+            success:function(data){
+                $("#blockphoto").attr("src",data.photo);
+                $('#blockfname').val(data.fname)
+                $('#blocklname').val(data.lname)
+                $('#blockemail').val(data.email)
+                $('#blockrole').val(data.role)
+                $('#blockaccid').val(acc_id)
+                $("#blockaccountmodal").modal();
+            },error:function(e){
+                alert("error: "+e)
+            }
+        });
+    });
+
+</script>
