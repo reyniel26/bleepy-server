@@ -1,17 +1,12 @@
 {% extends 'layout/layout3.html' %}
 
 {% block layout3_body %}
-
-    <!-- Feeds -->
-    {% include 'includes/dashboard/_feeds.html' %}
-
-
-    <button class="btn btn-success mb-3" data-toggle="modal" data-target="#addaccountmodal">Add Account</button>
+    <!--Manage Block accounts -->
     <div class=" container ">
 
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Accounts</h3>
+                <h3 class="card-title">Blocked Accounts</h3>
 
                 <div class="card-tools">
                     <!--Card tool search-->
@@ -44,9 +39,8 @@
                                         <div class="row ">
                                             <div class="col-md-10 col-12">
                                                 <button class="btn btn-info btnviewaccount" value="{{account.get('account_id')}}"><i class="fa fa-eye fa-lg" aria-hidden="true"></i> View</button>
-                                                <button class="btn btn-warning btneditaccount" value="{{account.get('account_id')}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i> Edit</button>
+                                                <button class="btn btn-success btnunblockaccount" value="{{account.get('account_id')}}"><i class="fa fa-refresh fa-lg" aria-hidden="true"></i> Unblock</button>
                                                 <button class="btn btn-danger btndeleteaccount" value="{{account.get('account_id')}}"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> Delete</button>
-                                                <button class="btn btn-secondary btnblockaccount" value="{{account.get('account_id')}}"><i class="fa fa-ban fa-lg" aria-hidden="true"></i> Block</button>
                                             </div>
                                         </div>
                                         
@@ -70,27 +64,18 @@
 
     <!-- Modals -->
     <div>
-        {% include 'includes/managemodals/_add_account_modal.html' %}
-
         {% include 'includes/managemodals/_view_account_modal.html' %}
-
-        {% include 'includes/managemodals/_edit_account_modal.html' %}
 
         {% include 'includes/managemodals/_delete_account_modal.html' %}
 
-        {% include 'includes/managemodals/_block_account_modal.html' %}
+        {% include 'includes/managemodals/_unblock_account_modal.html' %}
     </div>
-
 {% endblock %}
 
-
 {% block layout3_script %} 
-    <script src="{{url_for('static', filename='Bleepy_UI/js/validation_validname.js')}}"></script>
-        
-    {% include 'includes/managemodals/scripts/_add_account_script.html' %}
+
     {% include 'includes/managemodals/scripts/_view_account_script.html' %}
-    {% include 'includes/managemodals/scripts/_edit_account_script.html' %}
     {% include 'includes/managemodals/scripts/_delete_account_script.html' %}
-    {% include 'includes/managemodals/scripts/_block_account_script.html' %}
+    {% include 'includes/managemodals/scripts/_unblock_account_script.html' %}
 
 {% endblock %}

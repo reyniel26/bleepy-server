@@ -1,0 +1,26 @@
+<script>
+    $("#addaccountform").validate({
+        errorElement: 'span',
+        errorClass: 'invalid',
+        rules: {
+            addfname:{
+                required: true,
+                minlength: 2,
+                validname: true
+            },
+            addlname:{
+                required: true,
+                minlength: 2,
+                validname: true
+            },
+            addemail:{
+                required: true,
+                email:true
+            },
+            addpwd:{
+                required: true,
+            }
+        }
+    });
+
+</script>

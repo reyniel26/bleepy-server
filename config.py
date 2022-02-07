@@ -26,8 +26,8 @@ class Config(object):
     AUDIO_UPLOADS_ORIG = 'media/Storage/Audios/orig'
     AUDIO_UPLOADS_LONG = 'media/Storage/Audios/long'
 
-    PHOTO_DEFAULT = 'media/Defaults/Images'
-    PHOTO_DEFAULT_USER = PHOTO_DEFAULT+'/default.jpg'
+    PHOTO_DEFAULT_FOLDER = 'media/Defaults/Images'
+    PHOTO_DEFAULTS_USER = [PHOTO_DEFAULT_FOLDER+'/default.jpg',PHOTO_DEFAULT_FOLDER+'/default.png']
     PHOTO_UPLOADS = 'media/Storage/Images'
 
     SIZE_GB = (1024*1024*1024)
@@ -38,11 +38,14 @@ class Config(object):
 
     #Defaults
     DEFAULT_ACC_PWD = 'Password1234'
+    DEFAULT_ACC_STATUS_ACTIVE = 'active'
+    DEFAULT_ACC_STATUS_BLOCKED = 'blocked'
     DEFAULT_MAX_LIMIT = 10
     DEFAULT_ATLEAST_LIMIT = 10
-    DEFAULT_EST_MULTIPLIER = 2.5
+    DEFAULT_MIN_EST = 30 #seconds
+    DEFAULT_EST_MULTIPLIER = 1.5
     DEFAULT_LANG  = 'tagalog-english'
-    DEFAULT_STT_MODEL_ENG = 'model-en'
+    DEFAULT_STT_MODEL_ENG = 'model-en22'
     DEFAULT_STT_MODEL_TAG = 'model-ph'
     DEFAULT_STT_MODELS = (DEFAULT_STT_MODEL_ENG,DEFAULT_STT_MODEL_TAG,'default')
 

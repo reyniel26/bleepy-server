@@ -1,0 +1,44 @@
+<!-- The Modal  unblock account-->
+<div class="modal fade" id="unblockaccountmodal">
+    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+    
+        <!-- Modal Header -->
+        <div class="modal-header bg-success">
+        <h4 class="modal-title">Unblock Account</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        
+        <!-- Modal body -->
+        <div class="modal-body">
+            <form action="/unblockaccount" method="post" id="unblockaccountform">
+                <input type="hidden" name="unblockaccid" id="unblockaccid">
+                <img src="" alt="account photo" id="unblockphoto" class=" img-thumbnail mx-auto d-block" style="max-height: 250px;">
+                <div class="form-group">
+                    <label for="unblockfname">First Name: <span class="invalid text-danger">*</span></label>
+                    <input type="text" class="form-control" placeholder="Enter first name" id="unblockfname" name="unblockfname" value="" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="unblocklname">Last Name: <span class="invalid text-danger">*</span></label>
+                    <input type="text" class="form-control" placeholder="Enter last name" id="unblocklname" name="unblocklname" value="" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="unblockemail">Email: <span class="invalid text-danger">*</span></label>
+                    <input type="text" class="form-control" placeholder="Enter email" id="unblockemail" name="unblockemail" value="" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="unblockrole">Role: <span class="invalid text-danger">*</span></label>
+                    <input type="text" class="form-control" placeholder="Enter role" id="unblockrole" name="unblockrole" value="" disabled>
+                </div>
+                <button class="btn btn-secondary bg-success" type="submit">Unblock</button>
+            </form>
+        </div>
+        
+        <!-- Modal footer -->
+        <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        </div>
+        
+    </div>
+    </div>
+</div>

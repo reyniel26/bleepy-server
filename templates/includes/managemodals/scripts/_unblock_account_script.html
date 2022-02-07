@@ -1,0 +1,26 @@
+<script>
+    $(".btnunblockaccount").click(function(){
+        //first block the account to be edit
+        let acc_id = $(this).val()
+        $.ajax ({
+            type:"POST",
+            url:"/viewaccount",
+            data: {
+                acc_id:acc_id
+            },
+            cache: false,
+            success:function(data){
+                $("#unblockphoto").attr("src",data.photo);
+                $('#unblockfname').val(data.fname)
+                $('#unblocklname').val(data.lname)
+                $('#unblockemail').val(data.email)
+                $('#unblockrole').val(data.role)
+                $('#unblockaccid').val(acc_id)
+                $("#unblockaccountmodal").modal();
+            },error:function(e){
+                alert("error: "+e)
+            }
+        });
+    });
+
+</script>
