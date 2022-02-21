@@ -1,0 +1,58 @@
+<!-- The Modal  Reset Password account-->
+<div class="modal fade" id="resetpwdaccountmodal">
+    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+    
+        <!-- Modal Header -->
+        <div class="modal-header bg-warning">
+        <h4 class="modal-title">Reset Password Account</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        
+        <!-- Modal body -->
+        <div class="modal-body">
+            <form action="/resetpwdaccount" method="post" id="resetpwdaccountform">
+                <input type="hidden" name="resetpwdaccid" id="resetpwdaccid">
+                <img src="" alt="account photo" id="resetpwdphoto" class=" img-thumbnail mx-auto d-block" style="max-height: 250px;">
+
+                <div class="callout callout-warning mt-3">
+                    <h5><i class="fa fa-bullhorn" aria-hidden="true"></i> Instruction</h5>
+  
+                    <p>Reset the password of an account by inputting the desired password! The default password is '{{viewdata.get('defaultpwd')}}'</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="resetpwdpwd">Password: <span class="invalid text-danger">*</span></label>
+                    <input type="text" class="form-control" placeholder="Enter Password (the default password is '{{viewdata.get('defaultpwd')}}')" id="resetpwdpwd" name="resetpwdpwd" value="{{viewdata.get('defaultpwd')}}" >
+                </div>
+
+                <hr>  Account Details: <br>
+                <div class="form-group">
+                    <label for="resetpwdfname">First Name: <span class="invalid text-danger">*</span></label>
+                    <input type="text" class="form-control" placeholder="Enter first name" id="resetpwdfname" name="resetpwdfname" value="" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="resetpwdlname">Last Name: <span class="invalid text-danger">*</span></label>
+                    <input type="text" class="form-control" placeholder="Enter last name" id="resetpwdlname" name="resetpwdlname" value="" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="resetpwdemail">Email: <span class="invalid text-danger">*</span></label>
+                    <input type="text" class="form-control" placeholder="Enter email" id="resetpwdemail" name="resetpwdemail" value="" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="resetpwdrole">Role: <span class="invalid text-danger">*</span></label>
+                    <input type="text" class="form-control" placeholder="Enter role" id="resetpwdrole" name="resetpwdrole" value="" disabled>
+                </div>
+
+                <button class="btn btn-warning" type="submit">Reset</button>
+            </form>
+        </div>
+        
+        <!-- Modal footer -->
+        <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        </div>
+        
+    </div>
+    </div>
+</div>

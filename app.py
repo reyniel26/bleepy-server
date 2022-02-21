@@ -1938,6 +1938,44 @@ def unblockaccount():
         flash('Invalid Request!', 'warning')
     return redirect(url_for('manageblockaccount'))
 
+# Reset Password Account 
+@app.route('/resetpwdaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def resetpwdaccount():
+    if request.method == "POST":
+        
+
+        acc_id = request.form.get("resetpwdaccid")
+        acc = db.selectAccountViaId(acc_id)
+
+        pwd = request.form.get("resetpwdpwd")
+
+        if not acc:
+            flash('Account doenst exist!', 'danger')
+            return redirect(url_for('manageblockaccount'))
+        
+        if not pwd:
+            flash('Password field is empty!', 'danger')
+            return redirect(url_for('manageblockaccount'))
+        
+        fullname = (str(acc.get("fname"))+" "+str(acc.get("lname"))).title()
+
+        # Reset Password process
+        
+        #hash password
+        hash_pwd = sha256_crypt.encrypt(str(pwd))
+
+        msg = db.updateAccPassword(acc_id,hash_pwd)
+
+        flashPrintsforAdmin(msg,"Message")
+
+        flash(fullname+'\'s password has been updated! ', 'success')
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(url_for('manageblockaccount'))
+
 # Manage Account 
 @app.route('/manageblockaccount')
 @testConn
@@ -1966,11 +2004,13 @@ def manageblockaccount():
     resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
     pagination = pagingControl.generatePagination(count,limit)
 
+    defaultpwd = app.config["DEFAULT_ACC_PWD"]
     return render_template('admin/manageblockaccount.html', 
     viewdata = viewData(accounts=accounts,
                         roles=roles,
                         pagination=pagination,
-                        resultbadge = resultbadge
+                        resultbadge = resultbadge,
+                        defaultpwd = defaultpwd
                         )
     )
 

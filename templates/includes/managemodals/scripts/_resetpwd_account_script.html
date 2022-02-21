@@ -1,0 +1,36 @@
+<script>
+    $(".btnresetpwdaccount").click(function(){
+        //first view the account to be resetpwd
+        let acc_id = $(this).val()
+        $.ajax ({
+            type:"POST",
+            url:"/viewaccount",
+            data: {
+                acc_id:acc_id
+            },
+            cache: false,
+            success:function(data){
+                $("#resetpwdphoto").attr("src",data.photo);
+                $('#resetpwdfname').val(data.fname)
+                $('#resetpwdlname').val(data.lname)
+                $('#resetpwdemail').val(data.email)
+                $('#resetpwdrole').val(data.role)
+                $('#resetpwdaccid').val(acc_id)
+                $("#resetpwdaccountmodal").modal();
+            },error:function(e){
+                alert("error: "+e)
+            }
+        });
+    });
+
+    $("#resetpwdaccountform").validate({
+        errorElement: 'span',
+        errorClass: 'invalid',
+        rules: {
+            resetpwdpwd:{
+                required: true,
+            }
+        }
+    });
+
+</script>
