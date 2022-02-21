@@ -696,7 +696,7 @@ def signin():
         account = db.selectAccountViaEmail(email)
 
         if not account:
-            flash('Wrong Email', 'danger')
+            flash('Incorrect Email or Password', 'danger')
             return redirect(url_for('signin'))
         
         
@@ -715,7 +715,7 @@ def signin():
         pwd_candidate = pwd
         
         if not sha256_crypt.verify(pwd_candidate, acc_pwd):
-            flash('Wrong Password', 'danger')
+            flash('Incorrect Email or Password', 'danger')
             return redirect(url_for('signin'))
 
         # #set response
