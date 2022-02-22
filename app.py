@@ -1052,7 +1052,7 @@ def deletebleepvideo():
                 os.remove("static/"+bleepvideoinfo.get('pfilelocation'))
         except Exception as e:
             flash("Problem occur while deleting the video. "+str(e),'danger')
-            return redirect(url_for('bleepvideolist'))
+            # return redirect(url_for('bleepvideolist'))
         
         #Delete Pword records
         msg = db.deleteProfanityWordsByVidId(bleepvideo_id)
@@ -1419,22 +1419,27 @@ def bleepstep2():
                 if lang.lower() == 'tagalog-english':
                     flashPrintsforAdmin("Tagalog-English","Language")
                     #Tagalog first
-                    bleepyinfo = bleepyControl.tagalogBleepVideo(audio,video)
-                    profanities.extend(bleepyinfo.get("profanities"))
+                    tagalogbleepyinfo = bleepyControl.tagalogBleepVideo(audio,video)
+                    profanities.extend(tagalogbleepyinfo.get("profanities"))
 
-                    tagalogOnlyBleepDir = bleepyinfo.get("block_directory") if bleepyinfo.get("block_directory") else ""
-                    if bleepyinfo.get("block_directory"):
-                        video.setFile(bleepyinfo.get("block_directory"))
+                    tagalogOnlyBleepDir = tagalogbleepyinfo.get("block_directory") if tagalogbleepyinfo.get("block_directory") else ""
+                    if tagalogbleepyinfo.get("block_directory"):
+                        video.setFile(tagalogbleepyinfo.get("block_directory"))
 
                     #then english
-                    bleepyinfo = bleepyControl.englishBleepVideo(audio,video)
-                    profanities.extend(bleepyinfo.get("profanities"))
+                    englishbleepyinfo = bleepyControl.englishBleepVideo(audio,video)
+                    if englishbleepyinfo.get("profanities"):
+                        profanities.extend(englishbleepyinfo.get("profanities"))
 
-                    #delete tagalog only bleep
-                    if tagalogOnlyBleepDir:
-                        if os.path.exists(tagalogOnlyBleepDir):
-                            os.remove(tagalogOnlyBleepDir)
-                            flashPrintsforAdmin("Deleted","Delete tagalog only bleep")
+                        #delete tagalog only bleep if there is detected english profanity
+                        if tagalogOnlyBleepDir:
+                            if os.path.exists(tagalogOnlyBleepDir):
+                                os.remove(tagalogOnlyBleepDir)
+                                flashPrintsforAdmin("Deleted","Delete tagalog only bleep")
+                                
+                        bleepyinfo = englishbleepyinfo
+                    else:
+                        bleepyinfo = tagalogbleepyinfo 
 
                 else:
                     flashPrintsforAdmin(lang.title(),"Language")
