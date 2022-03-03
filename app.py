@@ -1388,7 +1388,7 @@ def downloadbleepsound(path):
     try:
         bleepsound = db.selectBleepSoundById(bleepsound_id)
         file_path = "static/"+bleepsound.get("filelocation")
-        filename = bleepsound.get("filename")
+        filename = bleepsound.get("filename")+".mp3"
         return send_file(file_path,as_attachment=True,attachment_filename=filename)
     except Exception as e:
         errormsg = "Request has been denied "+str(e)
