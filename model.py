@@ -688,7 +688,10 @@ class Model:
         return self.queryUpdate("call sp_update_account_fname_by_id(%s,%s)",id,fname)
 
     def updateAccLnameById(self,id,lname):
-        return self.queryUpdate("call sp_update_account_lname_by_id(%s,%s)",id,lname)  
+        return self.queryUpdate("call sp_update_account_lname_by_id(%s,%s)",id,lname) 
+
+    def updateAccPassword(self,id,pwd):
+        return self.queryUpdate("call sp_update_account_password(%s,%s)",id,pwd) 
 
     def updateAccRoleIdById(self,id,role_id):
         return self.queryUpdate("call sp_update_account_role_id_by_id(%s,%s)",id,role_id)

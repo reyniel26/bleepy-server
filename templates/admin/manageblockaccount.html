@@ -21,6 +21,7 @@
                 <table class="table table-bordered table-hover">
                     <thead>
                         <tr>
+                            <th>Image</th>
                             <th>Name</th>
                             <th>Role</th>
                             <th>Registration Date</th>
@@ -29,16 +30,18 @@
                     <tbody>
                         {% for account in viewdata.get('accounts') %}
                             <tr data-widget="expandable-table" aria-expanded="false">
+                                <td><img src="{{url_for('static', filename=account.get('photo'))}}" alt="{{account.get('fullname')}} Image" width="50px" height="50px" class="rounded-circle mx-auto d-block"></td>
                                 <td>{{account.get('fname').title()}} {{account.get('lname').title()}}</td>
                                 <td>{{account.get('role').title()}}</td>
                                 <td>{{account.get('reg_date')}}</td>
                             </tr>
                             <tr class="expandable-body bg-white">
-                                <td colspan="3">
+                                <td colspan="4">
                                     <div>
                                         <div class="row ">
                                             <div class="col-md-10 col-12">
                                                 <button class="btn btn-info btnviewaccount" value="{{account.get('account_id')}}"><i class="fa fa-eye fa-lg" aria-hidden="true"></i> View</button>
+                                                <button class="btn btn-warning btnresetpwdaccount" value="{{account.get('account_id')}}"><i class="fa fa-key fa-lg" aria-hidden="true"></i> Reset Password</button>
                                                 <button class="btn btn-success btnunblockaccount" value="{{account.get('account_id')}}"><i class="fa fa-refresh fa-lg" aria-hidden="true"></i> Unblock</button>
                                                 <button class="btn btn-danger btndeleteaccount" value="{{account.get('account_id')}}"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> Delete</button>
                                             </div>
@@ -66,6 +69,8 @@
     <div>
         {% include 'includes/managemodals/_view_account_modal.html' %}
 
+        {% include 'includes/managemodals/_resetpwd_account_modal.html' %}
+
         {% include 'includes/managemodals/_delete_account_modal.html' %}
 
         {% include 'includes/managemodals/_unblock_account_modal.html' %}
@@ -75,6 +80,7 @@
 {% block layout3_script %} 
 
     {% include 'includes/managemodals/scripts/_view_account_script.html' %}
+    {% include 'includes/managemodals/scripts/_resetpwd_account_script.html' %}
     {% include 'includes/managemodals/scripts/_delete_account_script.html' %}
     {% include 'includes/managemodals/scripts/_unblock_account_script.html' %}
 

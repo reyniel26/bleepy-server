@@ -74,7 +74,7 @@
                         {% for users in viewdata.get('admin_data').get('latestusers') %}    
                             <tr>
                                 <td>
-                                    <img src="{{url_for('static', filename=users.get('photo'))}}" alt="{{users.get('fullname')}} Image" width="50px" height="50px">
+                                    <img src="{{url_for('static', filename=users.get('photo'))}}" alt="{{users.get('fullname')}} Image" width="50px" height="50px" class="rounded-circle">
                                 </td>
                                 <td>{{users.get("fullname").title()}}</td>
                                 <td>{{users.get("reg_date")}}</td>

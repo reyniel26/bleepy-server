@@ -38,6 +38,7 @@ tokenControl = TokenControls(app.secret_key)
 basicControl = BasicControls()
 pagingControl = PagingControl()
 processControl = ProcessControl()
+sendEmailControl = SendEmailControl()
 
 class BleepyControl():
     def customBleepVideo(self,bleepsound:AudioFile, video:VideoFile, lang:str, model:str):
@@ -105,6 +106,27 @@ def setAuth(response,**kwargs):
             )
     else:
         res.set_cookie(app.config["AUTH_TOKEN_NAME"],
+        value = "",
+        expires=0
+        )
+    return res
+
+def setVerification(response,**kwargs):
+    """
+    for forgot password for now
+    set verification token
+    email, fullcode, max_age
+    """
+    #set response
+    res = make_response(response)
+    #set cookie token
+    if kwargs.get("email") and  kwargs.get("fullcode") and kwargs.get("max_age"):
+        res.set_cookie(app.config["DEFAULT_TOKEN_VER"], 
+            value = tokenControl.generateToken(email=kwargs.get("email"),code = kwargs.get("fullcode"),validuntil=kwargs.get("max_age")),
+            max_age = kwargs.get("max_age")
+            )
+    else:
+        res.set_cookie(app.config["DEFAULT_TOKEN_VER"],
         value = "",
         expires=0
         )
@@ -607,6 +629,122 @@ def bleepsoundlist():
                         ) 
     )
 
+#Forgot Password Page
+@app.route('/forgotpassword',methods=["POST",'GET'])
+@testConn
+@isAlreadyLoggedin
+def forgotpassword():
+    if request.method == "POST":
+        email = basicControl.sanitizeEmail(request.form.get("email"))
+        ver_code = request.form.get("ver_code")
+        hasOTP = request.form.get("hasOTP")
+
+        if not email:
+            flash('Email field is empty ', 'warning')
+            return redirect(url_for('forgotpassword'))
+        
+        account = db.selectAccountViaEmail(email)
+        if not account:
+            flash('Email not exist', 'warning')
+            return redirect(url_for('forgotpassword'))
+        
+        if hasOTP:
+            #check if there is Cookies
+            if not ver_code:
+                flash('Verification code is empty ', 'warning')
+                return redirect(url_for('forgotpassword'))
+            
+            cookies = request.cookies
+            token = cookies.get(app.config["DEFAULT_TOKEN_VER"])
+
+            if not token:
+                flash('Request expired. Make new request ', 'warning')
+                return redirect(url_for('forgotpassword'))
+
+            #Verify OTP
+            tokenvalues = tokenControl.getTokenValues(token)
+
+            if not tokenvalues:
+                #The token values is None
+                flash("Invalid Authentication. No values","danger")
+                return redirect(url_for('forgotpassword'))
+            
+            
+            tokenemail = tokenvalues.get("email")
+            tokencode = tokenvalues.get("code")
+
+            if not tokenemail and tokencode:
+                flash("Invalid Authentication","danger")
+                return redirect(url_for('forgotpassword'))
+            
+            if email != tokenemail:
+                flash("Invalid Authentication. Wrong Email","danger")
+                return redirect(url_for('forgotpassword'))
+            
+            if ver_code != tokencode[0:6]:
+                flash("Invalid Verification code","danger")
+                return redirect(url_for('forgotpassword'))
+
+            return render_template('forgotpassword.html', viewdata = viewData(ischangepassword = True,email =email))
+
+        else:
+            #Set OTP code
+            isOTP = True
+            fullOTP = str(uuid.uuid1())
+            uniqueOTP = fullOTP[0:6]
+            ver_time = app.config["DEFAULT_MIN_VER_TIME"]
+            max_age = ver_time + app.config["DEFAULT_SPARE_VER_TIME"]
+
+            if not sendEmailControl.sendForgotPwdVerification(uniqueOTP,email):
+                flash('Verification not sent ', 'danger')
+                return render_template('forgotpassword.html', viewdata = viewData() )
+
+            flash('Verification code has been sent!', 'success')
+            res = setVerification(render_template('forgotpassword.html', 
+                viewdata = viewData(isOTP=isOTP, email=email,ver_time = ver_time)),
+                email=email,max_age=max_age,fullcode=fullOTP)
+            
+            return res
+        
+    return render_template('forgotpassword.html', viewdata = viewData())
+
+#Change Password Page
+@app.route('/changepassword',methods=["POST",'GET'])
+@testConn
+@isAlreadyLoggedin
+def changepassword():
+    if request.method == 'POST':
+        email = basicControl.sanitizeEmail(request.form.get("email"))
+        newpwd = request.form.get("newpwd")
+        confirmpwd = request.form.get("confirmpwd")
+
+        if not newpwd and confirmpwd and email:
+            flash('Required fields are empty ', 'warning')
+            return redirect(url_for('forgotpassword'))
+        
+        if not (newpwd == confirmpwd):
+            flash('New password and Confirm password not equal', 'warning')
+            return redirect(url_for('forgotpassword'))
+
+        account = db.selectAccountViaEmail(email)
+        if not account:
+            flash('Email not exist', 'warning')
+            return redirect(url_for('forgotpassword'))
+
+        acc_id = account.get("account_id")  
+        # Reset Password process
+        
+        #hash password
+
+        hash_pwd = sha256_crypt.encrypt(str(newpwd))
+        msg = db.updateAccPassword(acc_id,hash_pwd)
+
+        if msg:
+            flash('Password has been updated, try to log in!', 'success')
+            return redirect(url_for('signin'))
+    return redirect(url_for('forgotpassword'))
+
+
 #Signup Page
 @app.route('/signup', methods=["POST",'GET'])
 @testConn
@@ -696,7 +834,7 @@ def signin():
         account = db.selectAccountViaEmail(email)
 
         if not account:
-            flash('Wrong Email', 'danger')
+            flash('Incorrect Email or Password', 'danger')
             return redirect(url_for('signin'))
         
         
@@ -715,7 +853,7 @@ def signin():
         pwd_candidate = pwd
         
         if not sha256_crypt.verify(pwd_candidate, acc_pwd):
-            flash('Wrong Password', 'danger')
+            flash('Incorrect Email or Password', 'danger')
             return redirect(url_for('signin'))
 
         # #set response
@@ -1052,7 +1190,7 @@ def deletebleepvideo():
                 os.remove("static/"+bleepvideoinfo.get('pfilelocation'))
         except Exception as e:
             flash("Problem occur while deleting the video. "+str(e),'danger')
-            return redirect(url_for('bleepvideolist'))
+            # return redirect(url_for('bleepvideolist'))
         
         #Delete Pword records
         msg = db.deleteProfanityWordsByVidId(bleepvideo_id)
@@ -1250,7 +1388,7 @@ def downloadbleepsound(path):
     try:
         bleepsound = db.selectBleepSoundById(bleepsound_id)
         file_path = "static/"+bleepsound.get("filelocation")
-        filename = bleepsound.get("filename")
+        filename = bleepsound.get("filename")+".mp3"
         return send_file(file_path,as_attachment=True,attachment_filename=filename)
     except Exception as e:
         errormsg = "Request has been denied "+str(e)
@@ -1419,22 +1557,27 @@ def bleepstep2():
                 if lang.lower() == 'tagalog-english':
                     flashPrintsforAdmin("Tagalog-English","Language")
                     #Tagalog first
-                    bleepyinfo = bleepyControl.tagalogBleepVideo(audio,video)
-                    profanities.extend(bleepyinfo.get("profanities"))
+                    tagalogbleepyinfo = bleepyControl.tagalogBleepVideo(audio,video)
+                    profanities.extend(tagalogbleepyinfo.get("profanities"))
 
-                    tagalogOnlyBleepDir = bleepyinfo.get("block_directory") if bleepyinfo.get("block_directory") else ""
-                    if bleepyinfo.get("block_directory"):
-                        video.setFile(bleepyinfo.get("block_directory"))
+                    tagalogOnlyBleepDir = tagalogbleepyinfo.get("block_directory") if tagalogbleepyinfo.get("block_directory") else ""
+                    if tagalogbleepyinfo.get("block_directory"):
+                        video.setFile(tagalogbleepyinfo.get("block_directory"))
 
                     #then english
-                    bleepyinfo = bleepyControl.englishBleepVideo(audio,video)
-                    profanities.extend(bleepyinfo.get("profanities"))
+                    englishbleepyinfo = bleepyControl.englishBleepVideo(audio,video)
+                    if englishbleepyinfo.get("profanities"):
+                        profanities.extend(englishbleepyinfo.get("profanities"))
 
-                    #delete tagalog only bleep
-                    if tagalogOnlyBleepDir:
-                        if os.path.exists(tagalogOnlyBleepDir):
-                            os.remove(tagalogOnlyBleepDir)
-                            flashPrintsforAdmin("Deleted","Delete tagalog only bleep")
+                        #delete tagalog only bleep if there is detected english profanity
+                        if tagalogOnlyBleepDir:
+                            if os.path.exists(tagalogOnlyBleepDir):
+                                os.remove(tagalogOnlyBleepDir)
+                                flashPrintsforAdmin("Deleted","Delete tagalog only bleep")
+                                
+                        bleepyinfo = englishbleepyinfo
+                    else:
+                        bleepyinfo = tagalogbleepyinfo 
 
                 else:
                     flashPrintsforAdmin(lang.title(),"Language")
@@ -1938,6 +2081,44 @@ def unblockaccount():
         flash('Invalid Request!', 'warning')
     return redirect(url_for('manageblockaccount'))
 
+# Reset Password Account 
+@app.route('/resetpwdaccount',methods=["POST",'GET'])
+@testConn
+@authentication
+@isAdmin
+def resetpwdaccount():
+    if request.method == "POST":
+        
+
+        acc_id = request.form.get("resetpwdaccid")
+        acc = db.selectAccountViaId(acc_id)
+
+        pwd = request.form.get("resetpwdpwd")
+
+        if not acc:
+            flash('Account doenst exist!', 'danger')
+            return redirect(url_for('manageblockaccount'))
+        
+        if not pwd:
+            flash('Password field is empty!', 'danger')
+            return redirect(url_for('manageblockaccount'))
+        
+        fullname = (str(acc.get("fname"))+" "+str(acc.get("lname"))).title()
+
+        # Reset Password process
+        
+        #hash password
+        hash_pwd = sha256_crypt.encrypt(str(pwd))
+
+        msg = db.updateAccPassword(acc_id,hash_pwd)
+
+        flashPrintsforAdmin(msg,"Message")
+
+        flash(fullname+'\'s password has been updated! ', 'success')
+    else:
+        flash('Invalid Request!', 'warning')
+    return redirect(url_for('manageblockaccount'))
+
 # Manage Account 
 @app.route('/manageblockaccount')
 @testConn
@@ -1966,11 +2147,13 @@ def manageblockaccount():
     resultbadge = pagingControl.generateResultBadge(count,limit,offset,search)
     pagination = pagingControl.generatePagination(count,limit)
 
+    defaultpwd = app.config["DEFAULT_ACC_PWD"]
     return render_template('admin/manageblockaccount.html', 
     viewdata = viewData(accounts=accounts,
                         roles=roles,
                         pagination=pagination,
-                        resultbadge = resultbadge
+                        resultbadge = resultbadge,
+                        defaultpwd = defaultpwd
                         )
     )
 

@@ -40,6 +40,9 @@ class Config(object):
     DEFAULT_ACC_PWD = 'Password1234'
     DEFAULT_ACC_STATUS_ACTIVE = 'active'
     DEFAULT_ACC_STATUS_BLOCKED = 'blocked'
+    DEFAULT_MIN_VER_TIME = 300 #verification time
+    DEFAULT_SPARE_VER_TIME = 60 #spare time for verification
+    DEFAULT_TOKEN_VER = "tkntkntkn"
     DEFAULT_MAX_LIMIT = 10
     DEFAULT_ATLEAST_LIMIT = 10
     DEFAULT_MIN_EST = 30 #seconds

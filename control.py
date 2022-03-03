@@ -3,6 +3,11 @@ import jwt
 #
 import subprocess
 
+from send_email.formats.verification_code import verification_code_msg
+from send_email.message import Message, verificationTextFormatter
+from send_email.send_email import sendEmail
+
+
 class Controls:
     pass
 
@@ -90,4 +95,15 @@ class ProcessControl():
             data = process.stdout.read(4000)
             if len(data) == 0:
                 break
-    
+
+class SendEmailControl():
+    def sendForgotPwdVerification(self,ver_code,email):
+        request_details = "You are requesting to forgot your password"
+        request_code = ver_code
+
+        message = Message()
+        message.subject = "Bleepy Forgot Password Verification"
+        message.receiver_email = email
+        message.text = verificationTextFormatter(request_details,request_code)
+        message.html = verification_code_msg(message.subject,request_details,request_code)
+        return sendEmail(message)

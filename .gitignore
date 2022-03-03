@@ -9,3 +9,5 @@ stt-language-models/
 test.py
 
 documentation/
+
+.env
