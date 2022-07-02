@@ -13,7 +13,7 @@ numpy==1.22.3
 passlib==1.7.4
 protobuf==3.19.4
 pycparser==2.21
-PyJWT==2.3.0
+PyJWT==2.4.0
 python-dotenv==0.19.2
 scikit-learn==1.0.2
 scipy==1.8.0
