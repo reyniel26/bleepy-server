@@ -16,7 +16,7 @@ pycparser==2.21
 PyJWT==2.4.0
 python-dotenv==0.19.2
 scikit-learn==1.0.2
-scipy==1.8.0
+scipy==1.10.0
 threadpoolctl==3.1.0
 vosk==0.3.32
 Werkzeug==2.2.3
